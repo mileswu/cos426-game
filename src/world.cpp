@@ -29,10 +29,14 @@ void World::Emit(R3Vector camera_direction) {
   b->v += 0.1*camera_direction;
   
   Bubble *b2 = new Bubble();
-  b2->pos = b->pos;
+  b2->pos = b->pos - camera_direction*b->size;
   b2->v = orig_v - 0.6*camera_direction;
   b2->size = 0.1;
   bubbles.push_back(b2);
+}
+
+R3Point World::PlayerPosition() {
+  return bubbles[0]->pos;
 }
 
 void World::Simulate() {
@@ -62,9 +66,7 @@ void World::Simulate() {
   }
 }
 
-void World::Draw() {
-  Simulate();
-  
+void World::Draw() {  
   glEnable(GL_LIGHTING);
   GLfloat c[4];
   c[0] = 1; c[1] = 0; c[2] = 0; c[3] = 1;

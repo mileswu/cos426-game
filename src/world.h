@@ -9,6 +9,8 @@ class World {
     void Simulate();
     void Emit(R3Vector camera_direction);
     
+    R3Point PlayerPosition();
+    
   private:
     std::vector<Bubble *> bubbles;
     struct timeval lasttime_updated;

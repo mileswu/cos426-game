@@ -8,6 +8,7 @@ static World *world = NULL;
 static int window_height = 500;
 static int window_width = 500;
 static R3Camera camera;
+static double fps = 60;
 
 void RedrawWindow() {
   glClearColor(0, 0, 0, 1);
@@ -26,6 +27,10 @@ void RedrawWindow() {
   //c[0] = 0.2; c[1] = 0.2; c[2] = 0.2; c[3] = 1;  
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, c);
   
+  R3Vector cameradisplacement_before = world->PlayerPosition() - camera.eye;
+  world->Simulate();
+  R3Vector cameradisplacement_after = world->PlayerPosition() - camera.eye;
+  camera.eye.Translate(cameradisplacement_after - cameradisplacement_before);
   camera.Load(window_width, window_height);
   
   glDisable(GL_LIGHTING);
@@ -44,7 +49,7 @@ void KeyboardInput(unsigned char key, int x, int y) {
 
 void SpecialInput(int key, int x, int y) {
   if(key == GLUT_KEY_UP || key == GLUT_KEY_DOWN) {
-    R3Point scene_center(0,0,0);
+    R3Point scene_center = world->PlayerPosition();
     R3Vector v = scene_center - camera.eye;
     if(key == GLUT_KEY_UP) {
       v = -0.2*v;
@@ -68,7 +73,7 @@ void MouseMovement(int x, int y) {
   int dx = x - window_width/2;
   int dy = y - window_height/2;
     
-  R3Point scene_center(0,0,0);
+  R3Point scene_center = world->PlayerPosition();
   
   double vx = (double) dx / (double) window_width;
   double vy = (double) dy / (double) window_height;
@@ -93,8 +98,9 @@ void MouseMovement(int x, int y) {
   glutPostRedisplay();
 }
 
-void IdleLoop() {
+void TimerFunc(int stuff) {
   glutPostRedisplay();
+  glutTimerFunc(1000.0/fps, TimerFunc, stuff);
 }
 
 int CreateWindow() {
@@ -115,7 +121,10 @@ int CreateWindow() {
   glutMouseFunc(MouseInput);
   glutPassiveMotionFunc(MouseMovement);
   
-  glutIdleFunc(IdleLoop);/*
+  //glutIdleFunc(IdleLoop);
+  glutTimerFunc(1000.0/fps, TimerFunc, 0);
+  
+  /*
   glutReshapeFunc(GLUTResize);*/
   glutSpecialFunc(SpecialInput);
   

@@ -5,6 +5,14 @@ Bubble::Bubble() {
     
 }
 
+double Bubble::Mass() {
+  return pow(size, 3);
+}
+
+void Bubble::SetSizeFromMass(double mass) {
+  size = pow(mass, 1.0/3.0);
+}
+
 void Bubble::Draw() {
   glPushMatrix();
   glTranslated(pos[0], pos[1], pos[2]);

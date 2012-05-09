@@ -10,6 +10,9 @@ class Bubble {
     double size;
     void Draw();
     
+    double Mass();
+    void SetSizeFromMass(double mass);
+    
     
   private:
   
