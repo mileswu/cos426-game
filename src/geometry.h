@@ -449,3 +449,15 @@ operator!=(const R3Point& point) const
   // Return whether point is not equal
   return ((v[0] != point.v[0]) || (v[1] != point.v[1]) || (v[2] != point.v[2]));
 }
+
+class R3Camera {
+  public:
+    R3Point eye;
+    R3Vector towards;
+    R3Vector right;
+    R3Vector up;
+    double xfov, yfov;
+    double neardist, fardist;
+    
+    void Load(int width, int height);
+};
