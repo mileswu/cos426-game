@@ -123,7 +123,7 @@ Project(const R3Vector& vector)
 }
 
 
-
+/*
 void R3Vector::
 Project(const R3Plane& plane) 
 {
@@ -159,7 +159,7 @@ InverseTransform(const R3Matrix& matrix)
   *this = matrix.Inverse() * (*this);
 }
 
-
+*/
 
 R3Vector& R3Vector::
 operator=(const R3Vector& vector)
@@ -426,7 +426,7 @@ Translate (const R3Vector& vector)
 }
 
 
-
+/*
 void R3Point::
 Project(const R3Line& line)
 {
@@ -459,7 +459,7 @@ Mirror(const R3Plane& plane)
   *this += plane.Normal() * (-2.0 * d);
 }
 
-
+*/
 
 void R3Point::
 Rotate(const R3Vector& axis, double theta)
@@ -470,7 +470,7 @@ Rotate(const R3Vector& axis, double theta)
   *this = v.Point();
 }
 
-
+/*
 
 void R3Point::
 Rotate(const R3Line& axis, double theta)
@@ -501,7 +501,7 @@ InverseTransform(const R3Matrix& matrix)
 {
   // Transform point by inverse
   *this = matrix.Inverse() * (*this);
-}
+}*/
 
 
 

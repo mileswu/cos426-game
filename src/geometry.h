@@ -1,5 +1,12 @@
+#include <stdio.h>
+#include <math.h>
+#include <assert.h>
 class R3Point;
 class R3Vector;
+
+#define R3_X 0
+#define R3_Y 1
+#define R3_Z 2
 
 class R3Vector {
  public:
@@ -8,6 +15,8 @@ class R3Vector {
   R3Vector(const R3Vector& vector);
   R3Vector(double x, double y, double z);
   R3Vector(const double array[3]);
+  R3Vector(double pitch, double yaw);
+  
   // Coordinate access
   double X(void) const;
   double Y(void) const;
@@ -38,10 +47,10 @@ class R3Vector {
   void Cross(const R3Vector& vector);
   void Rotate(const R3Vector& axis, double theta);
   void Project(const R3Vector& vector);
-  void Project(const R3Plane& plane);
+  /*void Project(const R3Plane& plane);
   void Mirror(const R3Plane& plane);
   void Transform(const R3Matrix& matrix);
-  void InverseTransform(const R3Matrix& matrix);
+  void InverseTransform(const R3Matrix& matrix);*/
   void Reset(double x, double y, double z);
 
   // Assignment operators
@@ -71,6 +80,75 @@ class R3Vector {
  private:
   double v[3];
 };
+
+class R3Point {
+ public:
+  // Constructors
+  R3Point(void);
+  R3Point(const R3Point& point);
+  R3Point(double x, double y, double z);
+  R3Point(const double array[3]);
+
+  // Coordinate access
+  double X(void) const;
+  double Y(void) const;
+  double Z(void) const;
+  double operator[](int dim) const;
+  double& operator[](int dim);
+
+  // Properties
+  bool IsZero(void) const;
+  R3Vector Vector(void) const;
+  bool operator==(const R3Point& point) const;
+  bool operator!=(const R3Point& point) const;
+
+  // Manipulation functions
+  void SetX(double x);
+  void SetY(double y);
+  void SetZ(double z);
+  void SetCoord(int dim, double coord);
+  void Translate(const R3Vector& vector);
+  /*void Project(const R3Line& line);
+  void Project(const R3Plane& plane);
+  void Mirror(const R3Plane& plane);*/
+  void Rotate(const R3Vector& axis, double theta);
+  /*void Rotate(const R3Line& axis, double theta);
+  void Transform(const R3Matrix& matrix);
+  void InverseTransform(const R3Matrix& matrix);*/
+  void Reset(double x, double y, double z);
+
+  // Assignment operators
+  R3Point& operator=(const R3Point& point);
+  R3Point& operator+=(const R3Point& point);
+  R3Point& operator+=(const R3Vector& vector);
+  R3Point& operator-=(const R3Vector& vector);
+  R3Point& operator*=(const double a);
+  R3Point& operator/=(const double a);
+
+  // Arithmetic operators
+  friend R3Point operator-(const R3Point& point);
+  friend R3Point operator+(const R3Point& point1, const R3Point& point2);
+  friend R3Point operator+(const R3Point& point, const R3Vector& vector);
+  friend R3Point operator+(const R3Vector& vector, const R3Point& point);
+  friend R3Vector operator-(const R3Point& point1, const R3Point& point2);
+  friend R3Point operator-(const R3Point& point, const R3Vector& vector);
+  friend R3Point operator*(const R3Point& point, const double a);
+  friend R3Point operator*(const double a, const R3Point& point);
+  friend R3Point operator/(const R3Point& point, const double a);
+
+  // Output functions
+  void Print(FILE *fp = stdout) const;
+
+ private:
+  double v[3];
+};
+
+
+
+
+
+
+// Inline functions 
 
 inline double R3Vector::
 X (void) const
@@ -252,87 +330,6 @@ Reset(double x, double y, double z)
   v[1] = y;
   v[2] = z;
 }
-
-
-class R3Point {
- public:
-  // Constructors
-  R3Point(void);
-  R3Point(const R3Point& point);
-  R3Point(double x, double y, double z);
-  R3Point(const double array[3]);
-
-  // Coordinate access
-  double X(void) const;
-  double Y(void) const;
-  double Z(void) const;
-  double operator[](int dim) const;
-  double& operator[](int dim);
-
-  // Properties
-  bool IsZero(void) const;
-  R3Vector Vector(void) const;
-  bool operator==(const R3Point& point) const;
-  bool operator!=(const R3Point& point) const;
-
-  // Manipulation functions
-  void SetX(double x);
-  void SetY(double y);
-  void SetZ(double z);
-  void SetCoord(int dim, double coord);
-  void Translate(const R3Vector& vector);
-  void Project(const R3Line& line);
-  void Project(const R3Plane& plane);
-  void Mirror(const R3Plane& plane);
-  void Rotate(const R3Vector& axis, double theta);
-  void Rotate(const R3Line& axis, double theta);
-  void Transform(const R3Matrix& matrix);
-  void InverseTransform(const R3Matrix& matrix);
-  void Reset(double x, double y, double z);
-
-  // Assignment operators
-  R3Point& operator=(const R3Point& point);
-  R3Point& operator+=(const R3Point& point);
-  R3Point& operator+=(const R3Vector& vector);
-  R3Point& operator-=(const R3Vector& vector);
-  R3Point& operator*=(const double a);
-  R3Point& operator/=(const double a);
-
-  // Arithmetic operators
-  friend R3Point operator-(const R3Point& point);
-  friend R3Point operator+(const R3Point& point1, const R3Point& point2);
-  friend R3Point operator+(const R3Point& point, const R3Vector& vector);
-  friend R3Point operator+(const R3Vector& vector, const R3Point& point);
-  friend R3Vector operator-(const R3Point& point1, const R3Point& point2);
-  friend R3Point operator-(const R3Point& point, const R3Vector& vector);
-  friend R3Point operator*(const R3Point& point, const double a);
-  friend R3Point operator*(const double a, const R3Point& point);
-  friend R3Point operator/(const R3Point& point, const double a);
-
-  // Output functions
-  void Print(FILE *fp = stdout) const;
-
- private:
-  double v[3];
-};
-
-
-
-// Public variables 
-
-extern const R3Point R3null_point;
-extern const R3Point R3ones_point;
-extern const R3Point R3posx_point;
-extern const R3Point R3posy_point;
-extern const R3Point R3posz_point;
-extern const R3Point R3negx_point;
-extern const R3Point R3negy_point;
-extern const R3Point R3negz_point;
-#define R3zero_point R3null_point
-
-
-
-// Inline functions 
 
 inline double R3Point::
 X (void) const
