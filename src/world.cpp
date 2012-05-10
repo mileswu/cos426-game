@@ -22,6 +22,11 @@ World::World() {
   b->size = 0.4;
   bubbles.push_back(b);
   
+  // Initialize time
+  lasttime_updated.tv_sec = 0;
+  lasttime_updated.tv_usec = 0;
+
+  
 }
 
 void World::Emit(R3Vector camera_direction) {
@@ -61,9 +66,13 @@ void World::PrintPlayerStatus() {
 
 void World::Simulate() {
   struct timeval curtime;
+  double timestep = 0;
   gettimeofday(&curtime, NULL);
-  double timestep = (curtime.tv_sec - lasttime_updated.tv_sec) + 1.0E-6F * (curtime.tv_usec - lasttime_updated.tv_usec);
+  if(lasttime_updated.tv_sec != 0) {
+    timestep = (curtime.tv_sec - lasttime_updated.tv_sec) + 1.0E-6F * (curtime.tv_usec - lasttime_updated.tv_usec);
+  }
   lasttime_updated = curtime;
+  
   
   // A calculation
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
