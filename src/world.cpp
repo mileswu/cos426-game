@@ -17,7 +17,7 @@ World::World() {
     bubbles.push_back(b);
   }
   Bubble *b = new Bubble();
-  b->pos = R3Point(0,0,1);
+  b->pos = R3Point(0,0,3);
   b->v = R3Vector(0,0,0);
   b->size = 0.4;
   bubbles.push_back(b);

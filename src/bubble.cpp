@@ -4,18 +4,21 @@
 using namespace std;
 
 Bubble::Bubble() {
-    
+  density = 1.0;
 }
 
 double Bubble::Mass() {
-  return pow(size, 3);
+  return 4.0/3.0*M_PI*pow(size,3.0)*density;
+  return pow(size,3.0);
 }
 
 void Bubble::SetSizeFromMass(double mass) {
-  size = pow(mass, 1.0/3.0);
+  size = pow(3.0*mass/4.0/M_PI/density, 1.0/3.0);
 }
 
 int Bubble::Collides(Bubble *otherbubble) {
+  // WARNING: This equation has not updated for non-unity densities
+  
   double d = (otherbubble->pos - pos).Length(); //distance between centers
   
   if(d >= otherbubble->size + size)
@@ -26,7 +29,7 @@ int Bubble::Collides(Bubble *otherbubble) {
   // Solve sphere equalization equation
   double quadratic_a = 3.0*d;
   double quadratic_b = -3.0*d*d;
-  double quadratic_c = d*d*d - v_total;
+  double quadratic_c = d*d*d - v_total/(4.0/3.0*M_PI);
   double new_size = (-quadratic_b + sqrt(quadratic_b*quadratic_b - 4.0*quadratic_a*quadratic_c))/2.0/quadratic_a;
     
   if(new_size < d - new_size ) { // Swap so larger is new_size
