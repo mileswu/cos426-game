@@ -4,9 +4,7 @@
 
 using namespace std;
 
-int main(int argc, char **argv) {
-  cout << "Hi" << endl;
-  
+int main(int argc, char **argv) {  
   CreateWindow();
   glutMainLoop();
   

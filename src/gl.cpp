@@ -63,10 +63,8 @@ void SpecialInput(int key, int x, int y) {
 
 void MouseInput(int button, int state, int x, int y) {
   if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-    cout << "Emit stuff" << endl;
     world->Emit(camera.towards);
   }
-  cout << "Mouse button pressed: " << button << endl;
 }
 
 void MouseMovement(int x, int y) {
