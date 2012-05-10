@@ -3,6 +3,7 @@
 
 
 class Bubble;
+class World;
 
 
 // Each bubble owns an instance of AI (could be NULL).
