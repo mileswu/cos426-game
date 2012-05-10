@@ -9,7 +9,6 @@ Bubble::Bubble() {
 
 double Bubble::Mass() {
   return 4.0/3.0*M_PI*pow(size,3.0)*density;
-  return pow(size,3.0);
 }
 
 void Bubble::SetSizeFromMass(double mass) {
