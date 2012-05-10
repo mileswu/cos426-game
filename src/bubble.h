@@ -13,6 +13,7 @@ class Bubble {
     double Mass();
     void SetSizeFromMass(double mass);
     
+    int Collides(Bubble *otherbubble);
     
   private:
   

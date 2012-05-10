@@ -1,10 +1,14 @@
 #include "world.h"
 #include "gl.h"
 #include <iostream>
+#include <map>
+
 using namespace std;
 
+static double emission_speed = 5.0;
+static double emission_sizefactor = 0.05;
+
 World::World() {
-  cout << "Initializing World" << endl;
   for(int i=0; i<1; i++) {
     Bubble *b = new Bubble();
     b->pos = R3Point(0,0,0);
@@ -21,18 +25,22 @@ World::World() {
 }
 
 void World::Emit(R3Vector camera_direction) {
-  
+  camera_direction.Normalize();
   Bubble *b = bubbles[0];
+  
+  double total_mass = b->Mass();
+  R3Vector total_momentum = b->Mass() * b->v;
   R3Vector orig_v = b->v;
   
-  camera_direction.Normalize();
-  b->v += 0.1*camera_direction;
+  Bubble *b_emitted = new Bubble();
+  bubbles.push_back(b_emitted);
+  b_emitted->SetSizeFromMass(total_mass*emission_sizefactor);
+  b->SetSizeFromMass(total_mass*(1-emission_sizefactor));
   
-  Bubble *b2 = new Bubble();
-  b2->pos = b->pos - camera_direction*b->size;
-  b2->v = orig_v - 0.6*camera_direction;
-  b2->size = 0.1;
-  bubbles.push_back(b2);
+  b_emitted->pos = b->pos - camera_direction*(b->size + b_emitted->size);
+  b_emitted->v = orig_v - emission_speed*camera_direction;
+
+  b->v = (total_momentum - b_emitted->Mass()*b_emitted->v)/b->Mass();
 }
 
 R3Point World::PlayerPosition() {
@@ -58,10 +66,26 @@ void World::Simulate() {
   // P update
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
     (*it)->pos += (*it)->v*timestep;
-    
+  }
+  
+  // Collisions
+  map< pair<Bubble *, Bubble *>, int > collisionpairs;
+  for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {  
     for(vector<Bubble *>::iterator it2=bubbles.begin(); it2 < bubbles.end(); it2++) {
       if(it == it2) continue;
-      // Check for collisions
+      //Prevent pairs being considered bothways round
+      if(collisionpairs.count(make_pair(*it, *it2)) == 1) continue;
+      
+      int retval = (*it)->Collides(*it2);
+      if(retval == -1) {
+        it = bubbles.erase(it);
+      }
+      else if(retval == -2) {
+        it2 = bubbles.erase(it2);  
+      } else {
+        collisionpairs[make_pair(*it, *it2)] = 1;
+        collisionpairs[make_pair(*it2, *it)] = 1;
+      }
     }
   }
 }
