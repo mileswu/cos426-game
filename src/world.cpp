@@ -118,7 +118,28 @@ void World::Draw() {
   glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
   
+  double player_size = bubbles[0]->size;
+  
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
+    if(it == bubbles.begin()) {
+      c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
+    }
+    else {
+      double s = (*it)->size;
+      if(s < 0.8*player_size) {
+        c[0] = 0; c[1] = 1; c[2] = 0; c[3] = 1;
+      }
+      else if(s > 1.2*player_size) {
+        c[0] = 1; c[1] = 0; c[2] = 0; c[3] = 1;
+      }
+      else {
+        double f = (s - 0.8*player_size)/(0.4*player_size);
+        c[0] = f; c[1] = 1-f; c[2] = 0; c[3] = 1;
+      }
+    }
+    
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
     (*it)->Draw();
   }
   glDisable(GL_LIGHTING);
