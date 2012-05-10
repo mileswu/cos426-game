@@ -47,6 +47,18 @@ R3Point World::PlayerPosition() {
   return bubbles[0]->pos;
 }
 
+void World::PrintPlayerStatus() {
+  cout << "Player size: " << bubbles[0]->size << endl;
+  cout << "Bubbles left (excluding yourself): " << bubbles.size() - 1 << endl;
+  double max_size = 0;
+  for(vector<Bubble *>::iterator it=bubbles.begin()+1; it < bubbles.end(); it++) {
+    if((*it)->size > max_size) {
+      max_size = (*it)->size;
+    }
+  }
+  cout << "Largest bubble size (excluding yourself): " << max_size << endl;
+}
+
 void World::Simulate() {
   struct timeval curtime;
   gettimeofday(&curtime, NULL);

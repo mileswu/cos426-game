@@ -44,6 +44,8 @@ void RedrawWindow() {
 void KeyboardInput(unsigned char key, int x, int y) {
   if(key == 'q')
     exit(0);
+  if(key == 's')
+    world->PrintPlayerStatus();
   cout << "Key pressed: " << key << endl;
 }
 

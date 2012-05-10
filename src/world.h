@@ -10,6 +10,7 @@ class World {
     void Emit(R3Vector camera_direction);
     
     R3Point PlayerPosition();
+    void PrintPlayerStatus();
     
   private:
     std::vector<Bubble *> bubbles;
