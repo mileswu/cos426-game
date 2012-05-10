@@ -113,22 +113,14 @@ void World::Simulate() {
   }
   
   // Collisions
-  map< pair<Bubble *, Bubble *>, int > collisionpairs;
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {  
-    for(vector<Bubble *>::iterator it2=bubbles.begin(); it2 < bubbles.end(); it2++) {
-      if(it == it2) continue;
-      //Prevent pairs being considered bothways round
-      if(collisionpairs.count(make_pair(*it, *it2)) == 1) continue;
-      
+    for(vector<Bubble *>::iterator it2=it+1; it2 < bubbles.end(); it2++) {      
       int retval = (*it)->Collides(*it2);
       if(retval == -1) {
         it = bubbles.erase(it);
       }
       else if(retval == -2) {
         it2 = bubbles.erase(it2);  
-      } else {
-        collisionpairs[make_pair(*it, *it2)] = 1;
-        collisionpairs[make_pair(*it2, *it)] = 1;
       }
     }
   }
