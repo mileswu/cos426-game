@@ -16,6 +16,7 @@ class Bubble {
     R3Vector a;
     double size;
     double density;
+    int player_id;
     
   private:
   

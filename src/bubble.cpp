@@ -4,7 +4,12 @@
 using namespace std;
 
 Bubble::Bubble() {
+  //Initialize sane defaults
   density = 1.0;
+  player_id = -1;
+  pos = R3Point(0,0,0);
+  v = R3Vector(0,0,0);
+  size = 1;
 }
 
 double Bubble::Mass() {
@@ -17,11 +22,11 @@ void Bubble::SetSizeFromMass(double mass) {
 
 int Bubble::Collides(Bubble *otherbubble) {
   double d = (otherbubble->pos - pos).Length(); //distance between centers
-  double v_total = Mass() + otherbubble->Mass();
   
   if(d >= otherbubble->size + size)
     return 0; // No collision
   
+  double v_total = Mass() + otherbubble->Mass();
   Bubble *bigger, *smaller;
   int bigger_this; //Is 'this' bigger? or smaller?
   if(size > otherbubble->size) {
