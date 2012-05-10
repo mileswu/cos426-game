@@ -16,47 +16,53 @@ void Bubble::SetSizeFromMass(double mass) {
 }
 
 int Bubble::Collides(Bubble *otherbubble) {
-  // WARNING: This equation has not updated for non-unity densities
-  
   double d = (otherbubble->pos - pos).Length(); //distance between centers
+  double v_total = Mass() + otherbubble->Mass();
   
   if(d >= otherbubble->size + size)
     return 0; // No collision
   
-  double v_total = Mass() + otherbubble->Mass();
-  
-  // Solve sphere equalization equation
-  double quadratic_a = 3.0*d;
-  double quadratic_b = -3.0*d*d;
-  double quadratic_c = d*d*d - v_total/(4.0/3.0*M_PI);
-  double new_size = (-quadratic_b + sqrt(quadratic_b*quadratic_b - 4.0*quadratic_a*quadratic_c))/2.0/quadratic_a;
-    
-  if(new_size < d - new_size ) { // Swap so larger is new_size
-    new_size = d - new_size;
-  }
-  
+  Bubble *bigger, *smaller;
+  int bigger_this; //Is 'this' bigger? or smaller?
   if(size > otherbubble->size) {
-    size = new_size;
-    otherbubble->size = d - new_size;
+    bigger_this = 1;
+    bigger = this;
+    smaller = otherbubble;
   }
   else {
-    size = d - new_size;
-    otherbubble->size = new_size;
+    bigger_this = 0;
+    smaller = this;
+    bigger = otherbubble;
   }
   
-  /*cout << "d: " << d << " size: " << size + otherbubble->size << endl;
-  cout << "mass b: " << v_total << " mass now: " << Mass() + otherbubble->Mass() << endl;*/
+  double bigger_mass_upperbound = v_total;
+  double bigger_mass_lowerbound = bigger->Mass();
   
-  if(otherbubble->size < 0) { //Other absorbed fully
-    SetSizeFromMass(v_total);
-    return -2;
+  // See if smaller one is totally absorbed
+  bigger->SetSizeFromMass(v_total);
+  if(d < bigger->size) {
+    if(bigger_this) {
+      return -2; //The other one was absorbed
+    }
+    else {
+      return -1; //'this' was the smaller one that was absorbed
+    }
   }
-  else if(size < 0) { //Absorbed fully
-    otherbubble->SetSizeFromMass(v_total);
-    return -1;
+  
+  // Midpoint bisection to find solution
+  for(int i=0;i<100;i++) { //100 iterations probably sufficient to find solution
+    double bigger_mass_midpoint = 0.5 * (bigger_mass_upperbound + bigger_mass_lowerbound);
+    bigger->SetSizeFromMass(bigger_mass_midpoint);
+    smaller->SetSizeFromMass(v_total - bigger_mass_midpoint);
+    if(d < bigger->size + smaller->size) {
+      bigger_mass_lowerbound = bigger_mass_midpoint;
+    }
+    else {
+      bigger_mass_upperbound = bigger_mass_midpoint;
+    }
   }
-  else //Normal collision
-    return 1;
+  
+  return 1;
 }
 
 void Bubble::Draw() {
