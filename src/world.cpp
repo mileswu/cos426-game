@@ -8,19 +8,42 @@ using namespace std;
 static double emission_speed = 5.0;
 static double emission_sizefactor = 0.05;
 
+double rand(double max, int plusminus = 0, double min = 0) {
+  double retval = ((double)rand())/RAND_MAX;
+  retval *= max-min;
+  retval += min;
+  if(plusminus == 1 && rand()%2 == 0)
+    retval *= -1;
+  return retval;
+}
+
+R3Vector randvector(double max, double min = 0) {
+  for(;;) {
+    R3Vector retval(rand(max, 1), rand(max, 1), rand(max, 1));
+    if(retval.Length() < max && retval.Length() > min)
+      return retval;
+  }
+}
+
+
+R3Point randpoint(double max, double min = 0) {
+  return randvector(max, min).Point();
+}
+
+
 World::World() {
-  for(int i=0; i<1; i++) {
-    Bubble *b = new Bubble();
-    b->pos = R3Point(0,0,0);
-    b->v = R3Vector(0,0,0);
-    b->size = 1;
+  //Player bubble
+  Bubble *b = new Bubble();
+  b->player_id = 0;
+  bubbles.push_back(b);
+  
+  for(int i=0; i<200; i++) {
+    b = new Bubble();
+    b->pos = randpoint(30);
+    b->v = randvector(0.1);
+    b->size = rand(1.2, 0.1);
     bubbles.push_back(b);
   }
-  Bubble *b = new Bubble();
-  b->pos = R3Point(0,0,3);
-  b->v = R3Vector(0,0,0);
-  b->size = 0.4;
-  bubbles.push_back(b);
   
   // Initialize time
   lasttime_updated.tv_sec = 0;
