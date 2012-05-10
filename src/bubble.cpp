@@ -6,10 +6,11 @@ Bubble::Bubble() {
 }
 
 double Bubble::Mass() {
-  return pow(size, 3);
+  return mass;
 }
 
 void Bubble::SetSizeFromMass(double mass) {
+  this->mass = mass;
   size = pow(mass, 1.0/3.0);
 }
 
