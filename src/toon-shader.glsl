@@ -1,5 +1,3 @@
-uniform sampler2D tex;
-
 void main() {
 	gl_FragColor = gl_Color;
 	if(gl_Color.r > 0.75) {
