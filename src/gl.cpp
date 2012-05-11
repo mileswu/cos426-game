@@ -229,6 +229,7 @@ int CreateWindow() {
   
   // Shaders
   shader = glCreateShader(GL_FRAGMENT_SHADER);
+  shader2 = glCreateShader(GL_VERTEX_SHADER);
   
   ifstream shader_file ("blur-shader.glsl", ios::in | ios::binary | ios::ate);
   int shader_file_size = shader_file.tellg();
@@ -242,6 +243,7 @@ int CreateWindow() {
   
   ifstream shader_file2 ("blur-shader-vtx.glsl", ios::in | ios::binary | ios::ate);
   int shader_file_size2 = shader_file.tellg();
+  int shader_file_size2 = shader_file2.tellg();
   shader_file2.seekg(0, ios::beg);
   char *shader_source2 = (char *)malloc(shader_file_size2);
   shader_file2.read(shader_source2, shader_file_size2);
@@ -266,7 +268,7 @@ int CreateWindow() {
   glGenRenderbuffers(1, &framebuffer_renderbuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
   glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_width, window_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);  
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, window_width, window_height, 0, GL_RGBA, GL_HALF_FLOAT_ARB, NULL);  
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer_texture, 0);
