@@ -40,12 +40,16 @@ int Bubble::Collides(Bubble *otherbubble) {
     bigger = otherbubble;
   }
   
+  R3Vector total_momentum = bigger->Mass() * bigger->v + smaller->Mass() * smaller->v;
+  
   double bigger_mass_upperbound = v_total;
   double bigger_mass_lowerbound = bigger->Mass();
   
   // See if smaller one is totally absorbed
   bigger->SetSizeFromMass(v_total);
   if(d < bigger->size) {
+    bigger->v = total_momentum/bigger->Mass();
+    
     if(bigger_this) {
       return -2; //The other one was absorbed
     }
@@ -66,6 +70,8 @@ int Bubble::Collides(Bubble *otherbubble) {
       bigger_mass_upperbound = bigger_mass_midpoint;
     }
   }
+  
+  bigger->v = (total_momentum - smaller->Mass() * smaller->v)/bigger->Mass();
   
   return 1;
 }
