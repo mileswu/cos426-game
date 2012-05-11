@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
+#include <fstream>
 
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
@@ -181,6 +182,30 @@ int CreateWindow() {
   camera.towards = R3Vector(0,0,1);
   
   world = new World();
+  
+  
+  // Shaders
+  int shader = glCreateShader(GL_FRAGMENT_SHADER);
+  
+  ifstream shader_file ("toon-shader.glsl", ios::in | ios::binary | ios::ate);
+  int shader_file_size = shader_file.tellg();
+  shader_file.seekg(0, ios::beg);
+  char *shader_source = (char *)malloc(shader_file_size);
+  shader_file.read(shader_source, shader_file_size);
+  shader_file.close();
+  
+  glShaderSource(shader, 1, (const GLchar**)&shader_source, &shader_file_size);
+  glCompileShader(shader);
+  int shader_program = glCreateProgram();
+  glAttachShader(shader_program, shader);
+  glLinkProgram(shader_program);
+  glUseProgram(shader_program);
+  int retval;
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &retval);
+  if(retval != GL_TRUE) {
+    cout << "Shader did not compile correctly" << endl;
+    exit(1);
+  }
   
   return 0;
 }
