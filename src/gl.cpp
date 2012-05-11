@@ -14,6 +14,7 @@ using namespace std;
 static World *world = NULL;
 static int window_height = 500;
 static int window_width = 500;
+static GLuint framebuffer, framebuffer_texture, framebuffer_renderbuffer, shader, shader_program;
 static R3Camera camera;
 static double fps = 60;
 
@@ -46,25 +47,66 @@ void RedrawWindow() {
   camera.eye.Translate(cameradisplacement_after - cameradisplacement_before);
   camera.Load(window_width, window_height);
   
-  // Rendering of World
+  // Rendering of World into Framebuffer
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
   glColor3d(1,1,1);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
   
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  
   world->Draw();
   
-  // OSD
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  
+  
+  //glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
+  //glutSolidTeapot(0.75);
+  
+  // Render FBO into our main display
+  /*glUseProgram(shader_program);
+  glUniform1i(glGetUniformLocation(shader_program, "tex"), framebuffer_texture);*/
+  
+  glDisable(GL_DEPTH_TEST);
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
-  gluOrtho2D(0, window_width, 0, window_height);
   
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
+  
+  glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
+  glColor3d(1,1,1);
+  //glutSolidTeapot(0.75);
+  
+  
+  glBegin(GL_QUADS);
+  glTexCoord2f (0.0, 0.0);
+  glVertex3f (-1.0, -1.0, 0.0);
+  glTexCoord2f (1.0, 0.0);
+  glVertex3f (1.0, -1.0, 0.0);
+  glTexCoord2f (1.0, 1.0);
+  glVertex3f (1.0, 1.0, 0.0);
+  glTexCoord2f (0.0, 1.0);
+  glVertex3f (-1.0, 1.0, 0.0);
+  glEnd();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  
+  
+  glUseProgram(0);
+  
+  
+  // OSD
+  glMatrixMode(GL_PROJECTION);
+  gluOrtho2D(0, window_width, 0, window_height);
+
   double current_osd_height = window_height-25;
   double line_size = 15;
   
@@ -81,7 +123,7 @@ void RedrawWindow() {
   }
   
   glPopMatrix();
-  glMatrixMode(GL_PROJECTION);
+  glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
   
   glutSwapBuffers();
@@ -185,9 +227,9 @@ int CreateWindow() {
   
   
   // Shaders
-  int shader = glCreateShader(GL_FRAGMENT_SHADER);
+  shader = glCreateShader(GL_FRAGMENT_SHADER);
   
-  ifstream shader_file ("toon-shader.glsl", ios::in | ios::binary | ios::ate);
+  ifstream shader_file ("blur-shader.glsl", ios::in | ios::binary | ios::ate);
   int shader_file_size = shader_file.tellg();
   shader_file.seekg(0, ios::beg);
   char *shader_source = (char *)malloc(shader_file_size);
@@ -196,16 +238,30 @@ int CreateWindow() {
   
   glShaderSource(shader, 1, (const GLchar**)&shader_source, &shader_file_size);
   glCompileShader(shader);
-  int shader_program = glCreateProgram();
+  shader_program = glCreateProgram();
   glAttachShader(shader_program, shader);
   glLinkProgram(shader_program);
-  glUseProgram(shader_program);
   int retval;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &retval);
   if(retval != GL_TRUE) {
     cout << "Shader did not compile correctly" << endl;
     exit(1);
   }
+  
+  glGenFramebuffers(1, &framebuffer);
+  glGenTextures(1, &framebuffer_texture);
+  glGenRenderbuffers(1, &framebuffer_renderbuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window_width, window_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);  
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer_texture, 0);
+	glBindRenderbuffer(GL_RENDERBUFFER, framebuffer_renderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, window_width, window_height);
+	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, framebuffer_renderbuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  
   
   return 0;
 }
