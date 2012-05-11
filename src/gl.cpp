@@ -35,6 +35,8 @@ void RedrawWindow() {
   
   glDisable(GL_LIGHTING);
   glColor3d(1,1,1);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LEQUAL);
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   world->Draw();
   
