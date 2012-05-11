@@ -1,5 +1,6 @@
 CXX=g++
-CXXFLAGS=-Wall -g
+CXXFLAGS=-Wall -g -I.
+MAKE=make
 
 all: game
   
@@ -14,7 +15,13 @@ else
   endif
 endif
 
-game: game.o gl.o geometry.o bubble.o world.o
+R3/libR3.a: 
+	    $(MAKE) -C R3
+
+R2/libR2.a: 
+	    $(MAKE) -C R2
+
+game: game.o gl.o geometry.o bubble.o world.o R3/libR3.a R2/libR2.a
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(GLLIBS)
 
 clean:
