@@ -132,11 +132,9 @@ void World::Simulate() {
 
 void World::Draw() {  
   glEnable(GL_LIGHTING);
-  GLfloat c[4];
-  c[0] = 1; c[1] = 0; c[2] = 0; c[3] = 1;
-  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+  int light_index = GL_LIGHT0 + 10;
   
+  GLfloat c[4];
   double player_size = bubbles[0]->size;
   
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
@@ -156,9 +154,23 @@ void World::Draw() {
         c[0] = f; c[1] = 1-f; c[2] = 0; c[3] = 1;
       }
     }
+    /* Lighting idea
+    if(0) {
+    glDisable(light_index);
+    glLightfv(light_index, GL_DIFFUSE, c);
+    glLightfv(light_index, GL_SPECULAR, c);
+    GLfloat gl_pos[4];
+    gl_pos[0] = (*it)->pos[0]; gl_pos[1] = (*it)->pos[1]; gl_pos[2] = (*it)->pos[2]; gl_pos[3] = 0;
+    glLightfv(light_index, GL_POSITION, gl_pos);
+    glEnable(light_index);
+    light_index++;
+    }*/
     
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+    GLfloat shininess[1]; shininess[0] = 75;
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
     (*it)->Draw();
   }
   glDisable(GL_LIGHTING);

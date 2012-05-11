@@ -22,6 +22,7 @@ void RedrawWindow() {
   GLfloat c[4];
   c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
   glLightfv(light_index, GL_DIFFUSE, c);
+  glLightfv(light_index, GL_SPECULAR, c);
   c[0] = 1; c[1] = 0; c[2] = 1; c[3] = 0;
   glLightfv(light_index, GL_POSITION, c);
   glEnable(light_index);
