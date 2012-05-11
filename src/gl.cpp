@@ -52,6 +52,8 @@ void RedrawWindow() {
   
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  
+  glEnable(GL_MULTISAMPLE);
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   world->Draw();
   
@@ -153,7 +155,7 @@ int CreateWindow() {
   
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(window_width, window_height);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH); // | GLUT_STENCIL
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_MULTISAMPLE); // | GLUT_STENCIL
 #if defined(__APPLE__)
   CGSetLocalEventsSuppressionInterval(0.0);
 #endif
