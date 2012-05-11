@@ -1,8 +1,13 @@
 #include "gl.h"
 #include "world.h"
 #include <iostream>
+#include <stdlib.h>
 #include <string>
+
+#if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
+#endif
+
 using namespace std;
 
 static World *world = NULL;
@@ -149,7 +154,9 @@ int CreateWindow() {
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(window_width, window_height);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH); // | GLUT_STENCIL
+#if defined(__APPLE__)
   CGSetLocalEventsSuppressionInterval(0.0);
+#endif
   int GLUTwindow = glutCreateWindow("Game");
   
   glutWarpPointer(window_width/2, window_height/2);
