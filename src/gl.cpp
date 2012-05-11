@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
+#include <sstream>
 
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
@@ -16,7 +17,29 @@ static int window_width = 500;
 static R3Camera camera;
 static double fps = 60;
 
+static double frame_rendertimes[100];
+static int frame_rendertimes_i = 0;
+
 void RedrawWindow() {
+  // FPS timing
+  frame_rendertimes[frame_rendertimes_i] = glutGet(GLUT_ELAPSED_TIME);
+  frame_rendertimes_i = (frame_rendertimes_i + 1)%100;
+  double avg_time = 0;
+  for(int i=0; i<frame_rendertimes_i; i++) {
+    if(i == 0) {
+      avg_time += frame_rendertimes[i] - frame_rendertimes[99];
+    }
+    else {
+      avg_time += frame_rendertimes[i] - frame_rendertimes[i-1];
+    }
+  }
+  for(int i=frame_rendertimes_i+1; i<100; i++) {
+    avg_time += frame_rendertimes[i] - frame_rendertimes[i-1];
+  }
+  avg_time /= 100.0;
+  stringstream fps_achieved_ss;
+  fps_achieved_ss << "FPS achieved: " << 1000.0/avg_time << endl;
+  
   // Initialization
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -71,7 +94,7 @@ void RedrawWindow() {
   
   glRasterPos2i(20,current_osd_height);
   
-  string osd_text = world->PlayerStatus();
+  string osd_text = world->PlayerStatus() + fps_achieved_ss.str();
   for( string::iterator it = osd_text.begin(); it < osd_text.end(); it++) {
     if(*it == '\n') {
       current_osd_height -= line_size;
@@ -143,6 +166,10 @@ void MouseMovement(int x, int y) {
   glutPostRedisplay();
 }
 
+void IdleLoop() {
+  glutPostRedisplay();
+}
+
 void TimerFunc(int stuff) {
   glutPostRedisplay();
   glutTimerFunc(1000.0/fps, TimerFunc, stuff);
@@ -168,8 +195,8 @@ int CreateWindow() {
   glutMouseFunc(MouseInput);
   glutPassiveMotionFunc(MouseMovement);
   
-  //glutIdleFunc(IdleLoop);
-  glutTimerFunc(1000.0/fps, TimerFunc, 0);
+  glutIdleFunc(IdleLoop);
+  //glutTimerFunc(1000.0/fps, TimerFunc, 0);
   
   /*
   glutReshapeFunc(GLUTResize);*/
