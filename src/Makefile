@@ -15,7 +15,7 @@ else
 endif
 
 game: game.o gl.o geometry.o bubble.o world.o
-	$(CXX) $(CXXFLAGS) $(GLLIBS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(GLLIBS)
 
 clean:
 	$(RM) *.o
