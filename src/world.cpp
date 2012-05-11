@@ -32,6 +32,60 @@ R3Point randpoint(double max, double min = 0) {
   return randvector(max, min).Point();
 }
 
+R3Mesh* CreateInvincible()
+{
+}
+
+R3Mesh* CreateSmallSink()
+{
+}
+
+R3Mesh* CreateSink()
+{
+}
+
+R3Mesh* CreateSpeedUp()
+{
+}
+
+R3Mesh* CreateSlowDown()
+{
+}
+
+
+
+PowerUpShape CreatePowerUp(PowerUpType type)
+{
+	R3Mesh* m;
+	PowerUpShape p;
+	p.type = type;
+	if (type == invincible_type)
+	{
+		m = CreateInvincible();
+		p.invincible = m;
+	}
+	else if (type == small_sink_type)
+	{
+		m = CreateSmallSink();
+		p.small_sink = m;
+	}
+	else if (type == sink_type)
+	{
+		m = CreateSink();
+		p.sink = m;
+	}
+	else if (type == speed_up_type)
+	{
+		m = CreateSpeedUp();
+		p.speed_up = m;
+	}
+	else if (type == slow_down_type)
+	{
+		m = CreateSlowDown();
+		p.slow_down = m;
+	}
+}
+
 
 World::World() {
   //Player bubble
