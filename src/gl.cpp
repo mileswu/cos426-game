@@ -14,7 +14,7 @@ using namespace std;
 static World *world = NULL;
 static int window_height = 500;
 static int window_width = 500;
-static GLuint framebuffer, framebuffer_texture, framebuffer_renderbuffer, shader, shader_program;
+static GLuint framebuffer, framebuffer_texture, framebuffer_renderbuffer, shader, shader2, shader_program;
 static R3Camera camera;
 static double fps = 60;
 
@@ -70,8 +70,9 @@ void RedrawWindow() {
   //glutSolidTeapot(0.75);
   
   // Render FBO into our main display
-  /*glUseProgram(shader_program);
-  glUniform1i(glGetUniformLocation(shader_program, "tex"), framebuffer_texture);*/
+  glUseProgram(shader_program);
+  glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
+  glUniform1i(glGetUniformLocation(shader_program, "tex"), 0);
   
   glDisable(GL_DEPTH_TEST);
   glMatrixMode(GL_PROJECTION);
@@ -82,7 +83,7 @@ void RedrawWindow() {
   glPushMatrix();
   glLoadIdentity();
   
-  glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
+  //glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
   glColor3d(1,1,1);
   //glutSolidTeapot(0.75);
   
@@ -238,7 +239,19 @@ int CreateWindow() {
   
   glShaderSource(shader, 1, (const GLchar**)&shader_source, &shader_file_size);
   glCompileShader(shader);
+  
+  ifstream shader_file2 ("blur-shader-vtx.glsl", ios::in | ios::binary | ios::ate);
+  int shader_file_size2 = shader_file.tellg();
+  shader_file2.seekg(0, ios::beg);
+  char *shader_source2 = (char *)malloc(shader_file_size2);
+  shader_file2.read(shader_source2, shader_file_size2);
+  shader_file2.close();
+  
+  glShaderSource(shader2, 1, (const GLchar**)&shader_source2, &shader_file_size2);
+  glCompileShader(shader2);
+  
   shader_program = glCreateProgram();
+  glAttachShader(shader_program, shader2);
   glAttachShader(shader_program, shader);
   glLinkProgram(shader_program);
   int retval;
