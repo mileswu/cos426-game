@@ -2,6 +2,8 @@
 #include "gl.h"
 #include <iostream>
 #include <map>
+#include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -75,16 +77,18 @@ R3Point World::PlayerPosition() {
   return bubbles[0]->pos;
 }
 
-void World::PrintPlayerStatus() {
-  cout << "Player size: " << bubbles[0]->size << endl;
-  cout << "Bubbles left (excluding yourself): " << bubbles.size() - 1 << endl;
+string World::PlayerStatus() {
+  stringstream ss;
+  ss << "Player size: " << bubbles[0]->size << endl;
+  ss << "Bubbles left (excluding yourself): " << bubbles.size() - 1 << endl;
   double max_size = 0;
   for(vector<Bubble *>::iterator it=bubbles.begin()+1; it < bubbles.end(); it++) {
     if((*it)->size > max_size) {
       max_size = (*it)->size;
     }
   }
-  cout << "Largest bubble size (excluding yourself): " << max_size << endl;
+  ss << "Largest bubble size (excluding yourself): " << max_size << endl;
+  return ss.str();
 }
 
 void World::Simulate() {

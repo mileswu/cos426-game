@@ -2,6 +2,7 @@
 #include "world.h"
 #include <iostream>
 #include <stdlib.h>
+#include <string>
 
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
@@ -16,9 +17,11 @@ static R3Camera camera;
 static double fps = 60;
 
 void RedrawWindow() {
+  // Initialization
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
+  // Lighting
   int light_index = GL_LIGHT0;
   glDisable(light_index);
   GLfloat c[4];
@@ -28,20 +31,54 @@ void RedrawWindow() {
   glLightfv(light_index, GL_POSITION, c);
   glEnable(light_index);
   
-  c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
-  //c[0] = 0.2; c[1] = 0.2; c[2] = 0.2; c[3] = 1;  
+  //c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
+  c[0] = 0.2; c[1] = 0.2; c[2] = 0.2; c[3] = 1;  
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, c);
   
+  // Simulation
   R3Vector cameradisplacement_before = world->PlayerPosition() - camera.eye;
   world->Simulate();
+  
+  // Camera
   R3Vector cameradisplacement_after = world->PlayerPosition() - camera.eye;
   camera.eye.Translate(cameradisplacement_after - cameradisplacement_before);
   camera.Load(window_width, window_height);
   
+  // Rendering of World
   glDisable(GL_LIGHTING);
   glColor3d(1,1,1);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LEQUAL);
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   world->Draw();
+  
+  // OSD
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  gluOrtho2D(0, window_width, 0, window_height);
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  double current_osd_height = window_height-25;
+  double line_size = 15;
+  
+  glRasterPos2i(20,current_osd_height);
+  
+  string osd_text = world->PlayerStatus();
+  for( string::iterator it = osd_text.begin(); it < osd_text.end(); it++) {
+    if(*it == '\n') {
+      current_osd_height -= line_size;
+      glRasterPos2i(20,current_osd_height);
+      continue;
+    }
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *it);
+  }
+  
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
   
   glutSwapBuffers();
 }
@@ -49,8 +86,6 @@ void RedrawWindow() {
 void KeyboardInput(unsigned char key, int x, int y) {
   if(key == 'q')
     exit(0);
-  if(key == 's')
-    world->PrintPlayerStatus();
   cout << "Key pressed: " << key << endl;
 }
 

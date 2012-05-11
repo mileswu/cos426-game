@@ -1,6 +1,7 @@
 #include <vector>
 #include "bubble.h"
 #include <sys/time.h>
+#include <string>
 
 class World {
   public:
@@ -10,7 +11,7 @@ class World {
     void Emit(R3Vector camera_direction);
     
     R3Point PlayerPosition();
-    void PrintPlayerStatus();
+    std::string PlayerStatus();
     
   private:
     std::vector<Bubble *> bubbles;
