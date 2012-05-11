@@ -41,10 +41,12 @@ void RedrawWindow() {
   camera.Load(window_width, window_height);
   
   // Rendering of World
-  glDisable(GL_LIGHTING);
   glColor3d(1,1,1);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
+  
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   world->Draw();
   
@@ -146,7 +148,7 @@ int CreateWindow() {
   
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(window_width, window_height);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // | GLUT_STENCIL
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH); // | GLUT_STENCIL
   CGSetLocalEventsSuppressionInterval(0.0);
   int GLUTwindow = glutCreateWindow("Game");
   
