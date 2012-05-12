@@ -27,6 +27,13 @@ R3Vector randvector(double max, double min = 0) {
   }
 }
 
+void randTranslate(R3Mesh* m)
+{
+	int rand_x = floor(rand(2));
+	int rand_y = floor(rand(2));
+	int rand_z = floor(rand(2));
+	m -> Translate(rand(30, rand_x, 0), rand(30, rand_y, 0), rand(30, rand_z, 0));
+}
 
 R3Point randpoint(double max, double min = 0) {
   return randvector(max, min).Point();
@@ -36,8 +43,8 @@ R3Mesh* CreateInvincible()
 {
 	R3Mesh* m = new R3Mesh();
 	m -> Read("./models/mushroom.off");
-	m -> Scale(0.1, 0.1, 0.1);
-	m -> Translate(rand(10), rand(10), rand(10));
+	m -> Scale(1, 1, 1);
+	randTranslate(m);
 	return m;
 }
 
@@ -46,16 +53,16 @@ R3Mesh* CreateSmallSink()
 	R3Mesh* m = new R3Mesh();
 	m -> Read("./models/pear.off");
 	m -> Scale(0.01, 0.01, 0.01);
-	m -> Translate(rand(10), rand(10), rand(10));
+	randTranslate(m);
 	return m;
 }
 
 R3Mesh* CreateSink()
 {
 	R3Mesh* m = new R3Mesh();
-	m -> Read("./models/Sword01.off");
-	m -> Scale(0.001, 0.001, 0.001);
-	m -> Translate(rand(10), rand(10), rand(10));
+	m -> Read("./models/octopus.off");
+	m -> Scale(0.01, 0.01, 0.01);
+	randTranslate(m);
 	return m;
 }
 
@@ -64,16 +71,16 @@ R3Mesh* CreateSpeedUp()
 	R3Mesh* m = new R3Mesh();
 	m -> Read("./models/heart.off");
 	m -> Scale(0.1, 0.1, 0.1);
-	m -> Translate(rand(10), rand(10), rand(10));
+	randTranslate(m);
 	return m;
 }
 
 R3Mesh* CreateSlowDown()
 {
 	R3Mesh* m = new R3Mesh();
-	m -> Read("./models/octopus.off");
+	m -> Read("./models/Sword01.off");
 	m -> Scale(0.01, 0.01, 0.01);
-	m -> Translate(rand(10), rand(10), rand(10));
+	randTranslate(m);
 	return m;
 }
 
@@ -121,7 +128,7 @@ World::World() {
   b->player_id = 0;
   bubbles.push_back(b);
   
-  for(int i=0; i<50; i++) {
+  for(int i=0; i<200; i++) {
     b = new Bubble();
     b->pos = randpoint(30);
     b->v = randvector(0.1);
@@ -129,7 +136,7 @@ World::World() {
     bubbles.push_back(b);
   }
 
-	for (unsigned int i = 0; i < bubbles.size(); i++) {
+	for (unsigned int i = 0; i < bubbles.size()/10; i++) {
 		int rand_num = floor(rand(5));
 		PowerUpType type;
 		switch (rand_num) {
@@ -149,7 +156,7 @@ World::World() {
 				type = slow_down_type;
 				break;
 		}
-		CreatePowerUp(sink_type);
+		CreatePowerUp(type);
 	}
   
   // Initialize time
@@ -223,7 +230,7 @@ void World::Simulate() {
 		}
 	}
 
-	//check if powerup time already expired
+	//check if powerup effect time already expired
 	for (unsigned int i = 0; i < bubbles.size(); i++)
 	{
 		double cur_time = glutGet(GLUT_ELAPSED_TIME);
@@ -258,19 +265,34 @@ void World::Simulate() {
 				type = slow_down_type;
 				break;
 		}
-		CreatePowerUp(sink_type);
+		CreatePowerUp(type);
 	}
   
   Bubble* player = bubbles[0];
+	double m1 = player -> Mass();
+	player -> state = sink_state;
+	
   // A calculation
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
     (*it)->a = R3Vector(0,0,0);
-		if ((*it) -> state == sink_state && (*it) != bubbles[0])
+		if (player -> state == sink_state && (*it) != bubbles[0])
 		{
 			R3Vector towards = player -> pos - (*it) -> pos;
+			double m2 = (*it) -> Mass();
 			double towards_mag = sqrt(towards.Dot(towards));
-			(*it) -> a += towards/towards_mag * 50/(towards_mag * towards_mag); 
+			(*it) -> a += towards/towards_mag * m1 * m2/(towards_mag * towards_mag); 
 		}
+		else if (player -> state == small_sink_state && (*it) != bubbles[0])
+		{
+			if ((*it) -> size < player -> size)
+			{
+				R3Vector towards = player -> pos - (*it) -> pos;
+				double m2 = (*it) -> Mass();
+				double towards_mag = sqrt(towards.Dot(towards));
+				(*it) -> a += towards/towards_mag * m1 * m2/(towards_mag * towards_mag); 
+			}
+		}
+
   }
   
   // V update
@@ -381,10 +403,25 @@ void World::Draw(R3Camera camera) {
     }
   }
 
+	GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
+	GLfloat c_yellow[4] = {1, 1, 0, 1};
+
   for (unsigned int i = 0; i < power_ups.size(); i++){
-    R3Point c = power_ups[i].mesh->Center();
+    R3Point center = power_ups[i].mesh->Center();
     double radius = power_ups[i].mesh->Radius();
-    if (inView(camera, c, radius)) {
+    if (inView(camera, center, radius)) {
+			double cur_time = glutGet(GLUT_ELAPSED_TIME);
+			double factor = (cos(cur_time/10.0) + 1)/2.0;
+			for (unsigned int k = 0; k < 3; k++)
+			{
+				c[k] = factor * c_purple[k] + (1-factor) * c_yellow[k]; 
+			}
+			c[3] = 1;
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+
+
       power_ups[i].mesh -> Draw();
     }
   }
