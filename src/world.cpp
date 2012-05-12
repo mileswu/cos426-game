@@ -281,7 +281,11 @@ void World::Draw(R3Camera camera) {
   }
 
   for (unsigned int i = 0; i < power_ups.size(); i++){
-    power_ups[i].mesh -> Draw();
+    R3Point c = power_ups[i].mesh->Center();
+    double radius = power_ups[i].mesh->Radius();
+    if (inView(camera, c, radius)) {
+      power_ups[i].mesh -> Draw();
+    }
   }
   glDisable(GL_LIGHTING);
 }

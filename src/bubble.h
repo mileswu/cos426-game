@@ -6,7 +6,6 @@ class Bubble {
     Bubble();
     
     void Draw();
-    bool inView(R3Camera camera);
 
     double Mass();
     void SetSizeFromMass(double mass);
