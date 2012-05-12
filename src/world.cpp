@@ -130,7 +130,7 @@ void World::Simulate() {
   }
 }
 
-void World::Draw() {  
+void World::Draw(R3Camera camera) {  
   glEnable(GL_LIGHTING);
   int light_index = GL_LIGHT0 + 10;
   
@@ -171,7 +171,9 @@ void World::Draw() {
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
     GLfloat shininess[1]; shininess[0] = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    (*it)->Draw();
+    if ((*it)->inView(camera)) {
+      (*it)->Draw();
+    }
   }
   glDisable(GL_LIGHTING);
 }
