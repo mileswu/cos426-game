@@ -35,35 +35,45 @@ R3Point randpoint(double max, double min = 0) {
 R3Mesh* CreateInvincible()
 {
 	R3Mesh* m = new R3Mesh();
-	m -> Read("mushroom.off");
+	m -> Read("./models/mushroom.off");
+	m -> Scale(0.1, 0.1, 0.1);
+	m -> Translate(rand(10), rand(10), rand(10));
 	return m;
 }
 
 R3Mesh* CreateSmallSink()
 {
 	R3Mesh* m = new R3Mesh();
-	m -> Read("mushroom.off");
+	m -> Read("./models/pear.off");
+	m -> Scale(0.01, 0.01, 0.01);
+	m -> Translate(rand(10), rand(10), rand(10));
 	return m;
 }
 
 R3Mesh* CreateSink()
 {
 	R3Mesh* m = new R3Mesh();
-	m -> Read("mushroom.off");
+	m -> Read("./models/Apple.off");
+	m -> Scale(0.001, 0.001, 0.001);
+	m -> Translate(rand(10), rand(10), rand(10));
 	return m;
 }
 
 R3Mesh* CreateSpeedUp()
 {
 	R3Mesh* m = new R3Mesh();
-	m -> Read("mushroom.off");
+	m -> Read("./models/heart.off");
+	m -> Scale(0.1, 0.1, 0.1);
+	m -> Translate(rand(10), rand(10), rand(10));
 	return m;
 }
 
 R3Mesh* CreateSlowDown()
 {
 	R3Mesh* m = new R3Mesh();
-	m -> Read("mushroom.off");
+	m -> Read("./models/octopus.off");
+	m -> Scale(0.01, 0.01, 0.01);
+	m -> Translate(rand(10), rand(10), rand(10));
 	return m;
 }
 
@@ -118,8 +128,28 @@ World::World() {
     bubbles.push_back(b);
   }
 
-  for (unsigned int i = 0; i < bubbles.size()/10; i++)
-  	CreatePowerUp(invincible_type);
+  for (unsigned int i = 0; i < bubbles.size()/10; i++) {
+  	int rand_num = floor(rand(5));
+  	PowerUpType type;
+  	switch (rand_num) {
+    	case 0:
+	  		type = invincible_type;
+  			break;
+  		case 1:
+  			type = small_sink_type;
+  			break;
+  		case 2:
+  			type = sink_type;
+  			break;
+  		case 3:
+  			type = speed_up_type;
+  			break;
+  		case 4:
+  			type = slow_down_type;
+  			break;
+	}
+	CreatePowerUp(type);
+  }
   
   // Initialize time
   lasttime_updated.tv_sec = 0;
@@ -245,14 +275,44 @@ void World::Draw(R3Camera camera) {
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
     GLfloat shininess[1]; shininess[0] = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    if ((*it)->inView(camera)) {
+    if (inView(camera, (*it)->pos, (*it)->size)) {
       (*it)->Draw();
     }
   }
 
 	for (unsigned int i = 0; i < power_ups.size(); i++)
 	{
-		power_ups[i].invincible -> Draw();
+		PowerUpType type = power_ups[i].type;
+
+		if (type == invincible_type)
+			power_ups[i].invincible -> Draw();
+		else if (type == small_sink_type)
+			power_ups[i].small_sink -> Draw();
+		else if (type == sink_type)
+			power_ups[i].sink -> Draw();
+		else if (type == speed_up_type)
+			power_ups[i].speed_up -> Draw();
+		else if (type == slow_down_type)
+			power_ups[i].slow_down -> Draw();
 	}
   glDisable(GL_LIGHTING);
+}
+
+bool World::inView(R3Camera camera, R3Point pos, double radius) {
+
+  double dist;
+  dist = R3SignedDistance(camera.right_plane, pos);
+  if (dist > 0 && !(fabs(dist) < radius)) return false;
+  dist = R3SignedDistance(camera.left_plane, pos);
+  if (dist > 0 && !(fabs(dist) < radius)) return false;
+  dist = R3SignedDistance(camera.top_plane, pos);
+  if (dist > 0 && !(fabs(dist) < radius)) return false;
+  dist = R3SignedDistance(camera.bottom_plane, pos);
+  if (dist > 0 && !(fabs(dist) < radius)) return false;
+
+
+  if (R3SignedDistance(camera.camera_plane, pos) < 0) return false;
+
+  return true;
+
 }

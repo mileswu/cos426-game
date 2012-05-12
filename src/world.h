@@ -27,6 +27,7 @@ class World {
 	void CreatePowerUp(PowerUpType type);
     void Simulate();
     void Emit(R3Vector camera_direction);
+    bool inView(R3Camera camera, R3Point pos, double radius);
     
     R3Point PlayerPosition();
     std::string PlayerStatus();
