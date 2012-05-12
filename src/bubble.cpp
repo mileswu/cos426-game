@@ -86,3 +86,6 @@ void Bubble::Draw() {
   gluSphere(glu_sphere, size, 32, 32);
   glPopMatrix();
 }
+
+
+

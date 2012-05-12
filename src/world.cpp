@@ -32,6 +32,87 @@ R3Point randpoint(double max, double min = 0) {
   return randvector(max, min).Point();
 }
 
+R3Mesh* CreateInvincible()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("./models/mushroom.off");
+	m -> Scale(0.1, 0.1, 0.1);
+	m -> Translate(rand(10), rand(10), rand(10));
+	return m;
+}
+
+R3Mesh* CreateSmallSink()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("./models/pear.off");
+	m -> Scale(0.01, 0.01, 0.01);
+	m -> Translate(rand(10), rand(10), rand(10));
+	return m;
+}
+
+R3Mesh* CreateSink()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("./models/Apple.off");
+	m -> Scale(0.001, 0.001, 0.001);
+	m -> Translate(rand(10), rand(10), rand(10));
+	return m;
+}
+
+R3Mesh* CreateSpeedUp()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("./models/heart.off");
+	m -> Scale(0.1, 0.1, 0.1);
+	m -> Translate(rand(10), rand(10), rand(10));
+	return m;
+}
+
+R3Mesh* CreateSlowDown()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("./models/octopus.off");
+	m -> Scale(0.01, 0.01, 0.01);
+	m -> Translate(rand(10), rand(10), rand(10));
+	return m;
+}
+
+
+
+void World::CreatePowerUp(PowerUpType type)
+{
+	R3Mesh* m;
+	PowerUpShape p;
+	p.type = type;
+	if (type == invincible_type)
+	{
+		m = CreateInvincible();
+		p.mesh = m;
+	}
+	else if (type == small_sink_type)
+	{
+		m = CreateSmallSink();
+		p.mesh = m;
+	}
+	else if (type == sink_type)
+	{
+		m = CreateSink();
+		p.mesh = m;
+	}
+	else if (type == speed_up_type)
+	{
+		m = CreateSpeedUp();
+		p.mesh = m;
+	}
+	else if (type == slow_down_type)
+	{
+		m = CreateSlowDown();
+		p.mesh = m;
+	}
+
+	power_ups.push_back(p);
+}
+
 
 World::World() {
   //Player bubble
@@ -45,6 +126,29 @@ World::World() {
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
     bubbles.push_back(b);
+  }
+
+  for (unsigned int i = 0; i < bubbles.size()/10; i++) {
+  	int rand_num = floor(rand(5));
+  	PowerUpType type;
+  	switch (rand_num) {
+    	case 0:
+	  		type = invincible_type;
+  			break;
+  		case 1:
+  			type = small_sink_type;
+  			break;
+  		case 2:
+  			type = sink_type;
+  			break;
+  		case 3:
+  			type = speed_up_type;
+  			break;
+  		case 4:
+  			type = slow_down_type;
+  			break;
+	}
+	CreatePowerUp(type);
   }
   
   // Initialize time
@@ -130,7 +234,7 @@ void World::Simulate() {
   }
 }
 
-void World::Draw() {  
+void World::Draw(R3Camera camera) {  
   glEnable(GL_LIGHTING);
   int light_index = GL_LIGHT0 + 10;
   
@@ -171,7 +275,17 @@ void World::Draw() {
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
     GLfloat shininess[1]; shininess[0] = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    (*it)->Draw();
+    if (inView(camera, (*it)->pos, (*it)->size)) {
+      (*it)->Draw();
+    }
+  }
+
+  for (unsigned int i = 0; i < power_ups.size(); i++){
+    R3Point c = power_ups[i].mesh->Center();
+    double radius = power_ups[i].mesh->Radius();
+    if (inView(camera, c, radius)) {
+      power_ups[i].mesh -> Draw();
+    }
   }
   glDisable(GL_LIGHTING);
 }
@@ -200,6 +314,7 @@ void World::DrawMinimap() {
     }
     else {
       double s = (*it)->size;
+      if(s < 0.8*player_size) {
         c[0] = 0; c[1] = 1; c[2] = 0; c[3] = 1;
       }
       else if(s > 1.2*player_size) {
@@ -215,3 +330,23 @@ void World::DrawMinimap() {
     DrawCircle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, 0.05);
   }
 }
+
+bool World::inView(R3Camera camera, R3Point pos, double radius) {
+
+  double dist;
+  dist = R3SignedDistance(camera.right_plane, pos);
+  if (dist > 0 && !(fabs(dist) < radius)) return false;
+  dist = R3SignedDistance(camera.left_plane, pos);
+  if (dist > 0 && !(fabs(dist) < radius)) return false;
+  dist = R3SignedDistance(camera.top_plane, pos);
+  if (dist > 0 && !(fabs(dist) < radius)) return false;
+  dist = R3SignedDistance(camera.bottom_plane, pos);
+  if (dist > 0 && !(fabs(dist) < radius)) return false;
+
+
+  if (R3SignedDistance(camera.camera_plane, pos) < 0) return false;
+
+  return true;
+
+}
+

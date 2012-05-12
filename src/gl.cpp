@@ -106,7 +106,8 @@ void RedrawWindow() {
   
   glEnable(GL_MULTISAMPLE);
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  world->Draw();
+  camera.CalcPlanes();
+  world->Draw(camera);
   
   // OSD
   glDisable(GL_DEPTH_TEST);
