@@ -196,13 +196,13 @@ void KeyboardInput(unsigned char key, int x, int y) {
     vy = 1;
   }
   else if (key == 'a') { // left
-    vx = -1;
+    vx = 1;
   }
   else if (key == 's') { // down
     vy = -1;
   }
   else if (key == 'd') { // right
-    vx = 1;
+    vx = -1;
   }
   else {
     cout << "Key pressed: " << key << endl;
