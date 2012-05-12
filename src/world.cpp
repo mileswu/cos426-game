@@ -34,27 +34,42 @@ R3Point randpoint(double max, double min = 0) {
 
 R3Mesh* CreateInvincible()
 {
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
 }
 
 R3Mesh* CreateSmallSink()
 {
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
 }
 
 R3Mesh* CreateSink()
 {
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
 }
 
 R3Mesh* CreateSpeedUp()
 {
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
 }
 
 R3Mesh* CreateSlowDown()
 {
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
 }
 
 
 
-PowerUpShape CreatePowerUp(PowerUpType type)
+void World::CreatePowerUp(PowerUpType type)
 {
 	R3Mesh* m;
 	PowerUpShape p;
@@ -84,6 +99,8 @@ PowerUpShape CreatePowerUp(PowerUpType type)
 		m = CreateSlowDown();
 		p.slow_down = m;
 	}
+
+	power_ups.push_back(p);
 }
 
 
@@ -100,6 +117,9 @@ World::World() {
     b->size = rand(1.2, 0.1);
     bubbles.push_back(b);
   }
+
+	for (int i = 0; i < bubbles.size()/10; i++)
+		CreatePowerUp(invincible_type);
   
   // Initialize time
   lasttime_updated.tv_sec = 0;
@@ -227,5 +247,10 @@ void World::Draw() {
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
     (*it)->Draw();
   }
+
+	for (unsigned int i = 0; i < power_ups.size(); i++)
+	{
+		power_ups[i].invincible -> Draw();
+	}
   glDisable(GL_LIGHTING);
 }
