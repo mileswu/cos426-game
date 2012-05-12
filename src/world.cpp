@@ -87,27 +87,27 @@ void World::CreatePowerUp(PowerUpType type)
 	if (type == invincible_type)
 	{
 		m = CreateInvincible();
-		p.invincible = m;
+		p.mesh = m;
 	}
 	else if (type == small_sink_type)
 	{
 		m = CreateSmallSink();
-		p.small_sink = m;
+		p.mesh = m;
 	}
 	else if (type == sink_type)
 	{
 		m = CreateSink();
-		p.sink = m;
+		p.mesh = m;
 	}
 	else if (type == speed_up_type)
 	{
 		m = CreateSpeedUp();
-		p.speed_up = m;
+		p.mesh = m;
 	}
 	else if (type == slow_down_type)
 	{
 		m = CreateSlowDown();
-		p.slow_down = m;
+		p.mesh = m;
 	}
 
 	power_ups.push_back(p);
@@ -280,21 +280,9 @@ void World::Draw(R3Camera camera) {
     }
   }
 
-	for (unsigned int i = 0; i < power_ups.size(); i++)
-	{
-		PowerUpType type = power_ups[i].type;
-
-		if (type == invincible_type)
-			power_ups[i].invincible -> Draw();
-		else if (type == small_sink_type)
-			power_ups[i].small_sink -> Draw();
-		else if (type == sink_type)
-			power_ups[i].sink -> Draw();
-		else if (type == speed_up_type)
-			power_ups[i].speed_up -> Draw();
-		else if (type == slow_down_type)
-			power_ups[i].slow_down -> Draw();
-	}
+  for (unsigned int i = 0; i < power_ups.size(); i++){
+    power_ups[i].mesh -> Draw();
+  }
   glDisable(GL_LIGHTING);
 }
 

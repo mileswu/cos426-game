@@ -13,11 +13,7 @@ typedef enum {
 
 struct PowerUpShape {
 	PowerUpType type;
-	R3Mesh *invincible;
-	R3Mesh *small_sink;
-	R3Mesh *sink;
-	R3Mesh *speed_up;
-	R3Mesh *slow_down;
+	R3Mesh *mesh;
 };
 
 class World {
