@@ -10,6 +10,8 @@ Bubble::Bubble() {
   pos = R3Point(0,0,0);
   v = R3Vector(0,0,0);
   size = 1;
+	state = reg_state;
+	effect_end_time = -1;
 }
 
 double Bubble::Mass() {
@@ -23,7 +25,7 @@ void Bubble::SetSizeFromMass(double mass) {
 int Bubble::Collides(R3Mesh* mesh) {
 	double d = (mesh -> Center() - pos).Length(); //dist between centers
 
-	if (d <= size) //not sure what size is, is it the radius?
+	if (d <= size) //check against radius
 		return 1;
 
 	return 0;

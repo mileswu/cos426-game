@@ -2,11 +2,12 @@
 #include "geometry.h"
 
 typedef enum {
-	invin_state,
+	invincible_state,
 	small_sink_state,
 	sink_state,
 	speed_up_state,
 	slow_down_state,
+	reg_state,
 } BubbleState;
 
 class Bubble {
