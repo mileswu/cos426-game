@@ -53,7 +53,7 @@ R3Mesh* CreateSmallSink()
 R3Mesh* CreateSink()
 {
 	R3Mesh* m = new R3Mesh();
-	m -> Read("./models/Apple.off");
+	m -> Read("./models/Sword01.off");
 	m -> Scale(0.001, 0.001, 0.001);
 	m -> Translate(rand(10), rand(10), rand(10));
 	return m;
@@ -149,7 +149,7 @@ World::World() {
 				type = slow_down_type;
 				break;
 		}
-		CreatePowerUp(type);
+		CreatePowerUp(sink_type);
 	}
   
   // Initialize time
@@ -258,13 +258,19 @@ void World::Simulate() {
 				type = slow_down_type;
 				break;
 		}
-		CreatePowerUp(type);
+		CreatePowerUp(sink_type);
 	}
   
-  
+  Bubble* player = bubbles[0];
   // A calculation
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
     (*it)->a = R3Vector(0,0,0);
+		if ((*it) -> state == sink_state && (*it) != bubbles[0])
+		{
+			R3Vector towards = player -> pos - (*it) -> pos;
+			double towards_mag = sqrt(towards.Dot(towards));
+			(*it) -> a += towards/towards_mag * 50/(towards_mag * towards_mag); 
+		}
   }
   
   // V update
