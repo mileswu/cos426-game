@@ -20,6 +20,15 @@ void Bubble::SetSizeFromMass(double mass) {
   size = pow(3.0*mass/4.0/M_PI/density, 1.0/3.0);
 }
 
+int Bubble::Collides(R3Mesh* mesh) {
+	double d = (mesh -> Center() - pos).Length(); //dist between centers
+
+	if (d <= size) //not sure what size is, is it the radius?
+		return 1;
+
+	return 0;
+}
+
 int Bubble::Collides(Bubble *otherbubble) {
   double d = (otherbubble->pos - pos).Length(); //distance between centers
   
