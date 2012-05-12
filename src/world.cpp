@@ -53,7 +53,7 @@ R3Mesh* CreateSmallSink()
 R3Mesh* CreateSink()
 {
 	R3Mesh* m = new R3Mesh();
-	m -> Read("./models/Apple.off");
+	m -> Read("./models/Sword01.off");
 	m -> Scale(0.001, 0.001, 0.001);
 	m -> Translate(rand(10), rand(10), rand(10));
 	return m;
@@ -109,7 +109,8 @@ void World::CreatePowerUp(PowerUpType type)
 		m = CreateSlowDown();
 		p.mesh = m;
 	}
-
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 
+		glutGet(GLUT_ELAPSED_TIME) * rand(30);
 	power_ups.push_back(p);
 }
 
@@ -120,7 +121,7 @@ World::World() {
   b->player_id = 0;
   bubbles.push_back(b);
   
-  for(int i=0; i<200; i++) {
+  for(int i=0; i<50; i++) {
     b = new Bubble();
     b->pos = randpoint(30);
     b->v = randvector(0.1);
@@ -128,28 +129,28 @@ World::World() {
     bubbles.push_back(b);
   }
 
-  for (unsigned int i = 0; i < bubbles.size()/10; i++) {
-  	int rand_num = floor(rand(5));
-  	PowerUpType type;
-  	switch (rand_num) {
-    	case 0:
-	  		type = invincible_type;
-  			break;
-  		case 1:
-  			type = small_sink_type;
-  			break;
-  		case 2:
-  			type = sink_type;
-  			break;
-  		case 3:
-  			type = speed_up_type;
-  			break;
-  		case 4:
-  			type = slow_down_type;
-  			break;
+	for (unsigned int i = 0; i < bubbles.size(); i++) {
+		int rand_num = floor(rand(5));
+		PowerUpType type;
+		switch (rand_num) {
+			case 0:
+				type = invincible_type;
+				break;
+			case 1:
+				type = small_sink_type;
+				break;
+			case 2:
+				type = sink_type;
+				break;
+			case 3:
+				type = speed_up_type;
+				break;
+			case 4:
+				type = slow_down_type;
+				break;
+		}
+		CreatePowerUp(sink_type);
 	}
-	CreatePowerUp(type);
-  }
   
   // Initialize time
   lasttime_updated.tv_sec = 0;
@@ -181,6 +182,13 @@ R3Point World::PlayerPosition() {
   return bubbles[0]->pos;
 }
 
+void World::RemovePowerUp(int index)
+{
+	PowerUpShape temp = power_ups.back();
+	power_ups[index] = temp;
+	power_ups.pop_back();
+}
+
 string World::PlayerStatus() {
   stringstream ss;
   ss << "Player size: " << bubbles[0]->size << endl;
@@ -203,11 +211,66 @@ void World::Simulate() {
     timestep = (curtime.tv_sec - lasttime_updated.tv_sec) + 1.0E-6F * (curtime.tv_usec - lasttime_updated.tv_usec);
   }
   lasttime_updated = curtime;
+
+	//check if powerups mesh die
+	for (unsigned int i = 0; i < power_ups.size(); i++)
+	{
+		double cur_time = glutGet(GLUT_ELAPSED_TIME);
+		if (cur_time > power_ups[i].die_time)
+		{
+			RemovePowerUp(i);
+			i--;
+		}
+	}
+
+	//check if powerup time already expired
+	for (unsigned int i = 0; i < bubbles.size(); i++)
+	{
+		double cur_time = glutGet(GLUT_ELAPSED_TIME);
+		if (cur_time > bubbles[i] -> effect_end_time 
+				&& bubbles[i] -> effect_end_time != -1)
+		{
+			bubbles[i] -> state = reg_state;
+			bubbles[i] -> effect_end_time = -1;
+		}
+	}
+
+	//random chance for power ups to spawn
+	double random_chance = rand(100);
+	if (random_chance < 1)
+	{
+		int rand_num = floor(rand(5));
+		PowerUpType type;
+		switch (rand_num) {
+			case 0:
+				type = invincible_type;
+				break;
+			case 1:
+				type = small_sink_type;
+				break;
+			case 2:
+				type = sink_type;
+				break;
+			case 3:
+				type = speed_up_type;
+				break;
+			case 4:
+				type = slow_down_type;
+				break;
+		}
+		CreatePowerUp(sink_type);
+	}
   
-  
+  Bubble* player = bubbles[0];
   // A calculation
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
     (*it)->a = R3Vector(0,0,0);
+		if ((*it) -> state == sink_state && (*it) != bubbles[0])
+		{
+			R3Vector towards = player -> pos - (*it) -> pos;
+			double towards_mag = sqrt(towards.Dot(towards));
+			(*it) -> a += towards/towards_mag * 50/(towards_mag * towards_mag); 
+		}
   }
   
   // V update
@@ -232,6 +295,44 @@ void World::Simulate() {
       }
     }
   }
+
+	for (unsigned int i = 0; i < bubbles.size(); i++)
+	{
+		for (unsigned int j = 0; j < power_ups.size(); j++)
+		{
+			if (bubbles[i] -> Collides(power_ups[j].mesh))
+			{
+				PowerUpType type = power_ups[j].type;
+				if (type == invincible_type)
+				{
+					bubbles[i] -> state = invincible_state;
+					bubbles[i] -> effect_end_time = 1.5 * glutGet(GLUT_ELAPSED_TIME);
+				}
+				else if (type == small_sink_type)
+				{
+					bubbles[i] -> state = small_sink_state;
+					bubbles[i] -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+				}
+				else if (type == sink_type)
+				{
+					bubbles[i] -> state = sink_state;
+					bubbles[i] -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+				}
+				else if (type == speed_up_type)
+				{
+					bubbles[i] -> state = speed_up_state;
+					bubbles[i] -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+				}
+				else if (type == slow_down_type)
+				{
+					bubbles[i] -> state = slow_down_state;
+					bubbles[i] -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+				}
+				RemovePowerUp(j);
+				j--;
+			}
+		}
+	}
 }
 
 void World::Draw(R3Camera camera) {  
