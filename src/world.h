@@ -13,6 +13,7 @@ typedef enum {
 
 struct PowerUpShape {
 	PowerUpType type;
+	double die_time;
 	R3Mesh *mesh;
 };
 
@@ -21,7 +22,8 @@ class World {
     World();
     void DrawMinimap();
     void Draw(R3Camera camera);
-	void CreatePowerUp(PowerUpType type);
+	  void CreatePowerUp(PowerUpType type);
+		void RemovePowerUp(int index);
     void Simulate();
     void Emit(R3Vector camera_direction);
     bool inView(R3Camera camera, R3Point pos, double radius);

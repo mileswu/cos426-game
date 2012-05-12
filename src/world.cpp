@@ -109,7 +109,8 @@ void World::CreatePowerUp(PowerUpType type)
 		m = CreateSlowDown();
 		p.mesh = m;
 	}
-
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 
+		glutGet(GLUT_ELAPSED_TIME) * rand(30);
 	power_ups.push_back(p);
 }
 
@@ -181,6 +182,13 @@ R3Point World::PlayerPosition() {
   return bubbles[0]->pos;
 }
 
+void World::RemovePowerUp(int index)
+{
+	PowerUpShape temp = power_ups.back();
+	power_ups[index] = temp;
+	power_ups.pop_back();
+}
+
 string World::PlayerStatus() {
   stringstream ss;
   ss << "Player size: " << bubbles[0]->size << endl;
@@ -203,6 +211,17 @@ void World::Simulate() {
     timestep = (curtime.tv_sec - lasttime_updated.tv_sec) + 1.0E-6F * (curtime.tv_usec - lasttime_updated.tv_usec);
   }
   lasttime_updated = curtime;
+
+	//check if powerups die
+	for (unsigned int i = 0; i < power_ups.size(); i++)
+	{
+		double cur_time = glutGet(GLUT_ELAPSED_TIME);
+		if (cur_time > power_ups[i].die_time)
+		{
+			RemovePowerUp(i);
+			i--;
+		}
+	}
   
   
   // A calculation
