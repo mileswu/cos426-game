@@ -175,3 +175,43 @@ void World::Draw() {
   }
   glDisable(GL_LIGHTING);
 }
+
+void DrawCircle(double x0, double y0, double size) {
+  int nsteps = 16;
+  glNormal3d(0, 0, -1);
+  glBegin(GL_POLYGON);  
+  for (int i = 0; i < nsteps; i++) {
+    double angle = i * 2 * M_PI / nsteps;
+    double x = size * cos(angle);
+    double y = size * sin(angle);
+    glVertex3d(x+x0, y+y0, 0);
+  }
+  glEnd();
+}
+
+void World::DrawMinimap() {  
+  glDisable(GL_LIGHTING);  
+  GLfloat c[4];
+  double player_size = bubbles[0]->size;
+  
+  for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
+    if((*it)->player_id == 0) {
+      c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
+    }
+    else {
+      double s = (*it)->size;
+        c[0] = 0; c[1] = 1; c[2] = 0; c[3] = 1;
+      }
+      else if(s > 1.2*player_size) {
+        c[0] = 1; c[1] = 0; c[2] = 0; c[3] = 1;
+      }
+      else {
+        double f = (s - 0.8*player_size)/(0.4*player_size);
+        c[0] = f; c[1] = 1-f; c[2] = 0; c[3] = 1;
+      }
+    }
+    c[0] = 0.5;
+    glColor3f(c[0], c[1], c[2]);
+    DrawCircle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, 0.05);
+  }
+}

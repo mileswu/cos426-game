@@ -7,6 +7,7 @@ class World {
   public:
     World();
     void Draw();
+    void DrawMinimap();
     void Simulate();
     void Emit(R3Vector camera_direction);
     

@@ -20,6 +20,34 @@ static double fps = 60;
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 
+void DrawFullscreenQuad() {
+  glDisable(GL_DEPTH_TEST);
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glColor3d(1,1,1);  
+  glBegin(GL_QUADS);
+  glTexCoord2f (0.0, 0.0);
+  glVertex3f (-1.0, -1.0, 0.0);
+  glTexCoord2f (1.0, 0.0);
+  glVertex3f (1.0, -1.0, 0.0);
+  glTexCoord2f (1.0, 1.0);
+  glVertex3f (1.0, 1.0, 0.0);
+  glTexCoord2f (0.0, 1.0);
+  glVertex3f (-1.0, 1.0, 0.0);
+  glEnd();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+}
+
 void RedrawWindow() {
   // FPS timing
   frame_rendertimes[frame_rendertimes_i] = glutGet(GLUT_ELAPSED_TIME);
@@ -81,6 +109,8 @@ void RedrawWindow() {
   world->Draw();
   
   // OSD
+  glDisable(GL_DEPTH_TEST);
+  
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
@@ -104,11 +134,37 @@ void RedrawWindow() {
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *it);
   }
   
+  glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
   
+  glViewport(0, 0, 100, 100);
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glPushMatrix();
+  glDisable(GL_DEPTH_TEST);
+  
+  DrawFullscreenQuad();
+  world->DrawMinimap();
+  glPopMatrix();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+
+  
+  glViewport(0, 0, window_width, window_height);
+  
   glutSwapBuffers();
+  
 }
 
 void KeyboardInput(unsigned char key, int x, int y) {
