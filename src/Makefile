@@ -14,7 +14,7 @@ else
   endif
 endif
 
-game: game.o gl.o geometry.o bubble.o world.o
+game: game.o gl.o geometry.o bubble.o world.o fbo.o shader.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(GLLIBS)
 
 clean:
