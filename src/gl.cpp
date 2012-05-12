@@ -189,7 +189,48 @@ void RedrawWindow() {
 void KeyboardInput(unsigned char key, int x, int y) {
   if(key == 'q')
     exit(0);
-  cout << "Key pressed: " << key << endl;
+  double vx = 0;
+  double vy = 0;
+  // move the placement of where the bubbles emit from
+  if (key == 'w') { // up
+    vy = 1;
+  }
+  else if (key == 'a') { // left
+    vx = -1;
+  }
+  else if (key == 's') { // down
+    vy = -1;
+  }
+  else if (key == 'd') { // right
+    vx = 1;
+  }
+  else {
+    cout << "Key pressed: " << key << endl;
+    return;
+  }
+
+  vx /= 10;
+  vy /= 10;
+
+  R3Point scene_center = world->PlayerPosition();
+  double theta = 4.0 * (fabs(vx) + fabs(vy));
+  R3Vector vector = (back_camera.right * vx) + (back_camera.up * vy);
+  R3Vector rotation_axis = back_camera.towards % vector;
+  rotation_axis.Normalize();
+  
+  back_camera.eye.Translate(- scene_center.Vector());
+  back_camera.eye.Rotate(rotation_axis, theta);
+  back_camera.eye.Translate(scene_center.Vector());
+  
+  back_camera.towards.Rotate(rotation_axis, theta);
+  back_camera.up.Rotate(rotation_axis, theta);
+  back_camera.right = back_camera.towards % back_camera.up;
+  back_camera.up = back_camera.right % back_camera.towards;
+  back_camera.towards.Normalize();
+  back_camera.up.Normalize();
+  back_camera.right.Normalize();
+
+
 }
 
 void SpecialInput(int key, int x, int y) {
