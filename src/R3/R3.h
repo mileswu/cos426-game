@@ -17,18 +17,7 @@
 #pragma warning(disable:4996)
 #define M_PI 3.1415925
 #endif
-#ifdef __APPLE__
-# include <OpenGL/gl.h>
-# include <OpenGL/glu.h>
-#else 
-# ifdef _WIN32
-#   include <GL/gl.h>
-#   include <GL/glu.h>
-# else
-#   include <GL/gl.h>
-#   include <GL/glu.h>
-# endif
-#endif
+# include <GL/glew.h>
 
 
 

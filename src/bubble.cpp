@@ -10,8 +10,8 @@ Bubble::Bubble() {
   pos = R3Point(0,0,0);
   v = R3Vector(0,0,0);
   size = 1;
-	state = reg_state;
-	effect_end_time = -1;
+  state = reg_state;
+  effect_end_time = -1;
 }
 
 double Bubble::Mass() {
