@@ -109,7 +109,8 @@ void World::CreatePowerUp(PowerUpType type)
 		m = CreateSlowDown();
 		p.mesh = m;
 	}
-
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 
+		glutGet(GLUT_ELAPSED_TIME) * rand(30);
 	power_ups.push_back(p);
 }
 
@@ -181,6 +182,13 @@ R3Point World::PlayerPosition() {
   return bubbles[0]->pos;
 }
 
+void World::RemovePowerUp(int index)
+{
+	PowerUpShape temp = power_ups.back();
+	power_ups[index] = temp;
+	power_ups.pop_back();
+}
+
 string World::PlayerStatus() {
   stringstream ss;
   ss << "Player size: " << bubbles[0]->size << endl;
@@ -203,6 +211,17 @@ void World::Simulate() {
     timestep = (curtime.tv_sec - lasttime_updated.tv_sec) + 1.0E-6F * (curtime.tv_usec - lasttime_updated.tv_usec);
   }
   lasttime_updated = curtime;
+
+	//check if powerups die
+	for (unsigned int i = 0; i < power_ups.size(); i++)
+	{
+		double cur_time = glutGet(GLUT_ELAPSED_TIME);
+		if (cur_time > power_ups[i].die_time)
+		{
+			RemovePowerUp(i);
+			i--;
+		}
+	}
   
   
   // A calculation
@@ -290,6 +309,80 @@ void World::Draw(R3Camera camera) {
   glDisable(GL_LIGHTING);
 }
 
+void DrawCircle(double x0, double y0, double size) {
+  int nsteps = 16;
+  glNormal3d(0, 0, -1);
+  glBegin(GL_POLYGON);  
+  for (int i = 0; i < nsteps; i++) {
+    double angle = i * 2 * M_PI / nsteps;
+    double x = size * cos(angle);
+    double y = size * sin(angle);
+    glVertex3d(x+x0, y+y0, 0);
+  }
+  glEnd();
+}
+
+void DrawTriangle(double x0, double y0, double size, int orientation=0) {
+  int nsteps = 16;
+  glNormal3d(0, 0, -1);
+  glBegin(GL_POLYGON);
+  if(orientation == 1) {
+    size *= -1;
+  }
+  glVertex3d(x0, y0+size, 0);
+  glVertex3d(x0+fabs(size)/tan(M_PI/6.0), y0-size, 0);
+  glVertex3d(x0-fabs(size)/tan(M_PI/6.0), y0-size, 0);
+  glEnd();
+}
+
+void World::DrawMinimap() {  
+  glDisable(GL_LIGHTING);  
+  GLfloat c[4];
+  double player_size = bubbles[0]->size;
+  
+  for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
+    if((*it)->size / player_size < 0.5) continue;
+    
+    
+    if((*it)->player_id == 0) {
+      c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
+    }
+    else {
+      double s = (*it)->size;
+      if(s < 0.8*player_size) {
+        c[0] = 0; c[1] = 1; c[2] = 0; c[3] = 1;
+      }
+      else if(s > 1.2*player_size) {
+        c[0] = 1; c[1] = 0; c[2] = 0; c[3] = 1;
+      }
+      else {
+        double f = (s - 0.8*player_size)/(0.4*player_size);
+        c[0] = f; c[1] = 1-f; c[2] = 0; c[3] = 1;
+      }
+    }
+    c[0] = 0.5;
+    glColor3f(c[0], c[1], c[2]);
+    
+    double zdist = (*it)->pos[2] - bubbles[0]->pos[2];
+    double absdist = ((*it)->pos - bubbles[0]->pos).Length();
+    double size = 1.5/absdist;
+    
+    if((*it)->player_id == 0 || size > 0.1)
+      size = 0.1;
+    int orientation = 0;
+    if(fabs(zdist) < 5) {
+      DrawCircle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size);
+    }
+    else if(zdist < 0) {
+      DrawTriangle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size, 0);
+    }
+    else {
+      DrawTriangle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size, 1);
+    }
+    
+  }
+}
+
 bool World::inView(R3Camera camera, R3Point pos, double radius) {
 
   double dist;
@@ -308,3 +401,4 @@ bool World::inView(R3Camera camera, R3Point pos, double radius) {
   return true;
 
 }
+
