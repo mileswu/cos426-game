@@ -67,7 +67,28 @@ void RedrawWindow() {
   R3Vector cameradisplacement_after = world->PlayerPosition() - camera.eye;
   camera.eye.Translate(cameradisplacement_after - cameradisplacement_before);
   camera.Load(window_width, window_height);
-  
+
+  // Backlight where bubbles emit
+  light_index = GL_LIGHT1;
+  glDisable(light_index);
+  c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
+  glLightfv(light_index, GL_DIFFUSE, c);
+  glLightfv(light_index, GL_SPECULAR, c);
+  //glLightfv(light_index, GL_AMBIENT, c);
+  c[0] = camera.eye.X(); c[1] = camera.eye.Y(); c[2] = camera.eye.Z(); c[3] = 1;
+  glLightfv(light_index, GL_POSITION, c);
+  glEnable(light_index);
+
+  // Backlight2
+  light_index = GL_LIGHT2;
+  glDisable(light_index);
+  c[0] = 1; c[1] = 0; c[2] = 0; c[3] = 1;
+  glLightfv(light_index, GL_DIFFUSE, c);
+  glLightfv(light_index, GL_SPECULAR, c);
+  //glLightfv(light_index, GL_AMBIENT, c);
+  c[0] = camera.eye.X(); c[1] = camera.eye.Y(); c[2] = camera.eye.Z(); c[3] = 1;
+  glLightfv(light_index, GL_POSITION, c);
+  glEnable(light_index); 
   // Rendering of World
   glColor3d(1,1,1);
   glEnable(GL_DEPTH_TEST);
