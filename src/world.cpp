@@ -32,6 +32,77 @@ R3Point randpoint(double max, double min = 0) {
   return randvector(max, min).Point();
 }
 
+R3Mesh* CreateInvincible()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
+}
+
+R3Mesh* CreateSmallSink()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
+}
+
+R3Mesh* CreateSink()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
+}
+
+R3Mesh* CreateSpeedUp()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
+}
+
+R3Mesh* CreateSlowDown()
+{
+	R3Mesh* m = new R3Mesh();
+	m -> Read("mushroom.off");
+	return m;
+}
+
+
+
+void World::CreatePowerUp(PowerUpType type)
+{
+	R3Mesh* m;
+	PowerUpShape p;
+	p.type = type;
+	if (type == invincible_type)
+	{
+		m = CreateInvincible();
+		p.invincible = m;
+	}
+	else if (type == small_sink_type)
+	{
+		m = CreateSmallSink();
+		p.small_sink = m;
+	}
+	else if (type == sink_type)
+	{
+		m = CreateSink();
+		p.sink = m;
+	}
+	else if (type == speed_up_type)
+	{
+		m = CreateSpeedUp();
+		p.speed_up = m;
+	}
+	else if (type == slow_down_type)
+	{
+		m = CreateSlowDown();
+		p.slow_down = m;
+	}
+
+	power_ups.push_back(p);
+}
+
 
 World::World() {
   //Player bubble
@@ -46,6 +117,9 @@ World::World() {
     b->size = rand(1.2, 0.1);
     bubbles.push_back(b);
   }
+
+  for (unsigned int i = 0; i < bubbles.size()/10; i++)
+  	CreatePowerUp(invincible_type);
   
   // Initialize time
   lasttime_updated.tv_sec = 0;
@@ -175,5 +249,10 @@ void World::Draw(R3Camera camera) {
       (*it)->Draw();
     }
   }
+
+	for (unsigned int i = 0; i < power_ups.size(); i++)
+	{
+		power_ups[i].invincible -> Draw();
+	}
   glDisable(GL_LIGHTING);
 }
