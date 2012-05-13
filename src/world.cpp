@@ -449,6 +449,25 @@ void World::Draw(R3Camera camera) {
   glDisable(GL_LIGHTING);
 }
 
+
+void DrawWorld() {
+
+  double size = 100;
+  glPushMatrix();
+  static GLUquadricObj *glu_sphere = gluNewQuadric();
+  gluQuadricTexture(glu_sphere, GL_TRUE);
+  gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);
+  gluQuadricOrientation(glu_sphere, GLU_INSIDE);
+  //gluQuadricDrawStyle(glu_sphere, (GLenum) GLU_FILL);
+  
+  //glBindTexture(GL_TEXTURE_2D, texture);
+
+  gluSphere(glu_sphere, size, 32, 32);
+  glPopMatrix();
+
+
+}
+
 void DrawCircle(double x0, double y0, double size) {
   int nsteps = 16;
   glNormal3d(0, 0, -1);
