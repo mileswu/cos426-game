@@ -292,10 +292,8 @@ void TimerFunc(int stuff) {
   glutTimerFunc(1000.0/fps, TimerFunc, stuff);
 }
 
-int CreateWindow() {
-  int fake_argc = 0;
-  char **fake_argv;
-  glutInit(&fake_argc, fake_argv);
+int CreateGameWindow(int argc, char **argv) {
+  glutInit(&argc, argv);
   
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(window_width, window_height);

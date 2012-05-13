@@ -10,7 +10,7 @@ ifneq (,$(findstring Darwin,$(UNAME)))
 	GLLIBS := -framework OpenGL -framework GLUT -framework ApplicationServices #-framework sfml-audio 
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
-	GLLIBS := -lglut32 -lglut -lGLU -lGL
+	GLLIBS := -lglut32 -lglu32 -lopengl32
   else
 	GLLIBS := -lglut -lGLU -lGL
   endif
