@@ -1,5 +1,11 @@
-#include <vector>
+#ifndef BUBBLE_H
+#define BUBBLE_H
+
 #include "geometry.h"
+#include <vector>
+using namespace std;
+
+class AI;
 
 typedef enum {
 	invincible_state,
@@ -12,7 +18,8 @@ typedef enum {
 
 class Bubble {
   public:
-    Bubble();
+    explicit Bubble(AI *ai_);
+    ~Bubble();
     
     void Draw();
 
@@ -27,9 +34,14 @@ class Bubble {
     double size;
     double density;
     int player_id;
-    
-		BubbleState state;
-		double effect_end_time;
+
+    BubbleState state;
+    double effect_end_time;
+
+    AI *ai;
+
   private:
   
 };
+
+#endif
