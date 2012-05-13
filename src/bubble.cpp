@@ -64,7 +64,7 @@ int Bubble::Collides(Bubble *otherbubble) {
   double v_total = Mass() + otherbubble->Mass();
   Bubble *bigger, *smaller;
   int bigger_this; //Is 'this' bigger? or smaller?
-  if(size > otherbubble->size) {
+  if(size > otherbubble->size || (state -> invincible && player_id == 0)) {
     bigger_this = 1;
     bigger = this;
     smaller = otherbubble;
