@@ -10,7 +10,7 @@
 class AI {
 public:
   enum State {
-    kIdle,
+    kIdle = 0,
     kSeek,
     kAggress,
     kAvoid,
@@ -27,7 +27,7 @@ public:
   void Target(Bubble *target_) { target = target_; }
 
   // Bubble has to call AI->Get_ rather than AI modifying bubble state.
-  // FIXME
+  // FIXME action instead of acceleration?
   R3Vector &GetAcceleration() { return a; }
 
   // Bubble does whatever its current AI state tells it to.

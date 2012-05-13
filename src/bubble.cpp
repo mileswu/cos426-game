@@ -4,6 +4,18 @@
 #include <iostream>
 using namespace std;
 
+static BubbleMaterial plain_material = {
+  {1, 1, 1, 1}
+};
+
+/*static BubbleMaterial player_material = {
+  {0, 0, 1, 1},
+};
+
+static BubbleMaterial other_material = {
+  {0, 1, 1, 1},
+};*/
+
 Bubble::Bubble(AI *ai_) {
   //Initialize sane defaults
   density = 1.0;
@@ -11,8 +23,12 @@ Bubble::Bubble(AI *ai_) {
   pos = R3Point(0,0,0);
   v = R3Vector(0,0,0);
   size = 1;
+
   state = reg_state;
   effect_end_time = -1;
+
+  material = plain_material;
+
   ai = ai_;
   if (NULL != ai) {
     ai->SetHost(this);
@@ -46,11 +62,11 @@ int Bubble::Collides(R3Mesh* mesh) {
   double z = SepAxis.Z();
 
   if (x >= y && x >= z)
-          SepAxis /= x;
+    SepAxis /= x;
   else if (y >= x && y >= z)
-          SepAxis /= y;
+    SepAxis /= y;
   else 
-          SepAxis /= z;
+    SepAxis /= z;
 
   double x_len = box.XLength();
   double y_len = box.YLength();
@@ -62,7 +78,7 @@ int Bubble::Collides(R3Mesh* mesh) {
   SepAxis.SetZ(z * z_len/2.0);
 
   if (dist <= (size + SepAxis.Length()))
-          return 1;	
+    return 1;	
   return 0;
 }
 
@@ -75,12 +91,11 @@ int Bubble::Collides(Bubble *otherbubble) {
   double v_total = Mass() + otherbubble->Mass();
   Bubble *bigger, *smaller;
   int bigger_this; //Is 'this' bigger? or smaller?
-  if(size > otherbubble->size || (otherbubble->state == invincible_state && player_id == 0)) {
+  if (size > otherbubble->size || (otherbubble->state == invincible_state && player_id == 0)) {
     bigger_this = 1;
     bigger = this;
     smaller = otherbubble;
-  }
-  else {
+  } else {
     bigger_this = 0;
     smaller = this;
     bigger = otherbubble;
@@ -93,26 +108,24 @@ int Bubble::Collides(Bubble *otherbubble) {
   
   // See if smaller one is totally absorbed
   bigger->SetSizeFromMass(v_total);
-  if(d < bigger->size) {
+  if (d < bigger->size) {
     bigger->v = total_momentum/bigger->Mass();
     
-    if(bigger_this) {
+    if (bigger_this) {
       return -2; //The other one was absorbed
-    }
-    else {
+    } else {
       return -1; //'this' was the smaller one that was absorbed
     }
   }
   
   // Midpoint bisection to find solution
-  for(int i=0;i<100;i++) { //100 iterations probably sufficient to find solution
+  for (int i=0;i<100;i++) { //100 iterations probably sufficient to find solution
     double bigger_mass_midpoint = 0.5 * (bigger_mass_upperbound + bigger_mass_lowerbound);
     bigger->SetSizeFromMass(bigger_mass_midpoint);
     smaller->SetSizeFromMass(v_total - bigger_mass_midpoint);
-    if(d < bigger->size + smaller->size) {
+    if (d < bigger->size + smaller->size) {
       bigger_mass_lowerbound = bigger_mass_midpoint;
-    }
-    else {
+    } else {
       bigger_mass_upperbound = bigger_mass_midpoint;
     }
   }
@@ -123,6 +136,7 @@ int Bubble::Collides(Bubble *otherbubble) {
 }
 
 void Bubble::Draw() {
+  // Draw the bubble itself.
   glPushMatrix();
   glTranslated(pos[0], pos[1], pos[2]);
   static GLUquadricObj *glu_sphere = gluNewQuadric();
@@ -131,4 +145,7 @@ void Bubble::Draw() {
   gluQuadricDrawStyle(glu_sphere, (GLenum) GLU_FILL);
   gluSphere(glu_sphere, size, 32, 32);
   glPopMatrix();
+
+  // Based on its material and state, emit particles.
+  // TODO
 }
