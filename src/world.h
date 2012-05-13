@@ -27,6 +27,7 @@ class World {
     void Simulate();
     void Emit(R3Vector camera_direction);
     bool inView(R3Camera camera, R3Point pos, double radius);
+    void DeathMusic();
     
     R3Point PlayerPosition();
     std::string PlayerStatus();

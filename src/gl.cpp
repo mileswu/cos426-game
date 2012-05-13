@@ -1,9 +1,12 @@
 #include "gl.h"
 #include "world.h"
+#include <GLUT/glut.h>
 #include <iostream>
 #include <stdlib.h>
 #include <string>
 #include <sstream>
+#include <SFML/Audio.hpp>
+#include <SFML/Graphics.hpp>
 
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
@@ -20,6 +23,8 @@ static double fps = 60;
 
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
+
+static sf::Music music;
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
@@ -303,6 +308,7 @@ int CreateWindow() {
   CGSetLocalEventsSuppressionInterval(0.0);
 #endif
   int GLUTwindow = glutCreateWindow("Game");
+
   
   glutWarpPointer(window_width/2, window_height/2);
   glutSetCursor(GLUT_CURSOR_NONE);
@@ -317,8 +323,9 @@ int CreateWindow() {
   /*
   glutReshapeFunc(GLUTResize);*/
   glutSpecialFunc(SpecialInput);
+
   
-  view_camera.eye = R3Point(0,0,-2);
+  view_camera.eye = R3Point(0,0,-4);
   view_camera.yfov = 0.8;
   view_camera.xfov = 0.8;
   view_camera.up = R3Vector(0, 1, 0);

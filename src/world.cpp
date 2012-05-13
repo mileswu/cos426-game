@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <SFML/Audio.hpp>
+#include <SFML/Graphics.hpp>
 
 using namespace std;
 
@@ -360,9 +362,11 @@ void World::Simulate() {
       int retval = (*it)->Collides(*it2);
       if(retval == -1) {
         it = bubbles.erase(it);
+        DeathMusic();
       }
       else if(retval == -2) {
         it2 = bubbles.erase(it2);  
+        DeathMusic();
       }
     }
   }
@@ -526,10 +530,22 @@ bool World::inView(R3Camera camera, R3Point pos, double radius) {
   dist = R3SignedDistance(camera.bottom_plane, pos);
   if (dist > 0 && !(fabs(dist) < radius)) return false;
 
-
-  if (R3SignedDistance(camera.camera_plane, pos) < 0) return false;
+  dist = R3SignedDistance(camera.camera_plane, pos);
+  if (dist < 0 && !(fabs(dist) < radius)) return false;
 
   return true;
+
+}
+
+void World::DeathMusic() {
+
+  static sf::Music music;
+  
+  // http://www.grsites.com/archive/sounds/category/23/?offset=0 
+  if (!music.openFromFile("audio/kiss.wav")) {
+    printf("failed to find music\n");
+  }
+  music.play();
 
 }
 
