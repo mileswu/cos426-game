@@ -1,6 +1,5 @@
 #include "gl.h"
 #include "world.h"
-#include <GLUT/glut.h>
 #include <iostream>
 #include <stdlib.h>
 #include <string>
