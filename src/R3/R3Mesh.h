@@ -8,20 +8,11 @@
 ////////////////////////////////////////////////////////////
 
 #include <vector>
+#include "R2/R2.h"
+#include "R3/R3.h"
 using namespace std;
 
-class R3Point;
-class R3Vector;
-class R3Line;
-class R3Ray;
-class R3Segment;
-class R3Plane;
-class R3Circle;
-class R3Box;
-class R3Cylinder;
-class R3Cone;
-class R3Sphere;
-class R3Matrix;
+
 
 ////////////////////////////////////////////////////////////
 // MESH VERTEX DECLARATION
@@ -52,6 +43,7 @@ struct R3MeshVertex {
   vector<int> edges_vertex_ids;
   vector<R3MeshFace *> faces;
 };
+
 
 
 
@@ -158,6 +150,10 @@ struct R3Mesh {
   int WriteRay(const char *filename);
   int WriteOff(const char *filename);
 
+  // Drawing functions
+  void Draw(void) const;
+  void Outline(void) const;
+
   // Low-level creation functions
   R3MeshVertex *CreateVertex(const R3Point& position, 
     const R3Vector& normal, const R2Point& texcoords);
@@ -169,7 +165,7 @@ struct R3Mesh {
   void Update(void);
   void UpdateBBox(void);
   void UpdateFacePlanes(void);
-	void UpdateVertexEdges(void);
+  	void UpdateVertexEdges(void);
 	void UpdateVertexFaces(void);
   void UpdateVertexNormals(void);
   void UpdateVertexCurvatures(void);
@@ -219,6 +215,5 @@ Face(int k) const
   // Return kth face of mesh
   return faces[k];
 }
-
 
 
