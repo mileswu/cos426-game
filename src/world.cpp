@@ -279,6 +279,7 @@ void World::Simulate() {
        it < bubbles.end(); it++) {
     (*it)->a = R3Vector(0,0,0);
     if ((*it) != bubbles[0]) {
+      // Player sink status moves NPC bubbles toward it.
       switch (player->state) {
       case sink_state: {
         R3Vector towards = player->pos - (*it)->pos;
@@ -296,7 +297,7 @@ void World::Simulate() {
       } break;
       default: ;
       }
-    } else {
+
       // Do AI calculation for NPC bubbles.
       if (NULL != (*it)->ai) {
         (*it)->a += (*it)->ai->GetAcceleration();
