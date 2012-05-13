@@ -217,14 +217,23 @@ string World::PlayerStatus() {
 
 void World::Simulate() {
   struct timeval curtime;
+  double curr_time = 0;
   double last_time = 0;
   double timestep = 0;
   gettimeofday(&curtime, NULL);
   if (lasttime_updated.tv_sec != 0) {
-    last_time = curtime.tv_sec + 1.0e-6 * curtime.tv_usec;
-    timestep = (curtime.tv_sec - lasttime_updated.tv_sec) + 1.0E-6F * (curtime.tv_usec - lasttime_updated.tv_usec);
+    curr_time = curtime.tv_sec + 1.0e-6 * curtime.tv_usec;
+    last_time = lasttime_updated.tv_sec + 1.0e-6 * lasttime_updated.tv_usec;
+    //timestep = (curtime.tv_sec - lasttime_updated.tv_sec) + 1.0E-6F * (curtime.tv_usec - lasttime_updated.tv_usec);
+    timestep = curr_time - last_time;
   }
   lasttime_updated = curtime;
+
+  // Based on bubble material and state, emit particles.
+  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
+       it != ie; ++it) {
+    // FIXME
+  }
 
   //check if powerups mesh die
   for (unsigned int i = 0; i < power_ups.size(); i++)
@@ -367,10 +376,13 @@ void World::Simulate() {
        ie = particles.end(); it != ie; ++it) {
     // Update particles.
     (*it)->position += timestep * (*it)->velocity;
-  }
+    (*it)->lifetime -= timestep;
 
-  // Particles lifetime.
-  // TODO
+    // Particle lifetime.
+    if ((*it)->lifetime < 0) {
+      // FIXME
+    }
+  }
   
   // Collisions
   for (vector<Bubble *>::iterator it = bubbles.begin();
@@ -439,6 +451,11 @@ void World::Draw(R3Camera camera) {
     if (inView(camera, (*it)->pos, (*it)->size)) {
       (*it)->Draw();
     }
+  }
+
+  for (vector<Particle *>::iterator it = particles.begin(),
+       ie = particles.end(); it != ie; ++it) {
+    // FIXME
   }
 
   GLfloat c_purple[4] = {0.5, 0, 0.5, 1};

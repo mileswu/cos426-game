@@ -34,6 +34,7 @@ struct Particle {
   R3Vector position;
   double lifetime;
   int size;
+  bool is_point;
 };
 
 class World {
