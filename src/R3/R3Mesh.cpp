@@ -481,8 +481,172 @@ SubdivideCatmullClark(void)
   // the positions of all vertices according to the Catmull-Clark subdivision weights. 
   // This only must work correctly for meshes with quadrilateral faces. 
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "SubdivideCatmullClark not implemented\n");
+  
+  map<R3MeshFace *, R3MeshVertex *> face_to_centroid;
+  map<R3MeshVertex *, R3MeshFace *> centroid_to_face;
+  map< pair<R3MeshVertex *, R3MeshVertex *>, R3MeshVertex * > pair_to_midpoints;
+  map<R3MeshVertex *, pair<R3MeshVertex *, R3MeshVertex *> > midpoints_to_pair;
+  map<R3MeshVertex *, pair<R3MeshVertex *, R3MeshVertex *> > midpoints_to_centroids;
+
+  vector<R3MeshVertex *> all_midpoints;
+  vector<R3MeshVertex *> all_centroids;
+  vector<R3MeshVertex *> all_original_points(vertices);
+
+  vector<R3MeshFace *> new_faces;
+  vector<R3MeshVertex *> all_new_vertices;
+
+  // for all faces, make a centroid point and save it
+  for (unsigned int face = 0; face < faces.size(); face++) {
+    R3MeshFace *this_face = faces[face];
+    R3MeshVertex *new_centroid = new R3MeshVertex();
+
+    for (unsigned int vert = 0; vert < this_face->vertices.size(); vert++) {
+      new_centroid->position+=this_face->vertices[vert]->position;
+    }
+    new_centroid->position /= this_face->vertices.size();
+    all_centroids.push_back(new_centroid);
+    all_new_vertices.push_back(new_centroid);
+    face_to_centroid[this_face] = new_centroid;
+    centroid_to_face[new_centroid] = this_face;
+  }
+
+  // make all edge midpoints
+  for (unsigned int vert = 0; vert < vertices.size(); vert++) {
+    R3MeshVertex *this_vert = vertices[vert];
+
+    // go through all neighboring vertices of this vertex
+    map<R3MeshVertex *, double>::const_iterator vert_iter;
+    for (vert_iter = this_vert->vneighbors.begin(); vert_iter!=this_vert->vneighbors.end(); ++vert_iter) {
+      R3MeshVertex *this_neigh = vert_iter->first;
+      if (pair_to_midpoints.count(make_pair(this_vert, this_neigh))==0) {
+        R3MeshVertex *new_midpoint = new R3MeshVertex();
+
+        //midpoint is average of neighbors on line and of neighboring faces' centroids
+        new_midpoint->position = (this_vert->position + this_neigh->position);
+
+        int found = 0;
+        R3MeshVertex *centroid1=NULL;
+        R3MeshVertex *centroid2=NULL;
+
+        map<R3MeshFace *, double>::const_iterator face_iter;
+        for (face_iter = this_vert->fneighbors.begin(); face_iter!=this_vert->fneighbors.end(); ++face_iter) {
+          R3MeshFace *this_face = face_iter->first;
+
+          // add the neighboring centroid to the sum for the new point
+          for (unsigned int tfi = 0; tfi < this_face->vertices.size(); tfi++) {
+            if (this_face->vertices[tfi]==this_neigh) {
+              new_midpoint->position += face_to_centroid[this_face]->position;
+              if (centroid1==NULL) {
+                centroid1 = face_to_centroid[this_face];
+              } else if (centroid2==NULL) {
+                centroid2 = face_to_centroid[this_face];
+              } else { fprintf(stderr, "does not appear to be a perfect quad-faced mesh\n"); }
+              found++;
+            }
+          }
+        }
+
+        //midpoints_to_centroids[new_midpoint] = make_pair(centroid1, centroid2);
+
+        new_midpoint->position /= 4.0; // normalize/average
+        // save this new midpoint
+        pair_to_midpoints[make_pair(this_vert, this_neigh)] = new_midpoint;
+        pair_to_midpoints[make_pair(this_neigh, this_vert)] = new_midpoint;
+        midpoints_to_pair[new_midpoint] = make_pair(this_neigh, this_vert);
+        all_midpoints.push_back(new_midpoint);
+        all_new_vertices.push_back(new_midpoint);
+      }
+    }
+  }
+
+  //double valence = 4.0; // defined as such because we assumed only quadrilateral faces
+
+  // update all original points as weighted by neighboring centroids, neighboring
+  // midpoints, and self
+  //
+  // Full Formula: point = (Q/n) + (2R/n) + (S(n-3)/n)
+  // = (Q/4) + (R/2) + (S/4)
+  // where Q is average of surrounding centroids
+  // and R is average of surrounding midpoints
+  for (unsigned int vert = 0; vert < all_original_points.size(); vert++) {
+    
+    R3MeshVertex *this_vert = all_original_points[vert];
+    all_new_vertices.push_back(this_vert);
+
+    // S/4
+    this_vert->position /= 4;
+    
+
+    // Q/4
+    R3Point temp(0,0,0);
+    map<R3MeshFace *, double>::const_iterator face_iter;
+    for (face_iter = this_vert->fneighbors.begin(); face_iter!=this_vert->fneighbors.end(); ++face_iter) {
+      temp+=face_to_centroid[face_iter->first]->position; // sum
+    }
+    temp /= this_vert->fneighbors.size(); // average
+    temp /= 4.0; // Q/4
+    this_vert->position += temp;
+
+    // R/2
+    R3Point temp2(0,0,0);
+    map<R3MeshVertex *, double>::const_iterator vert_iter;
+    for (vert_iter = this_vert->vneighbors.begin(); vert_iter!=this_vert->vneighbors.end(); ++vert_iter) {
+      temp2+=pair_to_midpoints[make_pair(this_vert, vert_iter->first)]->position; // sum
+    }
+    temp2 /= this_vert->vneighbors.size(); // average
+    temp2 /= 2.0; // R/2
+    this_vert->position += temp2; // done changing this vertex
+  }
+
+  // for all corner points, make a new face for each of their three neighbor faces
+  // consisting of the face's centroid, this point, and the two new midpoints along the
+  // neighbor
+  for (unsigned int vert = 0; vert < all_original_points.size(); vert++) {
+
+    R3MeshVertex *this_vert = all_original_points[vert];
+
+    // go through all neighbor faces to replace them
+    map<R3MeshFace *, double>::const_iterator face_iter;
+    for (face_iter = this_vert->fneighbors.begin(); face_iter!=this_vert->fneighbors.end(); ++face_iter) {
+      vector<R3MeshVertex *> new_face_vertices;
+      R3MeshFace *this_face = face_iter->first;
+
+      new_face_vertices.push_back(face_to_centroid[this_face]); // add the centroid
+
+      R3MeshVertex *p1 = NULL;
+      R3MeshVertex *p2 = NULL;
+
+      int found = 0;
+
+      // find the correct two midpoints that correspond with the original vertex
+      for (unsigned int tfi = 0; tfi < this_face->vertices.size(); tfi++) {
+        if (pair_to_midpoints.count(make_pair(this_vert, this_face->vertices[tfi]))!=0) {
+          if (p1==NULL) {
+            p1 = pair_to_midpoints[make_pair(this_vert, this_face->vertices[tfi])];
+          } else if (p2==NULL) {
+            p2 = pair_to_midpoints[make_pair(this_vert, this_face->vertices[tfi])];
+          } else { printf("more than two midpoint edges, probably not a quad?\n"); }
+          found++;
+        }
+      }
+      if (p1==NULL || p2==NULL || this_vert==NULL || face_to_centroid[this_face]==NULL) {
+        printf("null error");
+      }
+
+      new_face_vertices.push_back(p1);
+      new_face_vertices.push_back(this_vert);
+      new_face_vertices.push_back(p2);
+
+
+      R3MeshFace *new_face = new R3MeshFace(new_face_vertices);
+      new_faces.push_back(new_face); // this face replaces the original face for the neighbor position of the original vertex
+    }
+
+  }
+
+  this->vertices = all_new_vertices;
+  this->faces = new_faces;
+
 
   // Update mesh data structures
   Update();
