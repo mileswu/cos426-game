@@ -17,7 +17,7 @@
 #pragma warning(disable:4996)
 #define M_PI 3.1415925
 #endif
-# include <GL/glew.h>
+# include <gl.h>
 
 
 

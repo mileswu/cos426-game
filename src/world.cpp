@@ -73,8 +73,8 @@ R3Mesh* CreateSpeedUp()
 	R3Mesh* m = new R3Mesh();
 	m->Read("./models/heart.off");
 	m->Scale(0.1, 0.1, 0.1);
-	m->Translate(0,0,3);
-	//randTranslate(m);
+	//m->Translate(0,0,3);
+	randTranslate(m);
 	return m;
 }
 
@@ -82,7 +82,7 @@ R3Mesh* CreateSlowDown()
 {
 	R3Mesh* m = new R3Mesh();
 	m->Read("./models/Sword01.off");
-	m->Scale(0.005, 0.005, 0.005);
+	m->Scale(0.001, 0.001, 0.001);
 	randTranslate(m);
 	return m;
 }
@@ -160,7 +160,7 @@ World::World() {
         type = slow_down_type;
         break;
     }
-    CreatePowerUp(speed_up_type);
+    CreatePowerUp(type);
   }
   
   // Initialize time
