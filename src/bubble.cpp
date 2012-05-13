@@ -5,8 +5,16 @@
 using namespace std;
 
 static BubbleMaterial plain_material = {
-  {0, 0, 0, 1}
+  {1, 1, 1, 1}
 };
+
+/*static BubbleMaterial player_material = {
+  {0, 0, 1, 1},
+};
+
+static BubbleMaterial other_material = {
+  {0, 1, 1, 1},
+};*/
 
 Bubble::Bubble(AI *ai_) {
   //Initialize sane defaults
@@ -128,6 +136,7 @@ int Bubble::Collides(Bubble *otherbubble) {
 }
 
 void Bubble::Draw() {
+  // Draw the bubble itself.
   glPushMatrix();
   glTranslated(pos[0], pos[1], pos[2]);
   static GLUquadricObj *glu_sphere = gluNewQuadric();
@@ -136,4 +145,7 @@ void Bubble::Draw() {
   gluQuadricDrawStyle(glu_sphere, (GLenum) GLU_FILL);
   gluSphere(glu_sphere, size, 32, 32);
   glPopMatrix();
+
+  // Based on its material and state, emit particles.
+  // TODO
 }

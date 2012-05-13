@@ -1,10 +1,10 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include <vector>
 #include "bubble.h"
 #include <sys/time.h>
 #include <string>
+#include <vector>
 
 typedef enum {
   DEATH_SOUND,
@@ -29,6 +29,13 @@ struct PowerUpShape {
   R3Mesh *mesh;
 };
 
+struct Particle {
+  R3Vector velocity;
+  R3Vector position;
+  double lifetime;
+  int size;
+};
+
 class World {
   public:
     World();
@@ -45,7 +52,8 @@ class World {
     std::string PlayerStatus();
     
     std::vector<Bubble *> bubbles;
-		std::vector<PowerUpShape> power_ups;
+    std::vector<PowerUpShape> power_ups;
+    std::vector<Particle *> particles;
     struct timeval lasttime_updated;
 };
 

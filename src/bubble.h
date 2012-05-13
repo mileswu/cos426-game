@@ -18,6 +18,7 @@ typedef enum {
 
 struct BubbleMaterial {
   GLfloat color[4];
+  double particle_rate;
 };
 
 class Bubble {

@@ -1,6 +1,7 @@
 #include "world.h"
 #include "ai.h"
 #include "gl.h"
+//#include "particle.h"
 #include <iostream>
 #include <map>
 #include <string>
@@ -214,9 +215,11 @@ string World::PlayerStatus() {
 
 void World::Simulate() {
   struct timeval curtime;
+  double last_time = 0;
   double timestep = 0;
   gettimeofday(&curtime, NULL);
-  if(lasttime_updated.tv_sec != 0) {
+  if (lasttime_updated.tv_sec != 0) {
+    last_time = curtime.tv_sec + 1.0e-6 * curtime.tv_usec;
     timestep = (curtime.tv_sec - lasttime_updated.tv_sec) + 1.0E-6F * (curtime.tv_usec - lasttime_updated.tv_usec);
   }
   lasttime_updated = curtime;
@@ -308,6 +311,7 @@ void World::Simulate() {
   // V update
   for (vector<Bubble *>::iterator it = bubbles.begin();
        it < bubbles.end(); it++) {
+    // Update bubble velocities.
     (*it)->v += (*it)->a*timestep;
     if (player->state == speed_up_state && (*it) != player) {
       (*it)->v += 100 * R3Vector(1,1,1);
@@ -354,8 +358,17 @@ void World::Simulate() {
   // P update
   for (vector<Bubble *>::iterator it = bubbles.begin();
        it < bubbles.end(); it++) {
+    // Update bubbles.
     (*it)->pos += (*it)->v*timestep;
   }
+  for (vector<Particle *>::iterator it = particles.begin(),
+       ie = particles.end(); it != ie; ++it) {
+    // Update particles.
+    (*it)->position += timestep * (*it)->velocity;
+  }
+
+  // Particles lifetime.
+  // TODO
   
   // Collisions
   for (vector<Bubble *>::iterator it = bubbles.begin();
