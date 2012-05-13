@@ -24,6 +24,7 @@ static Framebuffer *direct_render_fbo, *bloom_preblur_fbo, *bloom_blurred_fbo;
 static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader;
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
+static int hasgoodgpu = 0;
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
@@ -150,7 +151,9 @@ void RedrawWindow() {
   glEnable(light_index);
 
   // Rendering of World into Framebuffer
-  glBindFramebuffer(GL_FRAMEBUFFER, direct_render_fbo->framebuffer);
+  if(hasgoodgpu) {
+    glBindFramebuffer(GL_FRAMEBUFFER, direct_render_fbo->framebuffer);
+  }
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
@@ -166,63 +169,65 @@ void RedrawWindow() {
   view_camera.CalcPlanes();
   world->Draw(view_camera);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  
-  // Threshold our FBO
-  glBindFramebuffer(GL_FRAMEBUFFER, bloom_preblur_fbo->framebuffer);
-  glClearColor(0, 0, 0, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
-  glUseProgram(bloom_preblur_shader->program);
-  glBindTexture(GL_TEXTURE_2D, direct_render_fbo->texture);
-  glUniform1i(glGetUniformLocation(bloom_preblur_shader->program, "tex"), 0);
-  DrawFullscreenQuad();
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glUseProgram(0);
-  
-  // Blur our FBO in x direction
-  glBindFramebuffer(GL_FRAMEBUFFER, bloom_blurred_fbo->framebuffer);
-  glClearColor(0, 0, 0, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
-  glUseProgram(blur_shader_x->program);
-  glBindTexture(GL_TEXTURE_2D, bloom_preblur_fbo->texture);
-  glUniform1i(glGetUniformLocation(blur_shader_x->program, "tex"), 0);
-  DrawFullscreenQuad();
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glUseProgram(0);
-  
-  // Blur our FBO in y direction
-  glBindFramebuffer(GL_FRAMEBUFFER, bloom_preblur_fbo->framebuffer);
-  glClearColor(0, 0, 0, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
-  glUseProgram(blur_shader_y->program);
-  glBindTexture(GL_TEXTURE_2D, bloom_blurred_fbo->texture);
-  glUniform1i(glGetUniformLocation(blur_shader_y->program, "tex"), 0);
-  DrawFullscreenQuad();
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glUseProgram(0);
-  
-  // Composite our blur-bloom FBO + original FBO
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glClearColor(0, 0, 0, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
-  glUseProgram(bloom_composite_shader->program);
-  glBindTexture(GL_TEXTURE_2D, bloom_preblur_fbo->texture);
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, direct_render_fbo->texture);
-  glActiveTexture(GL_TEXTURE0);
-  glUniform1i(glGetUniformLocation(bloom_composite_shader->program, "tex_orig"), 1);
-  glUniform1i(glGetUniformLocation(bloom_composite_shader->program, "tex_blur"), 0);
-  DrawFullscreenQuad();
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glUseProgram(0);
-  
-  printProgramInfoLog(bloom_composite_shader->program);
+  if(hasgoodgpu) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    // Threshold our FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, bloom_preblur_fbo->framebuffer);
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glUseProgram(bloom_preblur_shader->program);
+    glBindTexture(GL_TEXTURE_2D, direct_render_fbo->texture);
+    glUniform1i(glGetUniformLocation(bloom_preblur_shader->program, "tex"), 0);
+    DrawFullscreenQuad();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
+    
+    // Blur our FBO in x direction
+    glBindFramebuffer(GL_FRAMEBUFFER, bloom_blurred_fbo->framebuffer);
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glUseProgram(blur_shader_x->program);
+    glBindTexture(GL_TEXTURE_2D, bloom_preblur_fbo->texture);
+    glUniform1i(glGetUniformLocation(blur_shader_x->program, "tex"), 0);
+    DrawFullscreenQuad();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
+    
+    // Blur our FBO in y direction
+    glBindFramebuffer(GL_FRAMEBUFFER, bloom_preblur_fbo->framebuffer);
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glUseProgram(blur_shader_y->program);
+    glBindTexture(GL_TEXTURE_2D, bloom_blurred_fbo->texture);
+    glUniform1i(glGetUniformLocation(blur_shader_y->program, "tex"), 0);
+    DrawFullscreenQuad();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
+    
+    // Composite our blur-bloom FBO + original FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glUseProgram(bloom_composite_shader->program);
+    glBindTexture(GL_TEXTURE_2D, bloom_preblur_fbo->texture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, direct_render_fbo->texture);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(glGetUniformLocation(bloom_composite_shader->program, "tex_orig"), 1);
+    glUniform1i(glGetUniformLocation(bloom_composite_shader->program, "tex_blur"), 0);
+    DrawFullscreenQuad();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
+    
+    printProgramInfoLog(bloom_composite_shader->program);
+  }
   
   // OSD
   glDisable(GL_DEPTH_TEST);
@@ -434,14 +439,20 @@ int CreateGameWindow(int argc, char **argv) {
   back_camera = view_camera;
   
   world = new World();
+
+  if(GLEW_ARB_framebuffer_object && GLEW_ARB_fragment_program) { hasgoodgpu = 1;}
   
-  direct_render_fbo = new Framebuffer(window_width, window_height);
-  bloom_preblur_fbo = new Framebuffer(window_width, window_height);
-  bloom_blurred_fbo = new Framebuffer(window_width, window_height);
-  blur_shader_x = new Shader("blur-x");
-  blur_shader_y = new Shader("blur-y");
-  bloom_preblur_shader = new Shader("bloompreblur");
-  bloom_composite_shader = new Shader("bloomcomposite");
+  if(hasgoodgpu) {
+    direct_render_fbo = new Framebuffer(window_width, window_height);
+    bloom_preblur_fbo = new Framebuffer(window_width, window_height);
+    bloom_blurred_fbo = new Framebuffer(window_width, window_height);
+    blur_shader_x = new Shader("blur-x");
+    blur_shader_y = new Shader("blur-y");
+    bloom_preblur_shader = new Shader("bloompreblur");
+    bloom_composite_shader = new Shader("bloomcomposite");
+  }
+
+  cout << glGetString(GL_VERSION) << endl;
   
   return 0;
 }
