@@ -1,9 +1,12 @@
 #include "gl.h"
+#include "fbo.h"
+#include "shader.h"
 #include "world.h"
 #include <iostream>
 #include <stdlib.h>
 #include <string>
 #include <sstream>
+#include <fstream>
 
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
@@ -17,10 +20,10 @@ static int window_width = 500;
 static R3Camera back_camera;
 static R3Camera view_camera;
 static double fps = 60;
-
+static Framebuffer *direct_render_fbo, *bloom_preblur_fbo, *bloom_blurred_fbo;
+static Shader *blur_shader, *bloom_preblur_shader, *bloom_composite_shader;
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
-
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
@@ -50,6 +53,40 @@ void DrawFullscreenQuad() {
   glPopMatrix();
 }
 
+void printShaderInfoLog(GLuint obj)
+	{
+	    int infologLength = 0;
+	    int charsWritten  = 0;
+	    char *infoLog;
+
+		glGetShaderiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
+
+	    if (infologLength > 0)
+	    {
+	        infoLog = (char *)malloc(infologLength);
+	        glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
+			printf("%s\n",infoLog);
+	        free(infoLog);
+	    }
+	}
+	
+	void printProgramInfoLog(GLuint obj)
+  	{
+  	    int infologLength = 0;
+  	    int charsWritten  = 0;
+  	    char *infoLog;
+
+  		glGetProgramiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
+
+  	    if (infologLength > 0)
+  	    {
+  	        infoLog = (char *)malloc(infologLength);
+  	        glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog);
+  			printf("%s\n",infoLog);
+  	        free(infoLog);
+  	    }
+  	}
+
 void RedrawWindow() {
   // FPS timing
   frame_rendertimes[frame_rendertimes_i] = glutGet(GLUT_ELAPSED_TIME);
@@ -73,7 +110,7 @@ void RedrawWindow() {
   // Initialization
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
+
   // Lighting
   int light_index = GL_LIGHT0;
   glDisable(light_index);
@@ -108,14 +145,15 @@ void RedrawWindow() {
   glLightfv(light_index, GL_DIFFUSE, c);
   glLightfv(light_index, GL_SPECULAR, c);
   //glLightfv(light_index, GL_AMBIENT, c);
-  
-
   c[0] = back_camera.eye.X(); c[1] = back_camera.eye.Y(); c[2] = back_camera.eye.Z(); c[3] = 1;
   glLightfv(light_index, GL_POSITION, c);
   glEnable(light_index);
 
-
-  // Rendering of World
+  // Rendering of World into Framebuffer
+  glBindFramebuffer(GL_FRAMEBUFFER, direct_render_fbo->framebuffer);
+  glClearColor(0, 0, 0, 0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
   glColor3d(1,1,1);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
@@ -127,6 +165,52 @@ void RedrawWindow() {
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   view_camera.CalcPlanes();
   world->Draw(view_camera);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  
+  // Threshold our FBO
+  glBindFramebuffer(GL_FRAMEBUFFER, bloom_preblur_fbo->framebuffer);
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  glUseProgram(bloom_preblur_shader->program);
+  glBindTexture(GL_TEXTURE_2D, direct_render_fbo->texture);
+  glUniform1i(glGetUniformLocation(bloom_preblur_shader->program, "tex"), 0);
+  DrawFullscreenQuad();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glUseProgram(0);
+  
+  // Blur our FBO
+  glBindFramebuffer(GL_FRAMEBUFFER, bloom_blurred_fbo->framebuffer);
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  glUseProgram(blur_shader->program);
+  glBindTexture(GL_TEXTURE_2D, bloom_preblur_fbo->texture);
+  glUniform1i(glGetUniformLocation(blur_shader->program, "tex"), 0);
+  DrawFullscreenQuad();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glUseProgram(0);
+  
+  // Composite our blur-bloom FBO + original FBO
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  glUseProgram(bloom_composite_shader->program);
+  glBindTexture(GL_TEXTURE_2D, bloom_blurred_fbo->texture);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, direct_render_fbo->texture);
+  glActiveTexture(GL_TEXTURE0);
+  glUniform1i(glGetUniformLocation(bloom_composite_shader->program, "tex_orig"), 1);
+  glUniform1i(glGetUniformLocation(bloom_composite_shader->program, "tex_blur"), 0);
+  DrawFullscreenQuad();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glUseProgram(0);
+  
+  printProgramInfoLog(bloom_composite_shader->program);
   
   // OSD
   glDisable(GL_DEPTH_TEST);
@@ -139,6 +223,9 @@ void RedrawWindow() {
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
+  glColor3d(1,1,1);
+  
+
   double current_osd_height = window_height-25;
   double line_size = 15;
   
@@ -154,9 +241,9 @@ void RedrawWindow() {
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *it);
   }
   
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix();
   glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
   
   glViewport(0, 0, 100, 100);
@@ -294,7 +381,6 @@ void TimerFunc(int stuff) {
 
 int CreateGameWindow(int argc, char **argv) {
   glutInit(&argc, argv);
-  
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(window_width, window_height);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_ALPHA | GLUT_DEPTH | GLUT_MULTISAMPLE); // | GLUT_STENCIL
@@ -302,6 +388,13 @@ int CreateGameWindow(int argc, char **argv) {
   CGSetLocalEventsSuppressionInterval(0.0);
 #endif
   int GLUTwindow = glutCreateWindow("Game");
+  
+  GLenum err = glewInit();
+  if (GLEW_OK != err)
+  {
+    fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+  }
+  fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
   
   glutWarpPointer(window_width/2, window_height/2);
@@ -329,6 +422,13 @@ int CreateGameWindow(int argc, char **argv) {
   back_camera = view_camera;
   
   world = new World();
+  
+  direct_render_fbo = new Framebuffer(window_width, window_height);
+  bloom_preblur_fbo = new Framebuffer(window_width, window_height);
+  bloom_blurred_fbo = new Framebuffer(window_width, window_height);
+  blur_shader = new Shader("blur");
+  bloom_preblur_shader = new Shader("bloompreblur");
+  bloom_composite_shader = new Shader("bloomcomposite");
   
   return 0;
 }

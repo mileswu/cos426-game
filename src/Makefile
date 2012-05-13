@@ -22,7 +22,7 @@ R3/libR3.a:
 R2/libR2.a: 
 	$(MAKE) -C R2
 
-game: game.o gl.o geometry.o bubble.o world.o ai.o R3/libR3.a R2/libR2.a glew.o
+game: game.o gl.o geometry.o bubble.o world.o ai.o R3/libR3.a R2/libR2.a glew.o fbo.o shader.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(GLLIBS)
 
 clean:
