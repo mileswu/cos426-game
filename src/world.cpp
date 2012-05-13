@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 #include <sstream>
-#include <SFML/Audio.hpp>
+//#include <SFML/Audio.hpp>
 
 using namespace std;
 
@@ -362,12 +362,16 @@ void World::Simulate() {
       if(retval == -1) {
         it = bubbles.erase(it);
         if (it==bubbles.begin())
-          DeathMusic();
+          PlayMusic(DEATH_SOUND);
+        else if (it2==bubbles.begin())
+          PlayMusic(ABSORBING_SOUND);
       }
       else if(retval == -2) {
         it2 = bubbles.erase(it2);
         if (it2==bubbles.begin())
-          DeathMusic();
+          PlayMusic(DEATH_SOUND);
+        else if (it==bubbles.begin())
+          PlayMusic(ABSORBING_SOUND);
       }
     }
   }
@@ -538,16 +542,24 @@ bool World::inView(R3Camera camera, R3Point pos, double radius) {
 
 }
 
-void World::DeathMusic() {
-
+void World::PlayMusic(SoundType type) {
+/*
   static sf::Music music;
+
+  string file;
+
+  if (type==DEATH_SOUND)
+    file = "audio/kiss.wav";
+  else if (type==ABSORBING_SOUND)
+    file = "audio/crunch.wav";
+
   
   // http://www.grsites.com/archive/sounds/category/23/?offset=0 
-  if (!music.openFromFile("audio/kiss.wav")) {
+  if (!music.openFromFile(file)) {
     printf("failed to find music\n");
   }
   music.setVolume(75);
   music.play();
-
+*/
 }
 

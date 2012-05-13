@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string>
 #include <sstream>
-#include <SFML/Audio.hpp>
 
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
@@ -23,7 +22,6 @@ static double fps = 60;
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 
-static sf::Music music;
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);

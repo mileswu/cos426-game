@@ -3,12 +3,11 @@
 #include "gl.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <SFML/Audio.hpp>
+//#include <SFML/Audio.hpp>
 #include <time.h>
 
 using namespace std;
 
-static sf::Music music;
 
 
 int main(int argc, char **argv) {
@@ -22,6 +21,10 @@ int main(int argc, char **argv) {
   }
   fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
   
+  /*
+  
+  sf::Music music;
+
   // http://offog.org/music/songs.html
   if (!music.openFromFile("audio/hello-world.ogg")) {
     printf("failed to find music\n");
@@ -40,6 +43,7 @@ int main(int argc, char **argv) {
     music.setVolume(i);
     nanosleep(&ts, (struct timespec *)NULL);
   }
+  */
 
   glutMainLoop();
   
