@@ -465,6 +465,33 @@ void DrawWorld() {
   //gluQuadricDrawStyle(glu_sphere, (GLenum) GLU_FILL);
   
   //glBindTexture(GL_TEXTURE_2D, texture);
+/*
+  //http://www.nullterminator.net/gltexture.html
+  int width, height;
+  BYTE * data;
+  FILE * file;
+
+  // texture data
+  width = 512;
+  height = 256;
+
+  // allocate buffer
+  data = malloc( width * height * 3 );
+
+  // open and read texture data
+  file = fopen( filename, "rb" );
+  fread( data, width * height * 3, 1, file );
+  fclose( file );
+
+
+  // build our texture mipmaps
+  gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height,
+                     GL_RGB, GL_UNSIGNED_BYTE, data );
+
+  // free buffer
+  free( data );
+
+*/
 
   gluSphere(glu_sphere, size, 32, 32);
   glPopMatrix();
