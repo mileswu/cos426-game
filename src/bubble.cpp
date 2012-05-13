@@ -1,9 +1,10 @@
 #include "bubble.h"
+#include "ai.h"
 #include "gl.h"
 #include <iostream>
 using namespace std;
 
-Bubble::Bubble() {
+Bubble::Bubble(AI *ai_) {
   //Initialize sane defaults
   density = 1.0;
   player_id = -1;
@@ -12,6 +13,13 @@ Bubble::Bubble() {
   size = 1;
   state = reg_state;
   effect_end_time = -1;
+  ai = ai_;
+}
+
+Bubble::~Bubble() {
+  if (NULL != ai) {
+    delete ai;
+  }
 }
 
 double Bubble::Mass() {
@@ -23,36 +31,36 @@ void Bubble::SetSizeFromMass(double mass) {
 }
 
 int Bubble::Collides(R3Mesh* mesh) {
-	R3Box box = mesh -> bbox;
+  R3Box box = mesh -> bbox;
 
-	R3Vector SepAxis = pos - box.Centroid();
+  R3Vector SepAxis = pos - box.Centroid();
 
-	double dist = SepAxis.Length();
-	SepAxis.Normalize();
+  double dist = SepAxis.Length();
+  SepAxis.Normalize();
 
-	double x = SepAxis.X();
-	double y = SepAxis.Y();
-	double z = SepAxis.Z();
+  double x = SepAxis.X();
+  double y = SepAxis.Y();
+  double z = SepAxis.Z();
 
-	if (x >= y && x >= z)
-		SepAxis /= x;
-	else if (y >= x && y >= z)
-		SepAxis /= y;
-	else 
-		SepAxis /= z;
+  if (x >= y && x >= z)
+          SepAxis /= x;
+  else if (y >= x && y >= z)
+          SepAxis /= y;
+  else 
+          SepAxis /= z;
 
-	double x_len = box.XLength();
-	double y_len = box.YLength();
-	double z_len = box.ZLength();
+  double x_len = box.XLength();
+  double y_len = box.YLength();
+  double z_len = box.ZLength();
 
-	//effective radius
-	SepAxis.SetX(x * x_len/2.0);
-	SepAxis.SetY(y * y_len/2.0);
-	SepAxis.SetZ(z * z_len/2.0);
+  //effective radius
+  SepAxis.SetX(x * x_len/2.0);
+  SepAxis.SetY(y * y_len/2.0);
+  SepAxis.SetZ(z * z_len/2.0);
 
-	if (dist <= (size + SepAxis.Length()))
-		return 1;	
-	return 0;
+  if (dist <= (size + SepAxis.Length()))
+          return 1;	
+  return 0;
 }
 
 int Bubble::Collides(Bubble *otherbubble) {
@@ -121,6 +129,3 @@ void Bubble::Draw() {
   gluSphere(glu_sphere, size, 32, 32);
   glPopMatrix();
 }
-
-
-

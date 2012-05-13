@@ -1,4 +1,5 @@
 #include "world.h"
+#include "ai.h"
 #include "gl.h"
 #include <iostream>
 #include <map>
@@ -126,46 +127,44 @@ void World::CreatePowerUp(PowerUpType type)
 
 World::World() {
   //Player bubble
-  Bubble *b = new Bubble();
+  Bubble *b = new Bubble(NULL);
   b->player_id = 0;
   bubbles.push_back(b);
   
-  for(int i=0; i<200; i++) {
-    b = new Bubble();
+  for (int i=0; i<200; i++) {
+    b = new Bubble(new NullAI(this));
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
     bubbles.push_back(b);
   }
 
-	for (unsigned int i = 0; i < bubbles.size()/10; i++) {
-		int rand_num = floor(rand(5));
-		PowerUpType type;
-		switch (rand_num) {
-			case 0:
-				type = invincible_type;
-				break;
-			case 1:
-				type = small_sink_type;
-				break;
-			case 2:
-				type = sink_type;
-				break;
-			case 3:
-				type = speed_up_type;
-				break;
-			case 4:
-				type = slow_down_type;
-				break;
-		}
-		CreatePowerUp(speed_up_type);
-	}
+  for (unsigned int i = 0; i < bubbles.size()/10; i++) {
+    int rand_num = floor(rand(5));
+    PowerUpType type;
+    switch (rand_num) {
+      case 0:
+        type = invincible_type;
+        break;
+      case 1:
+        type = small_sink_type;
+        break;
+      case 2:
+        type = sink_type;
+        break;
+      case 3:
+        type = speed_up_type;
+        break;
+      case 4:
+        type = slow_down_type;
+        break;
+    }
+    CreatePowerUp(speed_up_type);
+  }
   
   // Initialize time
   lasttime_updated.tv_sec = 0;
   lasttime_updated.tv_usec = 0;
-
-  
 }
 
 void World::Emit(R3Vector camera_direction) {
@@ -176,7 +175,7 @@ void World::Emit(R3Vector camera_direction) {
   R3Vector total_momentum = b->Mass() * b->v;
   R3Vector orig_v = b->v;
   
-  Bubble *b_emitted = new Bubble();
+  Bubble *b_emitted = new Bubble(NULL);
   bubbles.push_back(b_emitted);
   b_emitted->SetSizeFromMass(total_mass*emission_sizefactor);
   b->SetSizeFromMass(total_mass*(1-emission_sizefactor));
@@ -193,9 +192,9 @@ R3Point World::PlayerPosition() {
 
 void World::RemovePowerUp(int index)
 {
-	PowerUpShape temp = power_ups.back();
-	power_ups[index] = temp;
-	power_ups.pop_back();
+  PowerUpShape temp = power_ups.back();
+  power_ups[index] = temp;
+  power_ups.pop_back();
 }
 
 string World::PlayerStatus() {
@@ -221,133 +220,133 @@ void World::Simulate() {
   }
   lasttime_updated = curtime;
 
-	//check if powerups mesh die
-	for (unsigned int i = 0; i < power_ups.size(); i++)
-	{
-		double cur_time = glutGet(GLUT_ELAPSED_TIME);
-		if (cur_time > power_ups[i].die_time)
-		{
-			RemovePowerUp(i);
-			i--;
-		}
-	}
+  //check if powerups mesh die
+  for (unsigned int i = 0; i < power_ups.size(); i++)
+  {
+    double cur_time = glutGet(GLUT_ELAPSED_TIME);
+    if (cur_time > power_ups[i].die_time)
+    {
+            RemovePowerUp(i);
+            i--;
+    }
+  }
 
-	//check if powerup effect time already expired
-	for (unsigned int i = 0; i < bubbles.size(); i++)
-	{
-		double cur_time = glutGet(GLUT_ELAPSED_TIME);
-		if (cur_time > bubbles[i] -> effect_end_time 
-				&& bubbles[i] -> effect_end_time != -1)
-		{
-			bubbles[i] -> state = reg_state;
-			bubbles[i] -> effect_end_time = -1;
-		}
-	}
+  //check if powerup effect time already expired
+  for (unsigned int i = 0; i < bubbles.size(); i++)
+  {
+    double cur_time = glutGet(GLUT_ELAPSED_TIME);
+    if (cur_time > bubbles[i] -> effect_end_time 
+                    && bubbles[i] -> effect_end_time != -1)
+    {
+            bubbles[i] -> state = reg_state;
+            bubbles[i] -> effect_end_time = -1;
+    }
+  }
 
-	//random chance for power ups to spawn
-	double random_chance = rand(100);
-	if (random_chance < 1)
-	{
-		int rand_num = floor(rand(5));
-		PowerUpType type;
-		switch (rand_num) {
-			case 0:
-				type = invincible_type;
-				break;
-			case 1:
-				type = small_sink_type;
-				break;
-			case 2:
-				type = sink_type;
-				break;
-			case 3:
-				type = speed_up_type;
-				break;
-			case 4:
-				type = slow_down_type;
-				break;
-		}
-		CreatePowerUp(type);
-	}
+  //random chance for power ups to spawn
+  double random_chance = rand(100);
+  if (random_chance < 1)
+  {
+    int rand_num = floor(rand(5));
+    PowerUpType type;
+    switch (rand_num) {
+            case 0:
+                    type = invincible_type;
+                    break;
+            case 1:
+                    type = small_sink_type;
+                    break;
+            case 2:
+                    type = sink_type;
+                    break;
+            case 3:
+                    type = speed_up_type;
+                    break;
+            case 4:
+                    type = slow_down_type;
+                    break;
+    }
+    CreatePowerUp(type);
+  }
   
   Bubble* player = bubbles[0];
-	double m1 = player -> Mass();
-	//player -> state = sink_state;
+  double m1 = player -> Mass();
+  //player -> state = sink_state;
 	
   // A calculation
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
     (*it)->a = R3Vector(0,0,0);
-		if (player -> state == sink_state && (*it) != bubbles[0])
-		{
-			R3Vector towards = player -> pos - (*it) -> pos;
-			double m2 = (*it) -> Mass();
-			double towards_mag = sqrt(towards.Dot(towards));
-			(*it) -> a += towards/towards_mag * m1 * m2/(towards_mag * towards_mag); 
-		}
-		else if (player -> state == small_sink_state && (*it) != bubbles[0])
-		{
-			if ((*it) -> size < player -> size)
-			{
-				R3Vector towards = player -> pos - (*it) -> pos;
-				double m2 = (*it) -> Mass();
-				double towards_mag = sqrt(towards.Dot(towards));
-				(*it) -> a += towards/towards_mag * m1 * m2/(towards_mag * towards_mag); 
-			}
-		}
+    if (player -> state == sink_state && (*it) != bubbles[0])
+    {
+      R3Vector towards = player -> pos - (*it) -> pos;
+      double m2 = (*it) -> Mass();
+      double towards_mag = sqrt(towards.Dot(towards));
+      (*it) -> a += towards/towards_mag * m1 * m2/(towards_mag * towards_mag); 
+    }
+    else if (player -> state == small_sink_state && (*it) != bubbles[0])
+    {
+      if ((*it) -> size < player -> size)
+      {
+        R3Vector towards = player -> pos - (*it) -> pos;
+        double m2 = (*it) -> Mass();
+        double towards_mag = sqrt(towards.Dot(towards));
+        (*it) -> a += towards/towards_mag * m1 * m2/(towards_mag * towards_mag); 
+      }
+    }
 
   }
   
   // V update
   for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
     (*it)->v += (*it)->a*timestep;
-		if (player -> state == speed_up_state && (*it) != player)
-		{
-			(*it) -> v += 100 * R3Vector(1,1,1);
-			player -> state = reg_state;
-			player -> effect_end_time = -1;
-		}
-		else if (player -> state == slow_down_state && (*it) != player)
-		{
-			(*it) -> v -= 20 * R3Vector(1,1,1);
-			player -> state = reg_state;
-			player -> effect_end_time = -1;
-		}
+    if (player -> state == speed_up_state && (*it) != player)
+    {
+            (*it) -> v += 100 * R3Vector(1,1,1);
+            player -> state = reg_state;
+            player -> effect_end_time = -1;
+    }
+    else if (player -> state == slow_down_state && (*it) != player)
+    {
+            (*it) -> v -= 20 * R3Vector(1,1,1);
+            player -> state = reg_state;
+            player -> effect_end_time = -1;
+    }
   }
 
-	for (unsigned int j = 0; j < power_ups.size(); j++)
-	{
-		if (player -> Collides(power_ups[j].mesh))
-		{
-			PowerUpType type = power_ups[j].type;
-			if (type == invincible_type)
-			{
-				player -> state = invincible_state;
-				player -> effect_end_time = 1.5 * glutGet(GLUT_ELAPSED_TIME);
-			}
-			else if (type == small_sink_type)
-			{
-				player -> state = small_sink_state;
-				player -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
-			}
-			else if (type == sink_type)
-			{
-				player -> state = sink_state;
-				player -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
-			}
-			else if (type == speed_up_type)
-			{
-				player -> state = speed_up_state;
-				player -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
-			}
-			else if (type == slow_down_type)
-			{
-				player -> state = slow_down_state;
-				player -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
-			}
-			RemovePowerUp(j);
-			j--;
-		}
-	}
+  for (unsigned int j = 0; j < power_ups.size(); j++)
+  {
+    if (player -> Collides(power_ups[j].mesh))
+    {
+      PowerUpType type = power_ups[j].type;
+      if (type == invincible_type)
+      {
+              player -> state = invincible_state;
+              player -> effect_end_time = 1.5 * glutGet(GLUT_ELAPSED_TIME);
+      }
+      else if (type == small_sink_type)
+      {
+              player -> state = small_sink_state;
+              player -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      }
+      else if (type == sink_type)
+      {
+              player -> state = sink_state;
+              player -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      }
+      else if (type == speed_up_type)
+      {
+              player -> state = speed_up_state;
+              player -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      }
+      else if (type == slow_down_type)
+      {
+              player -> state = slow_down_state;
+              player -> effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      }
+      RemovePowerUp(j);
+      j--;
+    }
+  }
 
   
   // P update
