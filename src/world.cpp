@@ -46,6 +46,7 @@ R3Mesh* CreateInvincible()
 	R3Mesh* m = new R3Mesh();
 	m->Read("./models/mushroom.off");
 	m->Scale(1, 1, 1);
+	//m-> Translate(0,0,3);
 	randTranslate(m);
 	return m;
 }
@@ -139,6 +140,7 @@ World::World() {
 		b->player_id = -1;
     bubbles.push_back(b);
   }
+
 
   for (unsigned int i = 0; i < bubbles.size()/10; i++) {
     int rand_num = floor(rand(5));
