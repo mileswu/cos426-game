@@ -1,3 +1,6 @@
+#ifndef GL_H
+#define GL_H
+
 #if defined(_WIN32) || defined(__CYGWIN__)
 # ifndef USE_OPENGL32
 #  define USE_OPENGL32
@@ -17,3 +20,5 @@
 #endif
 
 int CreateWindow();
+
+#endif

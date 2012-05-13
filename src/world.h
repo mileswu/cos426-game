@@ -1,3 +1,6 @@
+#ifndef WORLD_H
+#define WORLD_H
+
 #include <vector>
 #include "bubble.h"
 #include <sys/time.h>
@@ -47,3 +50,5 @@ class World {
     struct timeval lasttime_updated;
   
 };
+
+#endif
