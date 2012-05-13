@@ -6,12 +6,6 @@
 using namespace std;
 
 
-R3Vector AI::GetAcceleration()
-{
-  return R3null_vector;
-}
-
-
 void AI::ActFromState()
 {
   switch (state) {
@@ -75,6 +69,21 @@ void EnemyAI::Idle()
   }
 
   // Counter its current trajectory and go toward the bubble.
+  // There are different ways to weight this.
+  // Here, we just uniformly weight a, v, and d.
+  // TODO but what we really want is for the NPC bubbles to shoot
+  // their own bubble trails to accelerate.
+  /*R3Vector current_a;
+  R3Vector current_v;
+  R3Vector direction;
+  current_a = self->a;
+  current_a.Normalize();
+  current_v = self->v;
+  current_v.Normalize();
+  direction = closest_bubble->pos - self->pos;
+  direction.Normalize();
+  a = d - a - v;
+  a.Normalize();*/
 }
 
 

@@ -18,7 +18,7 @@ public:
   };
 
   explicit AI(World *world_)
-    : state(0), world(world_), self(NULL), target(NULL) { }
+    : state(0), a(R3null_vector), world(world_), self(NULL), target(NULL) { }
 
   // Whose bubble's thoughts are these?
   void SetHost(Bubble *self_) { self = self_; }
@@ -28,7 +28,7 @@ public:
 
   // Bubble has to call AI->Get_ rather than AI modifying bubble state.
   // FIXME
-  R3Vector GetAcceleration();
+  R3Vector &GetAcceleration() { return a; }
 
   // Bubble does whatever its current AI state tells it to.
   void ActFromState();
@@ -39,6 +39,7 @@ public:
   virtual void Avoid() = 0;
 
   unsigned state;
+  R3Vector a;
   World *world;
   Bubble *self;
   Bubble *target;
