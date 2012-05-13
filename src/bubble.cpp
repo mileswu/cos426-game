@@ -23,11 +23,35 @@ void Bubble::SetSizeFromMass(double mass) {
 }
 
 int Bubble::Collides(R3Mesh* mesh) {
-	double d = (mesh -> Center() - pos).Length(); //dist between centers
+	R3Box box = mesh -> bbox;
 
-	if (d <= size) //check against radius
-		return 1;
+	R3Vector SepAxis = pos - box.Centroid();
 
+	double dist = SepAxis.Length();
+	SepAxis.Normalize();
+
+	double x = SepAxis.X();
+	double y = SepAxis.Y();
+	double z = SepAxis.Z();
+
+	if (x >= y && x >= z)
+		SepAxis /= x;
+	else if (y >= x && y >= z)
+		SepAxis /= y;
+	else 
+		SepAxis /= z;
+
+	double x_len = box.XLength();
+	double y_len = box.YLength();
+	double z_len = box.ZLength();
+
+	//effective radius
+	SepAxis.SetX(x * x_len/2.0);
+	SepAxis.SetY(y * y_len/2.0);
+	SepAxis.SetZ(z * z_len/2.0);
+
+	if (dist <= (size + SepAxis.Length()))
+		return 1;	
 	return 0;
 }
 
