@@ -8,11 +8,20 @@
 ////////////////////////////////////////////////////////////
 
 #include <vector>
-#include "R2/R2.h"
-#include "R3/R3.h"
 using namespace std;
 
-
+class R3Point;
+class R3Vector;
+class R3Line;
+class R3Ray;
+class R3Segment;
+class R3Plane;
+class R3Circle;
+class R3Box;
+class R3Cylinder;
+class R3Cone;
+class R3Sphere;
+class R3Matrix;
 
 ////////////////////////////////////////////////////////////
 // MESH VERTEX DECLARATION
