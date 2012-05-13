@@ -1,3 +1,6 @@
+#ifndef GEOMETRY_H
+#define GEOMETRY_H
+
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
@@ -17,3 +20,5 @@ class R3Camera {
     void CalcPlanes();
     void Load(int width, int height);
 };
+
+#endif
