@@ -7,8 +7,8 @@ using namespace std;
 
 Shader::Shader(char *name) {
   stringstream ss_f, ss_v;
-  ss_f << name << ".frag";
-  ss_v << name << ".vert";
+  ss_f << "shaders/" << name << ".frag";
+  ss_v << "shaders/" << name << ".vert";
   
   fragment = glCreateShader(GL_FRAGMENT_SHADER);
   vertex = glCreateShader(GL_VERTEX_SHADER);
