@@ -8,6 +8,8 @@
 #include "R3.h"
 #include <iostream>
 #include <map>
+#include <algorithm>
+using namespace std;
 
 ////////////////////////////////////////////////////////////
 // MESH CONSTRUCTORS/DESTRUCTORS
