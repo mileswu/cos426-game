@@ -135,6 +135,7 @@ World::World() {
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
+		b->player_id = -1;
     bubbles.push_back(b);
   }
 
@@ -444,6 +445,10 @@ void World::Draw(R3Camera camera) {
 
 
       power_ups[i].mesh -> Draw();
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			power_ups[i].mesh -> bbox.Draw();
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
   }
   glDisable(GL_LIGHTING);
