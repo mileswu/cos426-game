@@ -383,11 +383,49 @@ CollapseShortEdges(double min_edge_length)
   // shorter edges are collapsed first (which produces better 
   // shaped faces).
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "CollapseShortEdges not implemented\n");
+	for(;;) {
+		double shortest_edge = -1;
+		R3MeshVertex *v1, *v2;
+		for(unsigned int i=0; i<vertices.size(); i++) {
+			for(unsigned int j=0; j<vertices[i]->edges.size(); j++) {
+				if(shortest_edge == -1 || vertices[i]->edges[j].Length() < shortest_edge) {
+					shortest_edge = vertices[i]->edges[j].Length();
+					v1 = vertices[i];
+					v2 = vertices[vertices[i]->edges_vertex_ids[j]];
+				}
+			}
+		}
+		if(shortest_edge >= min_edge_length) {
+			break;
+		}
 
-  // Update mesh data structures
-  Update();
+		v1->position = 0.5*v1->position + 0.5*v2->position;
+
+		for(unsigned int i=0; i < v2->faces.size(); i++) {
+			R3MeshFace *f = v2->faces[i];
+			int hasv1 = count(f->vertices.begin(), f->vertices.end(), v1);
+			vector <R3MeshVertex *>::iterator v2_iter;
+			v2_iter = find(f->vertices.begin(), f->vertices.end(), v2);
+
+			if(hasv1 == 0) {
+				*v2_iter = v1;
+			}
+			else {
+				if(f->vertices.size() == 3) {
+					DeleteFace(f);
+				}
+				else {
+					f->vertices.erase(v2_iter);
+				}
+			}
+		}
+		DeleteVertex(v2);
+
+		UpdateVertexEdges();
+		UpdateVertexFaces();
+	}
+
+	Update();
 }
 
 
