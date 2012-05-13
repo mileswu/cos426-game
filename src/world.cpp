@@ -68,7 +68,8 @@ R3Mesh* CreateSink()
 	R3Mesh* m = new R3Mesh();
 	m->Read("./models/octopus.off");
 	m->Scale(0.05, 0.05, 0.05);
-	randTranslate(m);
+	m->Translate(0,0,3);
+	//randTranslate(m);
 	return m;
 }
 
@@ -165,7 +166,16 @@ World::World() {
         type = slow_down_type;
         break;
     }
-    CreatePowerUp(type);
+    CreatePowerUp(sink_type);
+  }
+  
+  //check level of detail
+  for (unsigned int i = 0; i < power_ups.size(); i++)
+  {
+	power_ups[i].mesh -> CollapseShortEdges(10000);
+	power_ups[i].mesh -> CollapseShortEdges(10000);
+	power_ups[i].mesh -> CollapseShortEdges(10000);
+	power_ups[i].mesh -> CollapseShortEdges(10000);
   }
   
   // Initialize time
