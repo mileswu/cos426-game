@@ -2,7 +2,6 @@
 #include "game.h"
 #include "gl.h"
 #include <SFML/Audio.hpp>
-#include <SFML/Graphics.hpp>
 #include <time.h>
 
 using namespace std;

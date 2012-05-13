@@ -7,7 +7,7 @@ all: game
   
 UNAME := $(shell uname)
 ifneq (,$(findstring Darwin,$(UNAME)))
-	GLLIBS = -framework OpenGL -framework GLUT -framework ApplicationServices -framework SFML -framework sfml-audio -framework sfml-network -framework sfml-system -framework sfml-window
+	GLLIBS = -framework OpenGL -framework GLUT -framework ApplicationServices -framework sfml-audio 
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
 	GLLIBS = -lglut32 -lglut -lGLU -lGL

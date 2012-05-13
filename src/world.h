@@ -3,6 +3,7 @@
 #include <sys/time.h>
 #include <string>
 
+
 typedef enum {
 	invincible_type,
 	small_sink_type,

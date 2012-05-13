@@ -5,7 +5,6 @@
 #include <string>
 #include <sstream>
 #include <SFML/Audio.hpp>
-#include <SFML/Graphics.hpp>
 
 using namespace std;
 
@@ -362,11 +361,13 @@ void World::Simulate() {
       int retval = (*it)->Collides(*it2);
       if(retval == -1) {
         it = bubbles.erase(it);
-        DeathMusic();
+        if (it==bubbles.begin())
+          DeathMusic();
       }
       else if(retval == -2) {
-        it2 = bubbles.erase(it2);  
-        DeathMusic();
+        it2 = bubbles.erase(it2);
+        if (it2==bubbles.begin())
+          DeathMusic();
       }
     }
   }
@@ -545,6 +546,7 @@ void World::DeathMusic() {
   if (!music.openFromFile("audio/kiss.wav")) {
     printf("failed to find music\n");
   }
+  music.setVolume(75);
   music.play();
 
 }

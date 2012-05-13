@@ -6,7 +6,6 @@
 #include <string>
 #include <sstream>
 #include <SFML/Audio.hpp>
-#include <SFML/Graphics.hpp>
 
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
