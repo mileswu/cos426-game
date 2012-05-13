@@ -44,11 +44,9 @@ class World {
     R3Point PlayerPosition();
     std::string PlayerStatus();
     
-  private:
     std::vector<Bubble *> bubbles;
 		std::vector<PowerUpShape> power_ups;
     struct timeval lasttime_updated;
-  
 };
 
 #endif

@@ -1,11 +1,14 @@
-#include "bubble.h"
 #include "ai.h"
+#include "bubble.h"
+#include "geometry.h"
+#include "world.h"
+#include <vector>
+using namespace std;
 
 
-void AI::Target(Bubble *target_)
+R3Vector AI::GetAcceleration()
 {
-  target = target_;
-  ActFromState();
+  return R3null_vector;
 }
 
 
@@ -47,25 +50,57 @@ void NullAI::Avoid()
 
 void EnemyAI::Idle()
 {
-  // Silence is golden.
+  state = kIdle;
+
+  // Find the bubbles that are smaller than us.
+  vector<Bubble *> smaller_bubbles;
+  for (vector<Bubble *>::iterator it = world->bubbles.begin(),
+       ie = world->bubbles.end(); it != ie; ++it) {
+    if (self->Mass() > (*it)->Mass()) {
+      smaller_bubbles.push_back(*it);
+    }
+  }
+
+  // Pick the closest one.
+  // TODO Could also use some function of closeness and largeness.
+  Bubble *closest_bubble = NULL;
+  double closest_dist = INFINITY;
+  for (vector<Bubble *>::iterator it = smaller_bubbles.begin(),
+       ie = smaller_bubbles.end(); it != ie; ++it) {
+    R3Vector distance((*it)->pos - self->pos);
+    if (closest_dist > distance.Length()) {
+      closest_bubble = *it;
+      closest_dist = distance.Length();
+    }
+  }
+
+  // Counter its current trajectory and go toward the bubble.
 }
 
 
 void EnemyAI::Seek()
 {
-  // Silence is golden.
+  state = kSeek;
+
+  // Path toward the target.
 }
 
 
 void EnemyAI::Aggress()
 {
-  // Silence is golden.
+  state = kAggress;
+
+  // Path toward the target and shoot stuff at it.
+
 }
 
 
 void EnemyAI::Avoid()
 {
-  // Silence is golden.
+  state = kAvoid;
+
+  // Path away from the target.
+
 }
 
 

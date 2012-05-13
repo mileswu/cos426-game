@@ -14,6 +14,9 @@ Bubble::Bubble(AI *ai_) {
   state = reg_state;
   effect_end_time = -1;
   ai = ai_;
+  if (NULL != ai) {
+    ai->SetHost(this);
+  }
 }
 
 Bubble::~Bubble() {

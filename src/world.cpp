@@ -388,19 +388,17 @@ void World::Draw(R3Camera camera) {
   GLfloat c[4];
   double player_size = bubbles[0]->size;
   
-  for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
-    if(it == bubbles.begin()) {
+  for (vector<Bubble *>::iterator it = bubbles.begin();
+       it < bubbles.end(); it++) {
+    if (it == bubbles.begin()) {
       c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
-    }
-    else {
+    } else {
       double s = (*it)->size;
       if(s < 0.8*player_size) {
         c[0] = 0; c[1] = 1; c[2] = 0; c[3] = 1;
-      }
-      else if(s > 1.2*player_size) {
+      } else if(s > 1.2*player_size) {
         c[0] = 1; c[1] = 0; c[2] = 0; c[3] = 1;
-      }
-      else {
+      } else {
         double f = (s - 0.8*player_size)/(0.4*player_size);
         c[0] = f; c[1] = 1-f; c[2] = 0; c[3] = 1;
       }
@@ -427,30 +425,28 @@ void World::Draw(R3Camera camera) {
     }
   }
 
-	GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
-	GLfloat c_yellow[4] = {1, 1, 0, 1};
+  GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
+  GLfloat c_yellow[4] = {1, 1, 0, 1};
 
   for (unsigned int i = 0; i < power_ups.size(); i++){
     R3Point center = power_ups[i].mesh->Center();
     double radius = power_ups[i].mesh->Radius();
     if (inView(camera, center, radius)) {
-			double cur_time = glutGet(GLUT_ELAPSED_TIME);
-			double factor = (cos(cur_time/10.0) + 1)/2.0;
-			for (unsigned int k = 0; k < 3; k++)
-			{
-				c[k] = factor * c_purple[k] + (1-factor) * c_yellow[k]; 
-			}
-			c[3] = 1;
-			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
-
+      double cur_time = glutGet(GLUT_ELAPSED_TIME);
+      double factor = (cos(cur_time/10.0) + 1)/2.0;
+      for (unsigned int k = 0; k < 3; k++) {
+        c[k] = factor * c_purple[k] + (1-factor) * c_yellow[k]; 
+      }
+      c[3] = 1;
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
 
       power_ups[i].mesh->Draw();
 
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			power_ups[i].mesh->bbox.Draw();
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      power_ups[i].mesh->bbox.Draw();
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
   }
   glDisable(GL_LIGHTING);
