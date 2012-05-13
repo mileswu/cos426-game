@@ -132,7 +132,7 @@ World::World() {
   bubbles.push_back(b);
   
   for (int i=0; i<200; i++) {
-    b = new Bubble(new NullAI(this));
+    b = new Bubble(NULL);
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
@@ -450,6 +450,25 @@ void World::Draw(R3Camera camera) {
     }
   }
   glDisable(GL_LIGHTING);
+}
+
+
+void DrawWorld() {
+
+  double size = 100;
+  glPushMatrix();
+  static GLUquadricObj *glu_sphere = gluNewQuadric();
+  gluQuadricTexture(glu_sphere, GL_TRUE);
+  gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);
+  gluQuadricOrientation(glu_sphere, GLU_INSIDE);
+  //gluQuadricDrawStyle(glu_sphere, (GLenum) GLU_FILL);
+  
+  //glBindTexture(GL_TEXTURE_2D, texture);
+
+  gluSphere(glu_sphere, size, 32, 32);
+  glPopMatrix();
+
+
 }
 
 void DrawCircle(double x0, double y0, double size) {
