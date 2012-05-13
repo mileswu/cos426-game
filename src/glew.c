@@ -28,13 +28,13 @@
 ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 ** THE POSSIBILITY OF SUCH DAMAGE.
 */
+
+#include <GL/glew.h>
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define GLEW_STATIC
 #define _STDCALL_SUPPORTED
 #define _M_IX86
 #define _WIN32 1
-
-#include <GL/glew.h>
-#if defined(_WIN32) || defined(__CYGWIN__)
 #  include <GL/wglew.h>
 #elif !defined(__APPLE__) || defined(GLEW_APPLE_GLX)
 #  include <GL/glxew.h>
