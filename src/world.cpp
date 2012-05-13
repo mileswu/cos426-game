@@ -6,12 +6,14 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <fstream>
 //#include <SFML/Audio.hpp>
 
 using namespace std;
 
 static double emission_speed = 5.0;
 static double emission_sizefactor = 0.05;
+
 
 double rand(double max, int plusminus = 0, double min = 0) {
   double retval = ((double)rand())/RAND_MAX;
@@ -66,7 +68,8 @@ R3Mesh* CreateSink()
 	R3Mesh* m = new R3Mesh();
 	m->Read("./models/octopus.off");
 	m->Scale(0.05, 0.05, 0.05);
-	randTranslate(m);
+	m->Translate(0,0,3);
+	//randTranslate(m);
 	return m;
 }
 
@@ -163,8 +166,17 @@ World::World() {
         type = slow_down_type;
         break;
     }
-    CreatePowerUp(type);
+    CreatePowerUp(sink_type);
   }
+  
+  //check level of detail
+  /*for (unsigned int i = 0; i < power_ups.size(); i++)
+  {
+	power_ups[i].mesh -> CollapseShortEdges(1);
+	//power_ups[i].mesh -> CollapseShortEdges(10000);
+	//power_ups[i].mesh -> CollapseShortEdges(10000);
+	//power_ups[i].mesh -> CollapseShortEdges(10000);
+  }*/
   
   // Initialize time
   lasttime_updated.tv_sec = 0;
@@ -411,7 +423,7 @@ void World::Simulate() {
 
 void World::Draw(R3Camera camera) {  
   glEnable(GL_LIGHTING);
-  int light_index = GL_LIGHT0 + 10;
+  //int light_index = GL_LIGHT0 + 10;
   
   GLfloat c[4];
   double player_size = bubbles[0]->size;
@@ -496,22 +508,14 @@ void World::Draw(R3Camera camera) {
 }
 
 
-void DrawWorld() {
+void World::DrawWorld() {
 
-  double size = 100;
-  glPushMatrix();
+  double size = 50;
   static GLUquadricObj *glu_sphere = gluNewQuadric();
   gluQuadricTexture(glu_sphere, GL_TRUE);
   gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);
   gluQuadricOrientation(glu_sphere, GLU_INSIDE);
-  //gluQuadricDrawStyle(glu_sphere, (GLenum) GLU_FILL);
-  
-  //glBindTexture(GL_TEXTURE_2D, texture);
-
   gluSphere(glu_sphere, size, 32, 32);
-  glPopMatrix();
-
-
 }
 
 void DrawCircle(double x0, double y0, double size) {

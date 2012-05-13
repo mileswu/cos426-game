@@ -17,6 +17,7 @@ using namespace std;
 ////////////////////////////////////////////////////////////
 // MESH VERTEX DECLARATION
 ////////////////////////////////////////////////////////////
+struct R3MeshFace;
 
 struct R3MeshVertex {
   // Constructors
@@ -30,6 +31,7 @@ struct R3MeshVertex {
   // Update functions
   void UpdateNormal(void);
   void UpdateCurvature(void);
+	void AddEdge(const R3Vector &edge, int vertex_id);
 
   // Data
   R3Point position;
@@ -37,7 +39,11 @@ struct R3MeshVertex {
   R2Point texcoords;
   double curvature;
   int id; 
+  vector<R3Vector> edges;
+  vector<int> edges_vertex_ids;
+  vector<R3MeshFace *> faces;
 };
+
 
 
 
@@ -159,6 +165,8 @@ struct R3Mesh {
   void Update(void);
   void UpdateBBox(void);
   void UpdateFacePlanes(void);
+  	void UpdateVertexEdges(void);
+	void UpdateVertexFaces(void);
   void UpdateVertexNormals(void);
   void UpdateVertexCurvatures(void);
 
@@ -207,6 +215,5 @@ Face(int k) const
   // Return kth face of mesh
   return faces[k];
 }
-
 
 

@@ -5,7 +5,9 @@
 // Include files
 
 #include "R3.h"
-
+#include <iostream>
+#include <map>
+#include <algorithm>
 
 
 ////////////////////////////////////////////////////////////
@@ -88,7 +90,6 @@ Radius(void) const
 ////////////////////////////////////////////////////////////
 // MESH PROCESSING FUNCTIONS
 ////////////////////////////////////////////////////////////
-
 void R3Mesh::
 Translate(double dx, double dy, double dz)
 {
@@ -168,9 +169,23 @@ RandomNoise(double factor)
   // vertex to determine its maximum displacement
   // (i.e., displacement distances should be between 
   // 0 and "factor * vertex->AverageEdgeLength()"
+	
+	for(unsigned int i=0; i<vertices.size(); i++) {
+		//this is to get a truly random x,y,z vector within space. Scaling a unit random vector
+		//DOES NOT GET YOU A UNIFORM RANDOM VECTOR
+		double x,y,z;
+		double d = factor*vertices[i]->AverageEdgeLength();
+    if(d == 0) continue;
+		for(;;) {
+			x = d*((double)rand())/((double)RAND_MAX);
+			y = d*((double)rand())/((double)RAND_MAX);
+			z = d*((double)rand())/((double)RAND_MAX);
+			if(x*x + y*y + z*z < d*d) break;
+		}
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "RandomNoise(%g) not implemented\n", factor);
+		R3Vector noise(x,y,z);
+		vertices[i]->position.Translate(noise);
+	}
 
   // Update mesh data structures
   Update();
@@ -189,8 +204,9 @@ Inflate(double factor)
   // can be negative, which means that the vertex should
   // move in the direction opposite to the normal vector.
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "Inflate(%g) not implemented\n", factor);
+	for(unsigned int i=0; i<vertices.size(); i++) {
+		vertices[i]->position.Translate(vertices[i]->normal*vertices[i]->AverageEdgeLength()*factor);
+	}
 
   // Update mesh data structures
   Update();
@@ -223,9 +239,30 @@ Smooth(void)
   // (with weights determined by a Gaussian with sigma equal to
   // the average length of edges attached to the vertex, 
   // normalized such that the weights sum to one).
+	
+	vector <R3Point> pointsToUpdate(vertices.size());
+	for(unsigned int i=0; i<vertices.size(); i++) {
+		R3MeshVertex *v = vertices[i];
+		double norm = 1;
+		double sigma = v->AverageEdgeLength();
+		R3Point p1 = v->position;
+		R3Point p = v->position;
+		for(unsigned int j=0; j < v->edges_vertex_ids.size(); j++) {
+			R3Point p2 = vertices[v->edges_vertex_ids[j]]->position;
+			double dist = R3Distance(p1, p2);
+			double g = exp(-dist*dist/2.0/sigma/sigma);
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "Smooth not implemented\n");
+			p += g*vertices[v->edges_vertex_ids[j]]->position;
+			norm += g;
+		}
+		p /= norm;
+		pointsToUpdate[i] = p;
+	}
+
+	// Actually do update
+	for(unsigned int i=0; i<vertices.size(); i++) {
+		vertices[i]->position = pointsToUpdate[i];
+	}
 
   // Update mesh data structures
   Update();
@@ -245,8 +282,29 @@ Sharpen(void)
   // This filter moves vertices by the vector exactly opposite from 
   // the one used for Smooth().
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "Sharpen not implemented\n");
+	vector <R3Vector> translation(vertices.size());
+	for(unsigned int i=0; i<vertices.size(); i++) {
+		R3MeshVertex *v = vertices[i];
+		double norm = 1;
+		double sigma = v->AverageEdgeLength();
+		R3Point p1 = v->position;
+		R3Point p = v->position;
+		for(unsigned int j=0; j < v->edges_vertex_ids.size(); j++) {
+			R3Point p2 = vertices[v->edges_vertex_ids[j]]->position;
+			double dist = R3Distance(p1, p2);
+			double g = exp(-dist*dist/2.0/sigma/sigma);
+
+			p += g*vertices[v->edges_vertex_ids[j]]->position;
+			norm += g;
+		}
+		p /= norm;
+		translation[i] = p1 - p;
+	}
+
+	// Actually do update
+	for(unsigned int i=0; i<vertices.size(); i++) {
+		vertices[i]->position.Translate(translation[i]);
+	}
 
   // Update mesh data structures
   Update();
@@ -281,9 +339,76 @@ Truncate(double t)
   // and whose apex is the original vertex, creating a new N-sided 
   // face covering the hole.  It is OK to assume that the input shape 
   // is convex for this feature.
+	
+	vector <R3MeshVertex *> originalvertices(vertices);
+	vector <R3MeshFace *> originalfaces(faces);
+	map< pair<R3MeshVertex*, R3MeshVertex *>, R3MeshVertex *> newvertices;
+	map< pair<R3MeshFace *, R3MeshVertex *>, pair<R3MeshVertex *, R3MeshVertex *> > mapping;
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "Truncate(%g) not implemented\n", t);
+	
+	for(unsigned int i=0; i<originalvertices.size(); i++) {
+		R3MeshVertex *v = originalvertices[i];
+
+		vector <R3MeshVertex *> corners;
+		vector < pair <R3MeshVertex *, R3MeshVertex *> > corner_pairs;
+		for(unsigned int j=0; j < v->edges.size(); j++) {
+			R3MeshVertex *v_adj = vertices[v->edges_vertex_ids[j]];
+			R3Point p = v->position + t*v->edges[j];
+			R3MeshVertex *newvertex = CreateVertex(p, R3zero_vector, R2zero_point);
+
+			newvertices[make_pair(v, v_adj)] = newvertex;
+		}
+
+		for(unsigned int j=0; j < v->faces.size(); j++) {
+			// Mapping for new faces
+			R3MeshFace *f = v->faces[j];
+			vector<R3MeshVertex *>::iterator pos_iterator;
+			pos_iterator = find(f->vertices.begin(), f->vertices.end(), v);
+			unsigned int pos = distance(f->vertices.begin(), pos_iterator);
+
+			R3MeshVertex *before = f->vertices[pos == 0 ? f->vertices.size() - 1 : pos - 1];
+			R3MeshVertex *after = f->vertices[pos == f->vertices.size() - 1 ? 0 : pos + 1];
+			
+			R3MeshVertex *vbefore = newvertices[make_pair(v, before)];
+			R3MeshVertex *vafter = newvertices[make_pair(v, after)];
+
+			mapping[make_pair(f, v)] = make_pair(vbefore, vafter);
+			corner_pairs.push_back(make_pair(vbefore, vafter));
+		}
+
+		//Make endcap
+		for(unsigned int j=0; j<corner_pairs.size(); j++) {
+			if(j==0) {
+				corners.push_back(corner_pairs[0].first);
+				corners.push_back(corner_pairs[0].second);
+			}
+			else {
+				for(unsigned int k=0; k<corner_pairs.size(); k++) {
+					if(corner_pairs[k].first == corners[corners.size()-1]) {
+						corners.push_back(corner_pairs[k].second);
+						break;
+					}
+				}
+			}
+		}
+		CreateFace(corners);
+	}
+
+	for(unsigned int i=0; i<originalfaces.size(); i++) {
+		R3MeshFace *f = originalfaces[i];
+		vector <R3MeshVertex *> newverticesforface;
+		for(unsigned int j=0; j<f->vertices.size(); j++) {
+			pair<R3MeshVertex *, R3MeshVertex *> p = mapping[make_pair(f, f->vertices[j])];
+			newverticesforface.push_back(p.first);
+			newverticesforface.push_back(p.second);
+		}
+		CreateFace(newverticesforface);
+	}
+
+	for(unsigned int i=0; i<originalvertices.size(); i++)
+		DeleteVertex(originalvertices[i]);
+	for(unsigned int i=0; i<originalfaces.size(); i++)
+		DeleteFace(originalfaces[i]);
 
   // Update mesh data structures
   Update();
@@ -321,9 +446,49 @@ SplitFaces(void)
   // remove the original face, create a new face connnecting all the new vertices,
   // and create new triangular faces connecting each vertex of the original face
   // with the new vertices associated with its adjacent edges.
+	
+	vector<R3MeshFace *> facestodel(faces);
+	map< pair <R3MeshVertex*, R3MeshVertex*>, R3MeshVertex *> midpoints;
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "SplitFaces not implemented\n");
+	for(unsigned int i=0; i<facestodel.size(); i++) {
+		R3MeshFace *f = facestodel[i];
+		vector<R3MeshVertex *> newvertexs;
+		for(unsigned int j=0; j<f->vertices.size(); j++) {
+			R3MeshVertex *v1 = f->vertices[j];
+			R3MeshVertex *v2 = f->vertices[(j+1)%f->vertices.size()];
+
+			R3MeshVertex *v;
+			if(midpoints.count(make_pair(v1, v2)) == 1) {
+				v = midpoints[make_pair(v1,v2)];
+			}
+			if(midpoints.count(make_pair(v2, v1)) == 1) {
+				v = midpoints[make_pair(v2,v1)];
+			} else {
+				R3Point midpoint = 0.5*(v1->position + v2->position);
+				v = CreateVertex(midpoint, R3zero_vector, R2zero_point);
+				midpoints[make_pair(v1,v2)] = v;
+			}
+
+			newvertexs.push_back(v);
+		}
+		for(unsigned int j=0; j<f->vertices.size(); j++) {
+			vector<R3MeshVertex *> corner;
+			corner.push_back(f->vertices[j]);
+			corner.push_back(newvertexs[j]);
+			if(j == 0) 
+				corner.push_back(newvertexs[newvertexs.size()-1]);
+			else
+				corner.push_back(newvertexs[j-1]);
+			CreateFace(corner);
+		}
+
+		CreateFace(newvertexs);
+	}
+
+	for(unsigned int i=0; i<facestodel.size(); i++) {
+		R3MeshFace *f = facestodel[i];
+		DeleteFace(f);
+	}
 
   // Update mesh data structures
   Update();
@@ -342,9 +507,33 @@ StarFaces(double factor)
   // Position the new vertex at a point that is offset from the centroid
   // of the face along the normal vector by a distance equal to factor 
   // times the average edge length for the face.
+	
+	vector <R3MeshFace *>originalfaces(faces);
+	for(unsigned int i=0; i<originalfaces.size(); i++) {
+		R3MeshFace *f = originalfaces[i];
+		R3Point centroid(0,0,0);
+		for(unsigned int j=0; j<f->vertices.size(); j++) {
+			centroid += f->vertices[j]->position;
+		}
+		centroid /= f->vertices.size();
+	
+		R3Point p = centroid + factor * f->AverageEdgeLength() *f->plane.Normal();
+		
+		R3MeshVertex *v = CreateVertex(p, R3zero_vector, R2zero_point);
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "StarFaces(%g) not implemented\n", factor);
+		for(unsigned int j=0; j<f->vertices.size(); j++) {
+			vector <R3MeshVertex *> facevs;
+			facevs.push_back(v);
+			facevs.push_back(f->vertices[j]);
+			facevs.push_back(f->vertices[j+1 == f->vertices.size() ? 0 : j+1]);
+			CreateFace(facevs);
+		}
+
+
+	}
+
+	for(unsigned int i=0; i<originalfaces.size(); i++)
+		DeleteFace(originalfaces[i]);
 
   // Update mesh data structures
   Update();
@@ -382,7 +571,7 @@ CollapseShortEdges(double min_edge_length)
   // of the collapsed edge.  Note: an extra point will be given if 
   // shorter edges are collapsed first (which produces better 
   // shaped faces).
-
+	
 	for(;;) {
 		double shortest_edge = -1;
 		R3MeshVertex *v1, *v2;
@@ -424,7 +613,7 @@ CollapseShortEdges(double min_edge_length)
 		UpdateVertexEdges();
 		UpdateVertexFaces();
 	}
-
+	
 	Update();
 }
 
@@ -502,8 +691,78 @@ SubdivideLoop(void)
   // Then, update the positions of all vertices according to the Loop subdivision weights.  
   // This only must work correctly for meshes with triangular faces.
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "SubdivideLooop not implemented\n");
+	vector<R3MeshVertex *> evenvertices(vertices);
+
+	SplitFaces();
+	
+	vector<R3Point> positionstoupdate(vertices.size());
+	
+	for(unsigned int i=0; i<positionstoupdate.size(); i++) {
+		R3MeshVertex *v = vertices[i];
+
+		int iseven = count(evenvertices.begin(), evenvertices.end(), v); 
+		if(iseven == 1) { //Even
+			R3Point p(0,0,0);
+			double weight, sum=0;
+			if(v->edges.size() == 2) {
+				weight = 1.0/8.0;
+			} else if(v->edges.size() == 3) {
+				weight = 3.0/16.0;
+			}
+			else {
+				weight = 3.0/8.0/((double)v->edges.size());
+			}
+			for(unsigned int j=0; j<v->edges.size(); j++) { //this should be 6
+				p += (v->position + v->edges[j]*2) * weight;
+				sum += weight;
+			}
+			p += v->position * (1.0-sum);
+			
+			positionstoupdate[i] = p;
+		}
+		else { //Odd
+			R3Point p(0,0,0);
+			vector <R3MeshVertex *>exclusion; //To prevent duplication
+			//exclusion.push_back(v);
+
+			//Recursing one deep to get adjacent
+			for(unsigned int j=0; j<v->edges_vertex_ids.size(); j++) {
+				R3MeshVertex *firstlevel = vertices[v->edges_vertex_ids[j]];
+				if(count(evenvertices.begin(), evenvertices.end(), firstlevel) == 1) { //Even
+					p += 3.0/8.0 * firstlevel->position;
+					exclusion.push_back(firstlevel);
+				}
+			}
+
+			//Recursing two deep
+			for(unsigned int j=0; j<v->edges_vertex_ids.size(); j++) {
+				R3MeshVertex *firstlevel = vertices[v->edges_vertex_ids[j]];
+				if(count(evenvertices.begin(), evenvertices.end(), firstlevel) == 0) { //Odd
+					for(unsigned int k=0; k<firstlevel->edges_vertex_ids.size(); k++) {
+						R3MeshVertex *secondlevel = vertices[firstlevel->edges_vertex_ids[k]];
+						if(count(evenvertices.begin(), evenvertices.end(), secondlevel) == 1 && count(exclusion.begin(), exclusion.end(), secondlevel) == 0) { //Even and not excluded
+							p += 1.0/8.0 * secondlevel->position;
+							exclusion.push_back(secondlevel);
+						}
+					}
+				}
+			}
+
+			//If there was no two deep found, then we are edge. 
+			if(exclusion.size() < 4) {
+				p = R3zero_point;
+				p += 0.5 * exclusion[0]->position;
+				p += 0.5 * exclusion[1]->position;
+			}
+
+			positionstoupdate[i] = p;
+		}
+
+	}
+
+
+	for(unsigned int i=0; i<positionstoupdate.size(); i++)
+		vertices[i]->position = positionstoupdate[i];
 
   // Update mesh data structures
   Update();
@@ -540,9 +799,49 @@ SurfaceOfRevolution(const R3Mesh& profile_curve,
   // should be created by successively rotating the original vertices around 
   // the axis by the step size and new faces should be constructed by 
   // connecting adjacent vertices to create a surface of revolution.
+	
+	vector<R3MeshVertex *> delvertices(vertices);
+	for(unsigned int i=0; i<delvertices.size(); i++)
+		DeleteVertex(delvertices[i]);
+	vector<R3MeshFace *> delfaces(faces);
+	for(unsigned int i=0; i<delfaces.size(); i++)
+		DeleteFace(delfaces[i]);
 
-  // FILL IN IMPLEMENTATION HERE
-  fprintf(stderr, "SurfaceOfRevolution not implemented\n");
+	vector<R3MeshVertex *> prev(profile_curve.vertices.size());
+	vector<R3MeshVertex *> cur(profile_curve.vertices.size());
+	vector<R3MeshVertex *> first(profile_curve.vertices.size());
+	int firstbool = 1;
+	for(double angle=0; angle<2*M_PI; angle += rotation_angle_step) {
+		prev = cur;
+		for(unsigned int i=0; i<profile_curve.vertices.size(); i++) {
+			R3Point p = profile_curve.vertices[i]->position;
+			p.Rotate(axis_of_revolution, angle);
+			R3MeshVertex *v = CreateVertex(p, R3zero_vector, R2zero_point);
+			cur[i] = v;
+		}
+		if(firstbool == 1) {
+			firstbool = 0;
+			first = cur;
+		} else {
+			for(unsigned int i=0; i<profile_curve.vertices.size()-1; i++) {
+				vector<R3MeshVertex *> facev;
+				facev.push_back(prev[i]);
+				facev.push_back(cur[i]);
+				facev.push_back(cur[i+1]);
+				facev.push_back(prev[i+1]);
+				CreateFace(facev);
+			}
+		}
+	}
+	for(unsigned int i=0; i<profile_curve.vertices.size()-1; i++) {
+		vector<R3MeshVertex *> facev;
+		facev.push_back(cur[i]);
+		facev.push_back(first[i]);
+		facev.push_back(first[i+1]);
+		facev.push_back(cur[i+1]);
+		CreateFace(facev);
+	}
+	
 
   // Update mesh data structures
   Update();
@@ -700,6 +999,7 @@ Crop(const R3Plane& plane)
 
 
 
+
 ////////////////////////////////////////////////////////////
 // MESH ELEMENT CREATION/DELETION FUNCTIONS
 ////////////////////////////////////////////////////////////
@@ -784,18 +1084,61 @@ DeleteFace(R3MeshFace *face)
 ////////////////////////////////////////////////////////////
 // UPDATE FUNCTIONS
 ////////////////////////////////////////////////////////////
-
 void R3Mesh::
 Update(void)
 {
   // Update everything
   UpdateBBox();
   UpdateFacePlanes();
+	UpdateVertexEdges();
+	UpdateVertexFaces();
   UpdateVertexNormals();
   UpdateVertexCurvatures();
 }
 
+void R3Mesh::
+UpdateVertexEdges(void)
+{
+	for(unsigned int i=0; i<vertices.size(); i++) {
+		vertices[i]->edges.clear();
+		vertices[i]->edges_vertex_ids.clear();
+	}
+	for(unsigned int i=0; i<faces.size(); i++) {
+		R3MeshFace *face = faces[i];
 
+		// Check number of vertices
+		if (face->vertices.size() < 2) continue;
+
+		// Cycle across edges of this face
+		R3MeshVertex *v1 = face->vertices.back();
+		for (unsigned int i = 0; i < face->vertices.size(); i++) {
+			R3MeshVertex *v2 = face->vertices[i];
+			R3Vector v = v2->position - v1->position;
+			
+			v1->AddEdge(v, v2->id);
+			v2->AddEdge(-v, v1->id);
+
+			v1 = v2;
+		}
+	}
+}
+
+void R3Mesh::
+UpdateVertexFaces(void)
+{
+	for(unsigned int i=0; i<vertices.size(); i++) {
+		vertices[i]->faces.clear();
+	}
+	for(unsigned int i=0; i<faces.size(); i++) {
+		R3MeshFace *face = faces[i];
+
+		// Cycle across vertices of this face
+		for (unsigned int i = 0; i < face->vertices.size(); i++) {
+			R3MeshVertex *v = face->vertices[i];
+			v->faces.push_back(face);
+		}
+	}
+}
 
 void R3Mesh::
 UpdateBBox(void)
@@ -842,7 +1185,6 @@ UpdateFacePlanes(void)
     faces[i]->UpdatePlane();
   }
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1337,7 +1679,23 @@ R3MeshVertex(const R3MeshVertex& vertex)
 {
 }
 
+void R3MeshVertex::
+AddEdge(const R3Vector& v, int vertex_id)
+{
+	// Check to see if this edge has been added already
+	int match = 0;
+	for(unsigned int i=0; i<edges_vertex_ids.size(); i++) {
+		if(edges_vertex_ids[i] == vertex_id) {
+			match = 1;
+			break;
+		}
+	}
+	if(match == 1) return;
 
+	// Add edge
+	edges_vertex_ids.push_back(vertex_id);
+	edges.push_back(v);
+}
 
 
 R3MeshVertex::
@@ -1515,6 +1873,5 @@ UpdatePlane(void)
   // Update face plane
   plane.Reset(centroid, normal);
 }
-
 
 

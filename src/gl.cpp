@@ -20,11 +20,12 @@ static int window_width = 500;
 static R3Camera back_camera;
 static R3Camera view_camera;
 static double fps = 60;
-static Framebuffer *direct_render_fbo, *bloom_preblur_fbo, *bloom_blurred_fbo;
+static Framebuffer *direct_render_fbo, *processing_fbo1, *processing_fbo2;
 static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader;
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
+static GLuint world_texture;
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
@@ -164,18 +165,21 @@ void RedrawWindow() {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   
+  glEnable(GL_TEXTURE_2D);
   glEnable(GL_MULTISAMPLE);
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   view_camera.CalcPlanes();
   world->Draw(view_camera);
+  glBindTexture(GL_TEXTURE_2D, world_texture);
+  world->DrawWorld();
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   if(hasgoodgpu) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
     
     // Threshold our FBO
-    glBindFramebuffer(GL_FRAMEBUFFER, bloom_preblur_fbo->framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, processing_fbo1->framebuffer);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -187,24 +191,24 @@ void RedrawWindow() {
     glUseProgram(0);
     
     // Blur our FBO in x direction
-    glBindFramebuffer(GL_FRAMEBUFFER, bloom_blurred_fbo->framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, processing_fbo2->framebuffer);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glUseProgram(blur_shader_x->program);
-    glBindTexture(GL_TEXTURE_2D, bloom_preblur_fbo->texture);
+    glBindTexture(GL_TEXTURE_2D, processing_fbo1->texture);
     glUniform1i(glGetUniformLocation(blur_shader_x->program, "tex"), 0);
     DrawFullscreenQuad();
     glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
     
     // Blur our FBO in y direction
-    glBindFramebuffer(GL_FRAMEBUFFER, bloom_preblur_fbo->framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, processing_fbo1->framebuffer);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glUseProgram(blur_shader_y->program);
-    glBindTexture(GL_TEXTURE_2D, bloom_blurred_fbo->texture);
+    glBindTexture(GL_TEXTURE_2D, processing_fbo2->texture);
     glUniform1i(glGetUniformLocation(blur_shader_y->program, "tex"), 0);
     DrawFullscreenQuad();
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -216,7 +220,7 @@ void RedrawWindow() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glUseProgram(bloom_composite_shader->program);
-    glBindTexture(GL_TEXTURE_2D, bloom_preblur_fbo->texture);
+    glBindTexture(GL_TEXTURE_2D, processing_fbo1->texture);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, direct_render_fbo->texture);
     glActiveTexture(GL_TEXTURE0);
@@ -226,7 +230,7 @@ void RedrawWindow() {
     glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
     
-    printProgramInfoLog(bloom_composite_shader->program);
+    //printProgramInfoLog(bloom_composite_shader->program);
   }
   
   // OSD
@@ -443,13 +447,38 @@ int CreateGameWindow(int argc, char **argv) {
   
   if(hasgoodgpu) {
     direct_render_fbo = new Framebuffer(window_width, window_height);
-    bloom_preblur_fbo = new Framebuffer(window_width, window_height);
-    bloom_blurred_fbo = new Framebuffer(window_width, window_height);
+    processing_fbo1 = new Framebuffer(window_width, window_height);
+    processing_fbo2 = new Framebuffer(window_width, window_height);
     blur_shader_x = new Shader("blur-x");
     blur_shader_y = new Shader("blur-y");
     bloom_preblur_shader = new Shader("bloompreblur");
     bloom_composite_shader = new Shader("bloomcomposite");
   }
+
+  int width, height;
+  // texture data
+  width = 512;
+  height = 256;
+
+  // open and read texture data
+  stringstream ss_f;
+  ss_f << "./textures/bubbletexture1.rgb";
+
+  ifstream texture_file (ss_f.str().c_str(), ios::in | ios::binary | ios::ate);
+  int texture_file_size = texture_file.tellg();
+  texture_file.seekg(0, ios::beg);
+  char *texture_source = (char *)malloc(texture_file_size);
+  texture_file.read(texture_source, texture_file_size);
+  glGenTextures(1, &world_texture);
+  glBindTexture(GL_TEXTURE_2D, world_texture);
+
+  // build our texture mipmaps
+  gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height,
+                    GL_RGB, GL_UNSIGNED_BYTE, texture_source);
+
+  texture_file.close();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  
 
   cout << glGetString(GL_VERSION) << endl;
   
