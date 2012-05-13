@@ -1,6 +1,8 @@
 #include <iostream>
 #include "game.h"
 #include "gl.h"
+#include <stdlib.h>
+#include <stdio.h>
 #include <SFML/Audio.hpp>
 #include <time.h>
 
