@@ -232,7 +232,7 @@ void World::Simulate() {
   // Based on bubble material and state, emit particles.
   for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
        it != ie; ++it) {
-    // FIXME
+    // FIXME peter
   }
 
   //check if powerups mesh die
@@ -380,7 +380,7 @@ void World::Simulate() {
 
     // Particle lifetime.
     if ((*it)->lifetime < 0) {
-      // FIXME
+      // FIXME peter
     }
   }
   
@@ -455,7 +455,17 @@ void World::Draw(R3Camera camera) {
 
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
-    // FIXME
+    if ((*it)->is_point) {
+      glDisable(GL_LIGHTING);
+      glPointSize((*it)->point_size);
+      glBegin(GL_POINTS);
+      // FIXME peter
+      glColor3d((*it)->color[0], (*it)->color[1], (*it)->color[2]);
+      glVertex3d((*it)->position[0], (*it)->position[1], (*it)->position[2]);
+      glEnd();
+    } else {
+      // FIXME peter textured particles
+    }
   }
 
   GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
