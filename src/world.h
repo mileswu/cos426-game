@@ -16,17 +16,17 @@ typedef enum {
 } SoundType;
 
 typedef enum {
-	invincible_type,
-	small_sink_type,
-	sink_type,
-	speed_up_type,
-	slow_down_type,
+  invincible_type,
+  small_sink_type,
+  sink_type,
+  speed_up_type,
+  slow_down_type,
 } PowerUpType;
 
 struct PowerUpShape {
-	PowerUpType type;
-	double die_time;
-	R3Mesh *mesh;
+  PowerUpType type;
+  double die_time;
+  R3Mesh *mesh;
 };
 
 class World {
