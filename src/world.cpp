@@ -132,7 +132,7 @@ World::World() {
   bubbles.push_back(b);
   
   for (int i=0; i<200; i++) {
-    b = new Bubble(new NullAI(this));
+    b = new Bubble(NULL);
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
