@@ -462,7 +462,7 @@ int CreateGameWindow(int argc, char **argv) {
 
   // open and read texture data
   stringstream ss_f;
-  ss_f << "./textures/bubbletexture1.rgb";
+  ss_f << "./textures/bubbletexture2.rgb";
 
   ifstream texture_file (ss_f.str().c_str(), ios::in | ios::binary | ios::ate);
   int texture_file_size = texture_file.tellg();
