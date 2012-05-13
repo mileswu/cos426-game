@@ -305,7 +305,6 @@ int CreateWindow() {
 #endif
   int GLUTwindow = glutCreateWindow("Game");
 
-  
   glutWarpPointer(window_width/2, window_height/2);
   glutSetCursor(GLUT_CURSOR_NONE);
   glutDisplayFunc(RedrawWindow);
@@ -320,7 +319,6 @@ int CreateWindow() {
   glutReshapeFunc(GLUTResize);*/
   glutSpecialFunc(SpecialInput);
 
-  
   view_camera.eye = R3Point(0,0,-4);
   view_camera.yfov = 0.8;
   view_camera.xfov = 0.8;

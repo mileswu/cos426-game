@@ -16,6 +16,10 @@ typedef enum {
   reg_state,
 } BubbleState;
 
+struct BubbleMaterial {
+  GLfloat color[4];
+};
+
 class Bubble {
   public:
     explicit Bubble(AI *ai_);
@@ -38,6 +42,7 @@ class Bubble {
     BubbleState state;
     double effect_end_time;
 
+    BubbleMaterial material;
     AI *ai;
 
   private:
