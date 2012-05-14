@@ -183,9 +183,11 @@ World::World() {
   // Initialize time
   lasttime_updated.tv_sec = 0;
   lasttime_updated.tv_usec = 0;
+  world_status = 0;
 }
 
 void World::Emit(R3Vector camera_direction) {
+  if(world_status != 0) return;
   camera_direction.Normalize();
   Bubble *b = bubbles[0];
   
@@ -249,13 +251,16 @@ void World::Simulate() {
     if (!(*it)->material->emits_particles) {
       continue;
     }
-	if((*it)->v.IsZero()) continue;
+	  if((*it)->v.IsZero()) continue;
+	  
+	  double idealnumtogen = (*it)->material->particle_rate*timestep;
+    int numtogen = 0;
+    numtogen += idealnumtogen;
+    
+    if(rand(1.0) < idealnumtogen-numtogen)
+      numtogen++;
 	
-    double rate = (*it)->material->particle_rate;
-    int curr_count = (int)(rate * curr_time + 0.5);
-    int last_count = (int)(rate * (curr_time - timestep) + 0.5);
-    int nparticles = 500; //curr_count - last_count;
-    for (int j = 0; j < nparticles; ++j) {
+    for (int j = 0; j < numtogen; ++j) {
       Particle *particle = new Particle();
       
       R3Vector normal = -(*it)->v;
@@ -446,20 +451,48 @@ void World::Simulate() {
       if (retval == -1) {
         it = bubbles.erase(it);
         if (it==bubbles.begin()) {
+          world_status = 1;
           PlayMusic(DEATH_SOUND);
         } else if (it2==bubbles.begin()) {
           PlayMusic(ABSORBING_SOUND);
         }
       } else if (retval == -2) {
         it2 = bubbles.erase(it2);
-        if (it2==bubbles.begin())
+        if (it2==bubbles.begin()) {
+          world_status = 1;
           PlayMusic(DEATH_SOUND);
+        }
         else if (it==bubbles.begin())
           PlayMusic(ABSORBING_SOUND);
       }
     }
   }
 
+}
+
+void World::DrawOverlay() {
+  if(world_status == 1) {
+    glColor4f(0.0, 0.0, 0.0, 0.8);
+    glBegin(GL_QUADS);
+    glTexCoord2f (0.0, 0.0);
+    glVertex3f (-1.0, -1.0, 0.0);
+    glTexCoord2f (1.0, 0.0);
+    glVertex3f (1.0, -1.0, 0.0);
+    glTexCoord2f (1.0, 1.0);
+    glVertex3f (1.0, 1.0, 0.0);
+    glTexCoord2f (0.0, 1.0);
+    glVertex3f (-1.0, 1.0, 0.0);
+    glEnd();
+    
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    
+    glRasterPos2i(0.5,0.5);
+
+    string osd_text = string("You died.");
+    for( string::iterator it = osd_text.begin(); it < osd_text.end(); it++) {
+      glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *it);
+    }
+  }
 }
 
 void World::Draw(R3Camera camera) {  
@@ -471,7 +504,7 @@ void World::Draw(R3Camera camera) {
   
   for (vector<Bubble *>::iterator it = bubbles.begin();
        it < bubbles.end(); it++) {
-    if (it == bubbles.begin()) {
+    if ((*it)->player_id == 0) {
       c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
     } else {
       double s = (*it)->size;

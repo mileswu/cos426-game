@@ -45,6 +45,7 @@ class World {
     void Draw(R3Camera camera);
     void DrawTrails(R3Camera camera);
     void DrawWorld();
+    void DrawOverlay();
     void DrawPowerups(R3Camera camera);
 	  void CreatePowerUp(PowerUpType type);
 		void RemovePowerUp(int index);
@@ -60,6 +61,7 @@ class World {
     std::vector<PowerUpShape> power_ups;
     std::vector<Particle *> particles;
     struct timeval lasttime_updated;
+    int world_status;
 };
 
 #endif
