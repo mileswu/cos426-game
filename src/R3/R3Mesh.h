@@ -8,8 +8,6 @@
 ////////////////////////////////////////////////////////////
 
 #include <vector>
-#include "R2/R2.h"
-#include "R3/R3.h"
 using namespace std;
 
 

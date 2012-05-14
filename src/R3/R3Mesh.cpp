@@ -4,10 +4,10 @@
 
 // Include files
 
-#include "R3.h"
+#include "R3/R3.h"
 #include <iostream>
 #include <map>
-#include <algorithm>
+
 
 
 ////////////////////////////////////////////////////////////
@@ -90,6 +90,7 @@ Radius(void) const
 ////////////////////////////////////////////////////////////
 // MESH PROCESSING FUNCTIONS
 ////////////////////////////////////////////////////////////
+
 void R3Mesh::
 Translate(double dx, double dy, double dz)
 {
@@ -584,6 +585,7 @@ CollapseShortEdges(double min_edge_length)
 				}
 			}
 		}
+    
 		if(shortest_edge >= min_edge_length) {
 			break;
 		}
@@ -999,7 +1001,6 @@ Crop(const R3Plane& plane)
 
 
 
-
 ////////////////////////////////////////////////////////////
 // MESH ELEMENT CREATION/DELETION FUNCTIONS
 ////////////////////////////////////////////////////////////
@@ -1057,7 +1058,7 @@ DeleteVertex(R3MeshVertex *vertex)
   }
 
   // Delete vertex
-  delete vertex;
+  //delete vertex;
 }
 
 
@@ -1084,6 +1085,7 @@ DeleteFace(R3MeshFace *face)
 ////////////////////////////////////////////////////////////
 // UPDATE FUNCTIONS
 ////////////////////////////////////////////////////////////
+
 void R3Mesh::
 Update(void)
 {
@@ -1186,7 +1188,6 @@ UpdateFacePlanes(void)
   }
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 // DRAWING FUNCTIONS
 ////////////////////////////////////////////////////////////////////////
@@ -1219,8 +1220,6 @@ Outline(void) const
   Draw();
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
-
-
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1325,10 +1324,6 @@ ReadImage(const char *filename)
       face_vertices.clear();
       face_vertices.push_back(vertices[i-1][j-1]);
       face_vertices.push_back(vertices[i][j-1]);
-      face_vertices.push_back(vertices[i][j]);
-      CreateFace(face_vertices);
-      face_vertices.clear();
-      face_vertices.push_back(vertices[i-1][j-1]);
       face_vertices.push_back(vertices[i][j]);
       face_vertices.push_back(vertices[i-1][j]);
       CreateFace(face_vertices);
@@ -1445,14 +1440,7 @@ ReadOff(const char *filename)
       }
 
       // Create face
-      vector<R3MeshVertex *> tri_vertices;
-      for (unsigned int j = 2; j < face_vertices.size(); j++) {
-        tri_vertices.clear();
-        tri_vertices.push_back(face_vertices[0]);
-        tri_vertices.push_back(face_vertices[j-1]);
-        tri_vertices.push_back(face_vertices[j]);
-        CreateFace(tri_vertices);
-      }
+      CreateFace(face_vertices);
 
       // Increment counter
       face_count++;
@@ -1510,7 +1498,7 @@ WriteOff(const char *filename)
   // Write Faces
   for (int i = 0; i < NFaces(); i++) {
     R3MeshFace *face = Face(i);
-    fprintf(fp, "3");
+    fprintf(fp, "%d", (int) face->vertices.size());
     for (unsigned int j = 0; j < face->vertices.size(); j++) {
       fprintf(fp, " %d", face->vertices[j]->id);
     }
@@ -1585,14 +1573,7 @@ ReadRay(const char *filename)
       }
 
       // Create face
-      vector<R3MeshVertex *> tri_vertices;
-      for (unsigned int j = 2; j < face_vertices.size(); j++) {
-        tri_vertices.clear();
-        tri_vertices.push_back(face_vertices[0]);
-        tri_vertices.push_back(face_vertices[j-1]);
-        tri_vertices.push_back(face_vertices[j]);
-        CreateFace(tri_vertices);
-      }
+      CreateFace(face_vertices);
 
       // Increment polygon counter
       polygon_count++;
@@ -1718,11 +1699,15 @@ AverageEdgeLength(void) const
   // This feature should be implemented first.  To do it, you must
   // design a data structure that allows O(K) access to edges attached
   // to each vertex, where K is the number of edges attached to the vertex.
+	
+	double sum = 0;
+	for(unsigned int i=0; i<edges.size(); i++) {
+		sum += sqrt(edges[i].Dot(edges[i]));
+	}
+	if(edges.size() != 0)
+	  sum /= (double) edges.size();
 
-  // FILL IN IMPLEMENTATION HERE  (THIS IS REQUIRED)
-  // BY REPLACING THIS ARBITRARY RETURN VALUE
-  fprintf(stderr, "Average vertex edge length not implemented\n");
-  return 0.12345;
+	return(sum);
 }
 
 
@@ -1739,9 +1724,13 @@ UpdateNormal(void)
   // where the weights are determined by the areas of the faces.
   // Store the resulting normal in the "normal"  variable associated with the vertex. 
   // You can display the computed normals by hitting the 'N' key in meshview.
-
-  // FILL IN IMPLEMENTATION HERE (THIS IS REQUIRED)
-  // fprintf(stderr, "Update vertex normal not implemented\n");
+	
+	R3Vector sum(0,0,0);
+	for(unsigned int i=0; i<faces.size(); i++) {
+		sum += faces[i]->Area() * faces[i]->plane.Normal();
+	}
+	sum.Normalize();
+	normal = sum;
 }
 
 
@@ -1873,5 +1862,6 @@ UpdatePlane(void)
   // Update face plane
   plane.Reset(centroid, normal);
 }
+
 
 

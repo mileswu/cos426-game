@@ -168,15 +168,15 @@ World::World() {
     }
     CreatePowerUp(sink_type);
   }
-  
+	
   //check level of detail
-  /*for (unsigned int i = 0; i < power_ups.size(); i++)
+  for (unsigned int i = 0; i < power_ups.size(); i++)
   {
-	power_ups[i].mesh -> CollapseShortEdges(1);
+	//power_ups[i].mesh -> CollapseShortEdges(0.4);
 	//power_ups[i].mesh -> CollapseShortEdges(10000);
 	//power_ups[i].mesh -> CollapseShortEdges(10000);
 	//power_ups[i].mesh -> CollapseShortEdges(10000);
-  }*/
+  }
   
   // Initialize time
   lasttime_updated.tv_sec = 0;
