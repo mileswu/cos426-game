@@ -254,13 +254,32 @@ void World::Simulate() {
     int last_count = (int)(rate * (curr_time - timestep) + 0.5);
     int nparticles = 5; //curr_count - last_count;
     for (int j = 0; j < nparticles; ++j) {
-      //printf("emit particle\n");
       Particle *particle = new Particle();
+      
+      R3Vector normal = -(*it)->v;
+      normal.Normalize();
+      R3Vector tangentplanevector = normal;
+      tangentplanevector[2] += 1;
+      tangentplanevector[0] += 1;
+      tangentplanevector[1] += 1;
+      tangentplanevector.Cross(normal);
+      tangentplanevector.Normalize();
+      double t1, t2;
+      t1 = rand(2.0*M_PI);
+      t2 = rand(1.0)*sin(M_PI/6.0);
+      R3Vector direction = tangentplanevector;
+      direction.Rotate(normal, t1);
+      R3Vector vcrossn = direction;
+      vcrossn.Cross(normal);
+      direction.Rotate(vcrossn, acos(t2));
+      direction.Normalize();
+      particle->velocity = 1.5*direction;
+
+      //printf("emit particle\n");
       particle->color[0] = (*it)->material->particle_color[0];
       particle->color[1] = (*it)->material->particle_color[1];
       particle->color[2] = (*it)->material->particle_color[2];
       particle->color[3] = (*it)->material->particle_color[3];
-      particle->velocity = R3null_vector; //0.75 * (*it)->v;
       particle->position = (*it)->pos;
       particle->lifetime = 2000. + glutGet(GLUT_ELAPSED_TIME);
       particle->is_point = true;
