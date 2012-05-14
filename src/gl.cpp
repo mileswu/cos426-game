@@ -21,7 +21,7 @@ static R3Camera back_camera;
 static R3Camera view_camera;
 static double fps = 60;
 static Framebuffer *direct_render_fbo, *processing_fbo1, *processing_fbo2;
-static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader, *bump_shader;
+static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader, *bump_shader, *world_cubemap_shader;
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
@@ -158,7 +158,7 @@ void RedrawWindow() {
   // Rendering of World into Framebuffer
   if(hasgoodgpu) {
     glBindFramebuffer(GL_FRAMEBUFFER, direct_render_fbo->framebuffer);
-    //glUseProgram(bump_shader->program);
+    glUseProgram(bump_shader->program);
   }
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -182,7 +182,10 @@ void RedrawWindow() {
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   
-  
+  if(hasgoodgpu) {
+    glUseProgram(world_cubemap_shader->program);
+    glUniform1i(glGetUniformLocation(blur_shader_x->program, "tex"), 0);
+  }
   world->DrawWorld();
   glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -465,6 +468,7 @@ int CreateGameWindow(int argc, char **argv) {
     blur_shader_y = new Shader("blur-y");
     bloom_preblur_shader = new Shader("bloompreblur");
     bloom_composite_shader = new Shader("bloomcomposite");
+    world_cubemap_shader = new Shader("worldcubemap");
     bump_shader = new Shader("bump");
   }
 
@@ -483,11 +487,23 @@ int CreateGameWindow(int argc, char **argv) {
   char *texture_source = (char *)malloc(texture_file_size);
   texture_file.read(texture_source, texture_file_size);
   glGenTextures(1, &world_texture);
-  glBindTexture(GL_TEXTURE_2D, world_texture);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, world_texture);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+  //Define all 6 faces
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_source);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_source);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_source);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_source);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_source);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_source);
 
   // build our texture mipmaps
-  gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height,
-                    GL_RGB, GL_UNSIGNED_BYTE, texture_source);
+  //gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height,
+  //                  GL_RGB, GL_UNSIGNED_BYTE, texture_source);
   //glGenerateMipmap(world_texture);
 
   texture_file.close();
