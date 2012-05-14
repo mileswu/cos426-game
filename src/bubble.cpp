@@ -1,6 +1,7 @@
 #include "bubble.h"
 #include "ai.h"
 #include "gl.h"
+#include "world.h"
 #include <iostream>
 using namespace std;
 
@@ -145,7 +146,4 @@ void Bubble::Draw() {
   gluQuadricDrawStyle(glu_sphere, (GLenum) GLU_FILL);
   gluSphere(glu_sphere, size, 32, 32);
   glPopMatrix();
-
-  // Based on its material and state, emit particles.
-  // TODO
 }
