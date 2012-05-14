@@ -465,13 +465,12 @@ void World::Draw(R3Camera camera) {
     }
   }
 
+  glDisable(GL_LIGHTING);
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
-      glDisable(GL_LIGHTING);
       glPointSize((*it)->point_size);
       glBegin(GL_POINTS);
-      // FIXME peter
       glColor3d((*it)->color[0], (*it)->color[1], (*it)->color[2]);
       glVertex3d((*it)->position[0], (*it)->position[1], (*it)->position[2]);
       glEnd();
@@ -479,6 +478,7 @@ void World::Draw(R3Camera camera) {
       // FIXME peter textured particles
     }
   }
+  glEnable(GL_LIGHTING);
 
   GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
   GLfloat c_yellow[4] = {1, 1, 0, 1};
