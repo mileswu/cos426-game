@@ -9,7 +9,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
-//#include <SFML/Audio.hpp>
+#include <SFML/Audio.hpp>
 
 using namespace std;
 
@@ -742,7 +742,7 @@ bool World::inView(R3Camera camera, R3Point pos, double radius) {
 }
 
 void World::PlayMusic(SoundType type) {
-/*
+
   static sf::Music music;
 
   string file;
@@ -759,6 +759,6 @@ void World::PlayMusic(SoundType type) {
   }
   music.setVolume(75);
   music.play();
-*/
+
 }
 
