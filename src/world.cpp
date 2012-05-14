@@ -249,10 +249,12 @@ void World::Simulate() {
     if (!(*it)->material->emits_particles) {
       continue;
     }
+	if((*it)->v.IsZero()) continue;
+	
     double rate = (*it)->material->particle_rate;
     int curr_count = (int)(rate * curr_time + 0.5);
     int last_count = (int)(rate * (curr_time - timestep) + 0.5);
-    int nparticles = 5; //curr_count - last_count;
+    int nparticles = 500; //curr_count - last_count;
     for (int j = 0; j < nparticles; ++j) {
       Particle *particle = new Particle();
       
