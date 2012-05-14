@@ -187,8 +187,26 @@ World::World() {
   world_status = 0;
 }
 
-void World::EmitAtPoint(R3Point position, R3Vector direction) {
+void World::EmitAtBubble(Bubble *b, R3Vector direction) {
   // FIXME peter(5/14) AI bubbles need to emit at arbitrary position/velocity
+  if (world_status != 0) {
+    return;
+  }
+  direction.Normalize();
+
+  double total_mass = b->Mass();
+  R3Vector total_momentum = b->Mass() * b->v;
+  R3Vector orig_v = b->v;
+
+  Bubble *b_emitted = new Bubble(NULL);
+  bubbles.push_back(b_emitted);
+  b_emitted->SetSizeFromMass(total_mass * emission_sizefactor);
+  b->SetSizeFromMass(total_mass*(1 - emission_sizefactor));
+
+  b_emitted->pos = b->pos - (b->size + b_emitted->size) * direction;
+  b_emitted->v = orig_v - emission_speed * direction;
+
+  b->v = (total_momentum - b_emitted->Mass()*b_emitted->v)/b->Mass();
 }
 
 void World::Emit(R3Vector camera_direction) {
