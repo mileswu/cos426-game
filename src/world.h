@@ -50,6 +50,7 @@ class World {
 	  void CreatePowerUp(PowerUpType type);
 		void RemovePowerUp(int index);
     void Simulate();
+    void EmitAtPoint(R3Point position, R3Vector direction);
     void Emit(R3Vector camera_direction);
     bool inView(R3Camera camera, R3Point pos, double radius);
     void PlayMusic(SoundType type);

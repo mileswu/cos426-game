@@ -187,6 +187,10 @@ World::World() {
   world_status = 0;
 }
 
+void World::EmitAtPoint(R3Point position, R3Vector direction) {
+  // FIXME peter(5/14) AI bubbles need to emit at arbitrary position/velocity
+}
+
 void World::Emit(R3Vector camera_direction) {
   if(world_status != 0) return;
   camera_direction.Normalize();
