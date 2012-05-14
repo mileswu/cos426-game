@@ -8,6 +8,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 //#include <SFML/Audio.hpp>
 
 using namespace std;
