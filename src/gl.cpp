@@ -15,8 +15,8 @@
 using namespace std;
 
 static World *world = NULL;
-static int window_height = 500;
-static int window_width = 500;
+static int window_height = 1024;
+static int window_width = 1024;
 static R3Camera back_camera;
 static R3Camera view_camera;
 static double fps = 60;
@@ -175,7 +175,14 @@ void RedrawWindow() {
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   view_camera.CalcPlanes();
   world->Draw(view_camera);
+  
   glBindTexture(GL_TEXTURE_2D, world_texture);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  
+  
   world->DrawWorld();
   glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -463,12 +470,12 @@ int CreateGameWindow(int argc, char **argv) {
 
   int width, height;
   // texture data
-  width = 512;
-  height = 256;
+  width = 1024;
+  height = 1024;
 
   // open and read texture data
   stringstream ss_f;
-  ss_f << "./textures/bubbletexture1.rgb";
+  ss_f << "./textures/stars.rgb";
 
   ifstream texture_file (ss_f.str().c_str(), ios::in | ios::binary | ios::ate);
   int texture_file_size = texture_file.tellg();
@@ -481,6 +488,7 @@ int CreateGameWindow(int argc, char **argv) {
   // build our texture mipmaps
   gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height,
                     GL_RGB, GL_UNSIGNED_BYTE, texture_source);
+  //glGenerateMipmap(world_texture);
 
   texture_file.close();
   glBindTexture(GL_TEXTURE_2D, 0);
