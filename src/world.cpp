@@ -403,7 +403,7 @@ void World::Simulate() {
     (*it)->pos += (*it)->v*timestep;
   }
 
-  for (vector<Particle *>::iterator it = particles.begin(),
+  for (list<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     // Update particles.
     (*it)->position += timestep * (*it)->velocity;
@@ -411,7 +411,9 @@ void World::Simulate() {
 
     // Particle lifetime.
     if (0 > (*it)->lifetime) {
-      //delete *it;
+      delete *it;
+      particles.erase(it);
+      --it;
     }
   }
   
@@ -487,7 +489,7 @@ void World::Draw(R3Camera camera) {
   // Render particle trails. We want to disable lighting so that
   // the trail is always bright and lens-flare-ful.
   glDisable(GL_LIGHTING);
-  for (vector<Particle *>::iterator it = particles.begin(),
+  for (list<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
       glPointSize((*it)->point_size);

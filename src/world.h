@@ -56,7 +56,7 @@ class World {
     
     std::vector<Bubble *> bubbles;
     std::vector<PowerUpShape> power_ups;
-    std::vector<Particle *> particles;
+    std::list<Particle *> particles;
     struct timeval lasttime_updated;
 };
 
