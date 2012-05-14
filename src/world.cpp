@@ -505,8 +505,12 @@ void World::Draw(R3Camera camera) {
       // FIXME peter textured particles
     }
   }
+}
+
+void World::DrawPowerups(R3Camera camera) {
   glEnable(GL_LIGHTING);
 
+  GLfloat c[4];
   GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
   GLfloat c_yellow[4] = {1, 1, 0, 1};
 
@@ -534,10 +538,11 @@ void World::Draw(R3Camera camera) {
   glDisable(GL_LIGHTING);
 }
 
-
 void World::DrawWorld() {
 
-  double size = world_size;
+  glDisable(GL_LIGHTING);
+  glColor3d(0,0,0);
+  double size = 50;
   static GLUquadricObj *glu_sphere = gluNewQuadric();
   gluQuadricTexture(glu_sphere, GL_TRUE);
   gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);

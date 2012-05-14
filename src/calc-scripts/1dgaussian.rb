@@ -1,11 +1,11 @@
 #!/usr/bin/ruby
 
-nsamples = 10;
+nsamples = 20;
 
 i = -nsamples;
 g = []
 g_sum = 0.0
-sigma = 4.0;
+sigma = 8.0;
 while(i <= nsamples) do
   temp = Math.exp(-i.to_f*i.to_f/2.0/sigma/sigma)
   g_sum += temp
