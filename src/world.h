@@ -56,6 +56,7 @@ class World {
     void PlayMusic(SoundType type);
     
     R3Point PlayerPosition();
+    double PlayerSize();
     std::string PlayerStatus();
     
     std::vector<Bubble *> bubbles;

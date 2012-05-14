@@ -233,6 +233,10 @@ R3Point World::PlayerPosition() {
   return bubbles[0]->pos;
 }
 
+double World::PlayerSize() {
+  return bubbles[0]->size;
+}
+
 void World::RemovePowerUp(int index)
 {
   PowerUpShape temp = power_ups.back();

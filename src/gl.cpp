@@ -21,7 +21,7 @@ static R3Camera back_camera;
 static R3Camera view_camera;
 static double fps = 60;
 static Framebuffer *direct_render_fbo, *processing_fbo1, *processing_fbo2;
-static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader, *bump_shader, *world_cubemap_shader;
+static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader, *bump_shader, *world_cubemap_shader, *laser_shader;
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
@@ -194,8 +194,24 @@ void RedrawWindow() {
   //glVertex3f(0,0,-2);
   glEnd();
   glBindTexture(GL_TEXTURE_2D, 0);
+    
+  glPushMatrix();
+  if(hasgoodgpu) {
+    glUseProgram(laser_shader->program);
+  }  
+  R3Point playerpos = world->PlayerPosition();
+  glLineWidth(3.0);
+  glBegin(GL_LINE_STRIP);
+  double length = world->PlayerSize() * 3.0;
+  for(double i=0; i<length; i += 0.01) {
+    glColor4d(1,0.5,0.0,1.0 - i/length);
+    glVertex3f(playerpos[0] + back_camera.towards.X()*i, playerpos[1] + back_camera.towards.Y()*i, playerpos[2] + back_camera.towards.Z()*i);
+  }
+  glEnd();  
+  
   
   if(hasgoodgpu) {
+    glUseProgram(0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, world_texture);
     glUseProgram(world_cubemap_shader->program);
     glUniform1i(glGetUniformLocation(blur_shader_x->program, "tex"), 0);
@@ -545,6 +561,7 @@ int CreateGameWindow(int argc, char **argv) {
     bloom_composite_shader = new Shader("bloomcomposite");
     world_cubemap_shader = new Shader("worldcubemap");
     bump_shader = new Shader("bump");
+    laser_shader = new Shader("laser");
     LoadCubemap("./textures/stars.rgb", &world_texture, 1024, 1024);
     LoadCubemap("./textures/ball.rgb", &bubble_texture, 512, 512);
   }
