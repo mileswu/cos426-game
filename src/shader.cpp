@@ -41,8 +41,34 @@ Shader::Shader(char *name) {
   int retval, retval2;
   glGetShaderiv(fragment, GL_COMPILE_STATUS, &retval);
   glGetShaderiv(vertex, GL_COMPILE_STATUS, &retval2);
-  if(retval != GL_TRUE || retval2 != GL_TRUE) {
+  if(retval != GL_TRUE) {
     cout << "Shader did not compile correctly" << endl;
+    GLint blen = 0;	
+    GLsizei slen = 0;
+
+    glGetShaderiv(fragment, GL_INFO_LOG_LENGTH , &blen);       
+    if (blen > 1)
+    {
+     GLchar* compiler_log = (GLchar*)malloc(blen);
+     glGetInfoLogARB(fragment, blen, &slen, compiler_log);
+     cout << "compiler_log:\n" << compiler_log << endl;
+     free (compiler_log);
+    }
+    exit(1);
+  }
+  if(retval2 != GL_TRUE) {
+    cout << "Shader did not compile correctly" << endl;
+    GLint blen = 0;	
+    GLsizei slen = 0;
+
+    glGetShaderiv(vertex, GL_INFO_LOG_LENGTH , &blen);       
+    if (blen > 1)
+    {
+     GLchar* compiler_log = (GLchar*)malloc(blen);
+     glGetInfoLogARB(vertex, blen, &slen, compiler_log);
+     cout << "compiler_log:\n" << compiler_log << endl;
+     free (compiler_log);
+    }
     exit(1);
   }
 }
