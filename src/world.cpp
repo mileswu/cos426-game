@@ -422,8 +422,7 @@ void World::Simulate() {
     (*it)->pos += (*it)->v*timestep;
   }
 
-  for (vector<Particle *>::iterator it = particles.begin(),
-       ie = particles.end(); it != ie; ++it) {
+  for (vector<Particle *>::iterator it = particles.begin(); it < particles.end(); ++it) {
     // Update particles.
     (*it)->position += timestep * (*it)->velocity;
     (*it)->lifetime -= timestep;
