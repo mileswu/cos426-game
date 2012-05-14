@@ -11,6 +11,7 @@
 #include <string.h>
 #include <assert.h>
 #include <vector>
+#include <algorithm>
 #include "R2/R2.h"
 #ifdef _WIN32
 # include <windows.h>
