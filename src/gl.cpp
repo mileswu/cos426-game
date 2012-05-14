@@ -21,7 +21,7 @@ static R3Camera back_camera;
 static R3Camera view_camera;
 static double fps = 60;
 static Framebuffer *direct_render_fbo, *processing_fbo1, *processing_fbo2;
-static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader;
+static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader, *bump_shader;
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
@@ -111,21 +111,7 @@ void RedrawWindow() {
   // Initialization
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  // Lighting
-  int light_index = GL_LIGHT0;
-  glDisable(light_index);
-  GLfloat c[4];
-  c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
-  glLightfv(light_index, GL_DIFFUSE, c);
-  glLightfv(light_index, GL_SPECULAR, c);
-  c[0] = 1; c[1] = 0; c[2] = 1; c[3] = 0;
-  glLightfv(light_index, GL_POSITION, c);
-  glEnable(light_index);
   
-  //c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
-  c[0] = 0.2; c[1] = 0.2; c[2] = 0.2; c[3] = 1;  
-  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, c);
   
   // Simulation
   R3Vector cameradisplacement_before = world->PlayerPosition() - view_camera.eye;
@@ -138,6 +124,24 @@ void RedrawWindow() {
   view_camera.eye.Translate(cameradisplacement_after - cameradisplacement_before);
   back_camera.eye.Translate(back_cameradisplacement_after - back_cameradisplacement_before);
   view_camera.Load(window_width, window_height);
+  
+  // Lighting
+  //glMatrixMode(GL_MODELVIEW);
+  //glPopMatrix();
+  //glLoadIdentity();
+  int light_index = GL_LIGHT0;
+  glDisable(light_index);
+  GLfloat c[4];
+  c[0] = 1; c[1] = 1; c[2] = 1.0; c[3] = 1;
+  glLightfv(light_index, GL_DIFFUSE, c);
+  glLightfv(light_index, GL_SPECULAR, c);
+  c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
+  glLightfv(light_index, GL_POSITION, c);
+  glEnable(light_index);
+    
+  //c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
+  c[0] = 0.2; c[1] = 0.2; c[2] = 0.2; c[3] = 1;  
+  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, c);
 
   // Backlight where bubbles emit
   light_index = GL_LIGHT1;
@@ -148,11 +152,12 @@ void RedrawWindow() {
   //glLightfv(light_index, GL_AMBIENT, c);
   c[0] = back_camera.eye.X(); c[1] = back_camera.eye.Y(); c[2] = back_camera.eye.Z(); c[3] = 1;
   glLightfv(light_index, GL_POSITION, c);
-  glEnable(light_index);
+  //glEnable(light_index);
 
   // Rendering of World into Framebuffer
   if(hasgoodgpu) {
     glBindFramebuffer(GL_FRAMEBUFFER, direct_render_fbo->framebuffer);
+    //glUseProgram(bump_shader->program);
   }
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -226,7 +231,7 @@ void RedrawWindow() {
     glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
     
-    printProgramInfoLog(bloom_composite_shader->program);
+    printProgramInfoLog(bump_shader->program);
   }
   
   // OSD
@@ -383,7 +388,7 @@ void MouseMovement(int x, int y) {
   view_camera.up.Normalize();
   view_camera.right.Normalize();
   
-  //glutWarpPointer(window_width/2, window_height/2);
+  glutWarpPointer(window_width/2, window_height/2);
   glutPostRedisplay();
 }
 
@@ -414,7 +419,7 @@ int CreateGameWindow(int argc, char **argv) {
   fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
   
-  //glutWarpPointer(window_width/2, window_height/2);
+  glutWarpPointer(window_width/2, window_height/2);
   glutSetCursor(GLUT_CURSOR_NONE);
   glutDisplayFunc(RedrawWindow);
   glutKeyboardFunc(KeyboardInput);
@@ -449,6 +454,7 @@ int CreateGameWindow(int argc, char **argv) {
     blur_shader_y = new Shader("blur-y");
     bloom_preblur_shader = new Shader("bloompreblur");
     bloom_composite_shader = new Shader("bloomcomposite");
+    bump_shader = new Shader("bump");
   }
 
   cout << glGetString(GL_VERSION) << endl;
