@@ -1,5 +1,5 @@
 CXX      := g++
-CXXFLAGS := -Wall -g -I. 
+CXXFLAGS := -Wall -g -I. -I../deps/SFML-2.0-rc/include
 CFLAGS   := -Wall -g -I. 
 MAKE     := make
 
@@ -10,7 +10,7 @@ ifneq (,$(findstring Darwin,$(UNAME)))
 	GLLIBS := -framework OpenGL -framework GLUT -framework ApplicationServices #-framework sfml-audio 
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
-	GLLIBS := -lglut32 -lglu32 -lopengl32
+	GLLIBS := -lglut32 -lglu32 -lopengl32 -L../deps/SFML-2.0-rc/lib/ -lsfml-audio -lsfml-main
   else
 	GLLIBS := -lglut -lGLU -lGL
   endif

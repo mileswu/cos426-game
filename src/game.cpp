@@ -3,7 +3,8 @@
 #include "gl.h"
 #include <stdlib.h>
 #include <stdio.h>
-//#include <SFML/Audio.hpp>
+#define SFML_STATIC
+#include <SFML/Audio.hpp>
 #include <time.h>
 
 using namespace std;
@@ -13,7 +14,7 @@ using namespace std;
 int main(int argc, char **argv) {
   CreateGameWindow(argc, argv);
   
-  /*
+  
   
   sf::Music music;
 
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
     music.setVolume(i);
     nanosleep(&ts, (struct timespec *)NULL);
   }
-  */
+  
 
   glutMainLoop();
   
