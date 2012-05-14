@@ -20,6 +20,7 @@ struct BubbleMaterial {
   GLfloat color[4];
   bool emits_particles;
   double particle_rate;
+  double particle_size;
   GLfloat particle_color[4];
 };
 

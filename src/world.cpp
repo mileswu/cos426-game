@@ -263,7 +263,7 @@ void World::Simulate() {
       particle->position = (*it)->pos;
       particle->lifetime = 2.;
       particle->is_point = true;
-      particle->point_size = 15;
+      particle->point_size = (*it)->material->particle_size;
       particles.push_back(particle);
     }
   }
@@ -487,20 +487,27 @@ void World::Draw(R3Camera camera) {
     }
   }
 
-  //glDisable(GL_LIGHTING);
+  // Render particle trails. We want to disable lighting so that
+  // the trail is always bright and lens-flare-ful.
+  glDisable(GL_LIGHTING);
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
       glPointSize((*it)->point_size);
       glBegin(GL_POINTS);
-      glColor3d((*it)->color[0], (*it)->color[1], (*it)->color[2]);
+      // FIXME peter fix the color
+      GLfloat *c = (*it)->color;
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+      //glColor3d((*it)->color[0], (*it)->color[1], (*it)->color[2]);
       glVertex3d((*it)->position[0], (*it)->position[1], (*it)->position[2]);
       glEnd();
     } else {
       // FIXME peter textured particles
     }
   }
-  //glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHTING);
 
   GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
   GLfloat c_yellow[4] = {1, 1, 0, 1};

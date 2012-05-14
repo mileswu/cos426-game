@@ -9,6 +9,7 @@ BubbleMaterial Bubble::default_material = {
   {1, 1, 1, 1},
   false,
   0,
+  0,
   {1, 1, 1, 1},
 };
 
@@ -16,6 +17,7 @@ BubbleMaterial Bubble::trail_material = {
   {1, 1, 1, 1},
   true,
   10,
+  5,
   {1, 0, 0, 1},
 };
 
