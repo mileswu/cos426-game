@@ -32,7 +32,7 @@ struct PowerUpShape {
 struct Particle {
   GLfloat color[4];
   R3Vector velocity;
-  R3Vector position;
+  R3Point position;
   double lifetime;
   bool is_point;
   int point_size;

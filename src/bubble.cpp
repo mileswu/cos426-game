@@ -5,8 +5,18 @@
 #include <iostream>
 using namespace std;
 
-static BubbleMaterial plain_material = {
-  {1, 1, 1, 1}
+BubbleMaterial Bubble::default_material = {
+  {1, 1, 1, 1},
+  false,
+  0,
+  {1, 1, 1, 1},
+};
+
+BubbleMaterial Bubble::trail_material = {
+  {1, 1, 1, 1},
+  true,
+  10,
+  {1, 0, 0, 1},
 };
 
 /*static BubbleMaterial player_material = {
@@ -28,7 +38,7 @@ Bubble::Bubble(AI *ai_) {
   state = reg_state;
   effect_end_time = -1;
 
-  material = plain_material;
+  material = &default_material;
 
   ai = ai_;
   if (NULL != ai) {

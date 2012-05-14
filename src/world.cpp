@@ -1,5 +1,6 @@
 #include "world.h"
 #include "ai.h"
+#include "bubble.h"
 #include "gl.h"
 //#include "particle.h"
 #include <iostream>
@@ -134,6 +135,7 @@ World::World() {
   //Player bubble
   Bubble *b = new Bubble(NULL);
   b->player_id = 0;
+  b->material = &Bubble::trail_material;
   bubbles.push_back(b);
   
   for (int i=0; i<200; i++) {
@@ -141,7 +143,7 @@ World::World() {
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
-		b->player_id = -1;
+    b->player_id = -1;
     bubbles.push_back(b);
   }
 
@@ -241,10 +243,29 @@ void World::Simulate() {
   }
   lasttime_updated = curtime;
 
-  // Based on bubble material and state, emit particles.
-  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
-       it != ie; ++it) {
-    // FIXME peter
+  // Based on bubble material, emit particle trail.
+  for (vector<Bubble *>::iterator it = bubbles.begin(),
+       ie = bubbles.end(); it != ie; ++it) {
+    if (!(*it)->material->emits_particles) {
+      continue;
+    }
+    double rate = (*it)->material->particle_rate;
+    int curr_count = (int)(rate * curr_time + 0.5);
+    int last_count = (int)(rate * (curr_time - timestep) + 0.5);
+    int nparticles = 5; //curr_count - last_count;
+    for (int j = 0; j < nparticles; ++j) {
+      //printf("emit particle\n");
+      Particle *particle = new Particle();
+      particle->color[0] = 1.; //(*it)->material.particle_color[0];
+      particle->color[1] = 1.; //(*it)->material.particle_color[1];
+      particle->color[2] = 1.; //(*it)->material.particle_color[2];
+      particle->velocity = 0. * (*it)->v;
+      particle->position = (*it)->pos;
+      particle->lifetime = 2.;
+      particle->is_point = true;
+      particle->point_size = 15;
+      particles.push_back(particle);
+    }
   }
 
   //check if powerups mesh die
@@ -384,6 +405,7 @@ void World::Simulate() {
     // Update bubbles.
     (*it)->pos += (*it)->v*timestep;
   }
+
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     // Update particles.
@@ -391,8 +413,8 @@ void World::Simulate() {
     (*it)->lifetime -= timestep;
 
     // Particle lifetime.
-    if ((*it)->lifetime < 0) {
-      // FIXME peter
+    if (0 > (*it)->lifetime) {
+      //delete *it;
     }
   }
   
@@ -465,7 +487,7 @@ void World::Draw(R3Camera camera) {
     }
   }
 
-  glDisable(GL_LIGHTING);
+  //glDisable(GL_LIGHTING);
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
@@ -478,7 +500,7 @@ void World::Draw(R3Camera camera) {
       // FIXME peter textured particles
     }
   }
-  glEnable(GL_LIGHTING);
+  //glEnable(GL_LIGHTING);
 
   GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
   GLfloat c_yellow[4] = {1, 1, 0, 1};

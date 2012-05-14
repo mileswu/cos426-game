@@ -18,7 +18,9 @@ typedef enum {
 
 struct BubbleMaterial {
   GLfloat color[4];
+  bool emits_particles;
   double particle_rate;
+  GLfloat particle_color[4];
 };
 
 class Bubble {
@@ -43,8 +45,11 @@ class Bubble {
     BubbleState state;
     double effect_end_time;
 
-    BubbleMaterial material;
+    BubbleMaterial *material;
     AI *ai;
+
+    static BubbleMaterial default_material;
+    static BubbleMaterial trail_material;
 
   private:
   
