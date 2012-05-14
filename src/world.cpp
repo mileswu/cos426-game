@@ -16,131 +16,58 @@ using namespace std;
 static double emission_speed = 5.0;
 static double emission_sizefactor = 0.05;
 
+World::World() {
+  GenerateLevel();
 
-double rand(double max, int plusminus = 0, double min = 0) {
-  double retval = ((double)rand())/RAND_MAX;
-  retval *= max-min;
+  // Initialize time.
+  lasttime_updated.tv_sec = 0;
+  lasttime_updated.tv_usec = 0;
+  world_status = 0;
+}
+
+static double rand(double max, int plusminus = 0, double min = 0) {
+  double retval = ((double)rand()) / RAND_MAX;
+  retval *= max - min;
   retval += min;
-  if(plusminus == 1 && rand()%2 == 0)
+  if (plusminus == 1 && rand() % 2 == 0) {
     retval *= -1;
+  }
   return retval;
 }
 
-R3Vector randvector(double max, double min = 0) {
-  for(;;) {
+static R3Vector randvector(double max, double min = 0) {
+  for (;;) {
     R3Vector retval(rand(max, 1), rand(max, 1), rand(max, 1));
-    if(retval.Length() < max && retval.Length() > min)
+    if (retval.Length() < max && retval.Length() > min) {
       return retval;
+    }
   }
 }
 
-void randTranslate(R3Mesh* m)
-{
-	int rand_x = floor(rand(2));
-	int rand_y = floor(rand(2));
-	int rand_z = floor(rand(2));
-	m->Translate(rand(30, rand_x, 0), rand(30, rand_y, 0), rand(30, rand_z, 0));
+static void randTranslate(R3Mesh* m) {
+  int rand_x = floor(rand(2));
+  int rand_y = floor(rand(2));
+  int rand_z = floor(rand(2));
+  m->Translate(rand(30, rand_x, 0), rand(30, rand_y, 0), rand(30, rand_z, 0));
 }
 
-R3Point randpoint(double max, double min = 0) {
+static R3Point randpoint(double max, double min = 0) {
   return randvector(max, min).Point();
 }
 
-R3Mesh* CreateInvincible()
-{
-	R3Mesh* m = new R3Mesh();
-	m->Read("./models/mushroom.off");
-	m->Scale(1, 1, 1);
-	//m-> Translate(0,0,3);
-	randTranslate(m);
-	return m;
-}
-
-R3Mesh* CreateSmallSink()
-{
-	R3Mesh* m = new R3Mesh();
-	m->Read("./models/pear.off");
-	m->Scale(0.01, 0.01, 0.01);
-	randTranslate(m);
-	return m;
-}
-
-R3Mesh* CreateSink()
-{
-	R3Mesh* m = new R3Mesh();
-	m->Read("./models/octopus.off");
-	m->Scale(0.05, 0.05, 0.05);
-	m->Translate(0,0,3);
-	//randTranslate(m);
-	return m;
-}
-
-R3Mesh* CreateSpeedUp()
-{
-	R3Mesh* m = new R3Mesh();
-	m->Read("./models/heart.off");
-	m->Scale(0.1, 0.1, 0.1);
-	//m->Translate(0,0,3);
-	randTranslate(m);
-	return m;
-}
-
-R3Mesh* CreateSlowDown()
-{
-	R3Mesh* m = new R3Mesh();
-	m->Read("./models/Sword01.off");
-	m->Scale(0.001, 0.001, 0.001);
-	randTranslate(m);
-	return m;
-}
-
-
-
-void World::CreatePowerUp(PowerUpType type)
-{
-	R3Mesh* m;
-	PowerUpShape p;
-	p.type = type;
-	if (type == invincible_type)
-	{
-		m = CreateInvincible();
-		p.mesh = m;
-	}
-	else if (type == small_sink_type)
-	{
-		m = CreateSmallSink();
-		p.mesh = m;
-	}
-	else if (type == sink_type)
-	{
-		m = CreateSink();
-		p.mesh = m;
-	}
-	else if (type == speed_up_type)
-	{
-		m = CreateSpeedUp();
-		p.mesh = m;
-	}
-	else if (type == slow_down_type)
-	{
-		m = CreateSlowDown();
-		p.mesh = m;
-	}
-	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 
-		glutGet(GLUT_ELAPSED_TIME) * rand(30);
-	power_ups.push_back(p);
-}
-
-
-World::World() {
-  //Player bubble
-  Bubble *b = new Bubble(NULL);
+void World::GenerateLevel() {
+  Bubble *b;
+  
+  // Generate player bubble.
+  b = new Bubble();
   b->player_id = 0;
   b->material = &Bubble::trail_material;
+  //b->ai = NULL;
   bubbles.push_back(b);
-  
-  for (int i=0; i<200; i++) {
-    b = new Bubble(NULL);
+
+  // Generate dumb NPC bubbles.
+  for (int i = 0; i < 200; i++) {
+    b = new Bubble();
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
@@ -148,43 +75,107 @@ World::World() {
     bubbles.push_back(b);
   }
 
+  // TODO peter(5/14) generate enemy bubbles.
 
-  for (unsigned int i = 0; i < bubbles.size()/10; i++) {
+  // Generate random powerups.
+  for (unsigned int i = 0; i < bubbles.size() / 10; i++) {
     int rand_num = floor(rand(5));
     PowerUpType type;
     switch (rand_num) {
-      case 0:
-        type = invincible_type;
-        break;
-      case 1:
-        type = small_sink_type;
-        break;
-      case 2:
-        type = sink_type;
-        break;
-      case 3:
-        type = speed_up_type;
-        break;
-      case 4:
-        type = slow_down_type;
-        break;
+    case 0:
+      type = invincible_type;
+      break;
+    case 1:
+      type = small_sink_type;
+      break;
+    case 2:
+      type = sink_type;
+      break;
+    case 3:
+      type = speed_up_type;
+      break;
+    case 4:
+      type = slow_down_type;
+      break;
     }
     CreatePowerUp(sink_type);
   }
-	
-  //check level of detail
-  for (unsigned int i = 0; i < power_ups.size(); i++)
-  {
-	//power_ups[i].mesh -> CollapseShortEdges(0.4);
-	//power_ups[i].mesh -> CollapseShortEdges(10000);
-	//power_ups[i].mesh -> CollapseShortEdges(10000);
-	//power_ups[i].mesh -> CollapseShortEdges(10000);
+
+  // Check level of detail.
+  //for (unsigned int i = 0; i < power_ups.size(); i++) {
+  //  power_ups[i].mesh -> CollapseShortEdges(0.4);
+  //  power_ups[i].mesh -> CollapseShortEdges(10000);
+  //  power_ups[i].mesh -> CollapseShortEdges(10000);
+  //  power_ups[i].mesh -> CollapseShortEdges(10000);
+  //}
+}
+
+static R3Mesh* CreateInvincible() {
+  R3Mesh* m = new R3Mesh();
+  m->Read("./models/mushroom.off");
+  m->Scale(1, 1, 1);
+  //m-> Translate(0,0,3);
+  randTranslate(m);
+  return m;
+}
+
+static R3Mesh* CreateSmallSink() {
+  R3Mesh* m = new R3Mesh();
+  m->Read("./models/pear.off");
+  m->Scale(0.01, 0.01, 0.01);
+  randTranslate(m);
+  return m;
+}
+
+static R3Mesh* CreateSink() {
+  R3Mesh* m = new R3Mesh();
+  m->Read("./models/octopus.off");
+  m->Scale(0.05, 0.05, 0.05);
+  m->Translate(0,0,3);
+  //randTranslate(m);
+  return m;
+}
+
+static R3Mesh* CreateSpeedUp() {
+  R3Mesh* m = new R3Mesh();
+  m->Read("./models/heart.off");
+  m->Scale(0.1, 0.1, 0.1);
+  //m->Translate(0,0,3);
+  randTranslate(m);
+  return m;
+}
+
+static R3Mesh* CreateSlowDown() {
+  R3Mesh* m = new R3Mesh();
+  m->Read("./models/Sword01.off");
+  m->Scale(0.001, 0.001, 0.001);
+  randTranslate(m);
+  return m;
+}
+
+void World::CreatePowerUp(PowerUpType type) {
+  R3Mesh* m;
+  PowerUpShape p;
+  p.type = type;
+  if (type == invincible_type) {
+    m = CreateInvincible();
+    p.mesh = m;
+  } else if (type == small_sink_type) {
+    m = CreateSmallSink();
+    p.mesh = m;
+  } else if (type == sink_type) {
+    m = CreateSink();
+    p.mesh = m;
+  } else if (type == speed_up_type) {
+    m = CreateSpeedUp();
+    p.mesh = m;
+  } else if (type == slow_down_type) {
+    m = CreateSlowDown();
+    p.mesh = m;
   }
-  
-  // Initialize time
-  lasttime_updated.tv_sec = 0;
-  lasttime_updated.tv_usec = 0;
-  world_status = 0;
+  p.die_time = glutGet(GLUT_ELAPSED_TIME) + 
+               glutGet(GLUT_ELAPSED_TIME) * rand(30);
+  power_ups.push_back(p);
 }
 
 void World::EmitAtBubble(Bubble *b, R3Vector direction) {
@@ -198,7 +189,7 @@ void World::EmitAtBubble(Bubble *b, R3Vector direction) {
   R3Vector total_momentum = b->Mass() * b->v;
   R3Vector orig_v = b->v;
 
-  Bubble *b_emitted = new Bubble(NULL);
+  Bubble *b_emitted = new Bubble();
   bubbles.push_back(b_emitted);
   b_emitted->SetSizeFromMass(total_mass * emission_sizefactor);
   b->SetSizeFromMass(total_mass * (1 - emission_sizefactor));
@@ -218,7 +209,7 @@ void World::Emit(R3Vector camera_direction) {
   R3Vector total_momentum = b->Mass() * b->v;
   R3Vector orig_v = b->v;
   
-  Bubble *b_emitted = new Bubble(NULL);
+  Bubble *b_emitted = new Bubble();
   bubbles.push_back(b_emitted);
   b_emitted->SetSizeFromMass(total_mass*emission_sizefactor);
   b->SetSizeFromMass(total_mass*(1-emission_sizefactor));

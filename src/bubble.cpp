@@ -29,7 +29,7 @@ static BubbleMaterial other_material = {
   {0, 1, 1, 1},
 };*/
 
-Bubble::Bubble(AI *ai_) {
+Bubble::Bubble() {
   //Initialize sane defaults
   density = 1.0;
   player_id = -1;
@@ -41,11 +41,7 @@ Bubble::Bubble(AI *ai_) {
   effect_end_time = -1;
 
   material = &default_material;
-
-  ai = ai_;
-  if (NULL != ai) {
-    ai->SetHost(this);
-  }
+  ai = NULL;
 }
 
 Bubble::~Bubble() {
