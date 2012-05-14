@@ -13,6 +13,7 @@ using namespace std;
 
 static double emission_speed = 5.0;
 static double emission_sizefactor = 0.05;
+static double world_size = 50;
 
 
 double rand(double max, int plusminus = 0, double min = 0) {
@@ -483,7 +484,7 @@ void World::Draw(R3Camera camera) {
 
 void World::DrawWorld() {
 
-  double size = 50;
+  double size = world_size;
   static GLUquadricObj *glu_sphere = gluNewQuadric();
   gluQuadricTexture(glu_sphere, GL_TRUE);
   gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);
