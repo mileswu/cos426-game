@@ -390,6 +390,7 @@ void MouseInput(int button, int state, int x, int y) {
 void MouseMovement(int x, int y) {
   int dx = x - window_width/2;
   int dy = y - window_height/2;
+  if(dx == 0 && dy == 0) return;
     
   R3Point scene_center = world->PlayerPosition();
   
@@ -412,6 +413,7 @@ void MouseMovement(int x, int y) {
   view_camera.up.Normalize();
   view_camera.right.Normalize();
   
+  //
   glutWarpPointer(window_width/2, window_height/2);
   glutPostRedisplay();
 }
@@ -467,7 +469,6 @@ int CreateGameWindow(int argc, char **argv) {
   }
   fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
-  
   glutWarpPointer(window_width/2, window_height/2);
   glutSetCursor(GLUT_CURSOR_NONE);
   glutDisplayFunc(RedrawWindow);
