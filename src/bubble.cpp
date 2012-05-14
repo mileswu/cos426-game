@@ -18,7 +18,7 @@ BubbleMaterial Bubble::trail_material = {
   true,
   10,
   5,
-  {1, 0, 0, 1},
+  {1, 1, 1, 1},
 };
 
 /*static BubbleMaterial player_material = {

@@ -256,10 +256,11 @@ void World::Simulate() {
     for (int j = 0; j < nparticles; ++j) {
       //printf("emit particle\n");
       Particle *particle = new Particle();
-      particle->color[0] = 1.; //(*it)->material.particle_color[0];
-      particle->color[1] = 1.; //(*it)->material.particle_color[1];
-      particle->color[2] = 1.; //(*it)->material.particle_color[2];
-      particle->velocity = 0. * (*it)->v;
+      particle->color[0] = (*it)->material->particle_color[0];
+      particle->color[1] = (*it)->material->particle_color[1];
+      particle->color[2] = (*it)->material->particle_color[2];
+      particle->color[3] = (*it)->material->particle_color[3];
+      particle->velocity = R3null_vector; //0.75 * (*it)->v;
       particle->position = (*it)->pos;
       particle->lifetime = 2.;
       particle->is_point = true;
@@ -269,8 +270,7 @@ void World::Simulate() {
   }
 
   //check if powerups mesh die
-  for (unsigned int i = 0; i < power_ups.size(); i++)
-  {
+  for (unsigned int i = 0; i < power_ups.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
     if (cur_time > power_ups[i].die_time)
     {
@@ -280,39 +280,36 @@ void World::Simulate() {
   }
 
   //check if powerup effect time already expired
-  for (unsigned int i = 0; i < bubbles.size(); i++)
-  {
+  for (unsigned int i = 0; i < bubbles.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
     if (cur_time > bubbles[i]->effect_end_time 
-                    && bubbles[i]->effect_end_time != -1)
-    {
-            bubbles[i]->state = reg_state;
-            bubbles[i]->effect_end_time = -1;
+                    && bubbles[i]->effect_end_time != -1) {
+      bubbles[i]->state = reg_state;
+      bubbles[i]->effect_end_time = -1;
     }
   }
 
   //random chance for power ups to spawn
   double random_chance = rand(100);
-  if (random_chance < 1)
-  {
+  if (random_chance < 1) {
     int rand_num = floor(rand(5));
     PowerUpType type;
     switch (rand_num) {
-            case 0:
-                    type = invincible_type;
-                    break;
-            case 1:
-                    type = small_sink_type;
-                    break;
-            case 2:
-                    type = sink_type;
-                    break;
-            case 3:
-                    type = speed_up_type;
-                    break;
-            case 4:
-                    type = slow_down_type;
-                    break;
+    case 0:
+      type = invincible_type;
+      break;
+    case 1:
+      type = small_sink_type;
+      break;
+    case 2:
+      type = sink_type;
+      break;
+    case 3:
+      type = speed_up_type;
+      break;
+    case 4:
+      type = slow_down_type;
+      break;
     }
     CreatePowerUp(type);
   }
