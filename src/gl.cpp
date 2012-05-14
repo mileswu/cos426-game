@@ -25,6 +25,7 @@ static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_comp
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
+static GLuint world_texture;
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
@@ -169,14 +170,17 @@ void RedrawWindow() {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   
+  glEnable(GL_TEXTURE_2D);
   glEnable(GL_MULTISAMPLE);
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   view_camera.CalcPlanes();
   world->Draw(view_camera);
+  glBindTexture(GL_TEXTURE_2D, world_texture);
+  world->DrawWorld();
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   if(hasgoodgpu) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
     
     // Threshold our FBO
@@ -456,6 +460,31 @@ int CreateGameWindow(int argc, char **argv) {
     bloom_composite_shader = new Shader("bloomcomposite");
     bump_shader = new Shader("bump");
   }
+
+  int width, height;
+  // texture data
+  width = 512;
+  height = 256;
+
+  // open and read texture data
+  stringstream ss_f;
+  ss_f << "./textures/bubbletexture1.rgb";
+
+  ifstream texture_file (ss_f.str().c_str(), ios::in | ios::binary | ios::ate);
+  int texture_file_size = texture_file.tellg();
+  texture_file.seekg(0, ios::beg);
+  char *texture_source = (char *)malloc(texture_file_size);
+  texture_file.read(texture_source, texture_file_size);
+  glGenTextures(1, &world_texture);
+  glBindTexture(GL_TEXTURE_2D, world_texture);
+
+  // build our texture mipmaps
+  gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height,
+                    GL_RGB, GL_UNSIGNED_BYTE, texture_source);
+
+  texture_file.close();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  
 
   cout << glGetString(GL_VERSION) << endl;
   
