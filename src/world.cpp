@@ -133,14 +133,28 @@ void World::CreatePowerUp(PowerUpType type)
 
 
 World::World() {
-  //Player bubble
-  Bubble *b = new Bubble(NULL);
+  // Generate a level.
+  GenerateLevel();
+
+  // Initialize time.
+  lasttime_updated.tv_sec = 0;
+  lasttime_updated.tv_usec = 0;
+  world_status = 0;
+}
+
+void World::GenerateLevel() {
+  Bubble *b;
+  
+  // Generate player bubble.
+  b = new Bubble();
   b->player_id = 0;
   b->material = &Bubble::trail_material;
+  //b->ai = NULL;
   bubbles.push_back(b);
-  
-  for (int i=0; i<200; i++) {
-    b = new Bubble(NULL);
+
+  // Generate dumb NPC bubbles.
+  for (int i = 0; i < 200; i++) {
+    b = new Bubble();
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
@@ -148,7 +162,9 @@ World::World() {
     bubbles.push_back(b);
   }
 
+  // TODO peter(5/14) generate enemy bubbles.
 
+  // Generate random powerups.
   for (unsigned int i = 0; i < bubbles.size()/10; i++) {
     int rand_num = floor(rand(5));
     PowerUpType type;
@@ -172,19 +188,13 @@ World::World() {
     CreatePowerUp(sink_type);
   }
 	
-  //check level of detail
-  for (unsigned int i = 0; i < power_ups.size(); i++)
-  {
-	//power_ups[i].mesh -> CollapseShortEdges(0.4);
-	//power_ups[i].mesh -> CollapseShortEdges(10000);
-	//power_ups[i].mesh -> CollapseShortEdges(10000);
-	//power_ups[i].mesh -> CollapseShortEdges(10000);
+  // Check level of detail.
+  for (unsigned int i = 0; i < power_ups.size(); i++) {
+    //power_ups[i].mesh -> CollapseShortEdges(0.4);
+    //power_ups[i].mesh -> CollapseShortEdges(10000);
+    //power_ups[i].mesh -> CollapseShortEdges(10000);
+    //power_ups[i].mesh -> CollapseShortEdges(10000);
   }
-  
-  // Initialize time
-  lasttime_updated.tv_sec = 0;
-  lasttime_updated.tv_usec = 0;
-  world_status = 0;
 }
 
 void World::EmitAtBubble(Bubble *b, R3Vector direction) {
@@ -198,7 +208,7 @@ void World::EmitAtBubble(Bubble *b, R3Vector direction) {
   R3Vector total_momentum = b->Mass() * b->v;
   R3Vector orig_v = b->v;
 
-  Bubble *b_emitted = new Bubble(NULL);
+  Bubble *b_emitted = new Bubble();
   bubbles.push_back(b_emitted);
   b_emitted->SetSizeFromMass(total_mass * emission_sizefactor);
   b->SetSizeFromMass(total_mass * (1 - emission_sizefactor));
@@ -218,7 +228,7 @@ void World::Emit(R3Vector camera_direction) {
   R3Vector total_momentum = b->Mass() * b->v;
   R3Vector orig_v = b->v;
   
-  Bubble *b_emitted = new Bubble(NULL);
+  Bubble *b_emitted = new Bubble();
   bubbles.push_back(b_emitted);
   b_emitted->SetSizeFromMass(total_mass*emission_sizefactor);
   b->SetSizeFromMass(total_mass*(1-emission_sizefactor));

@@ -26,7 +26,7 @@ struct BubbleMaterial {
 
 class Bubble {
   public:
-    explicit Bubble(AI *ai_);
+    Bubble();
     ~Bubble();
     
     void Draw();

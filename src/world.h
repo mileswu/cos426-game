@@ -41,6 +41,7 @@ struct Particle {
 class World {
   public:
     World();
+
     void DrawMinimap();
     void Draw(R3Camera camera);
     void DrawTrails(R3Camera camera);
@@ -49,6 +50,8 @@ class World {
     void DrawPowerups(R3Camera camera);
 	  void CreatePowerUp(PowerUpType type);
 		void RemovePowerUp(int index);
+
+    void GenerateLevel();
     void Simulate();
     void EmitAtBubble(Bubble *b, R3Vector direction);
     void Emit(R3Vector camera_direction);
