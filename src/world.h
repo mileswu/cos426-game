@@ -44,6 +44,7 @@ class World {
     void DrawMinimap();
     void Draw(R3Camera camera);
     void DrawWorld();
+    void DrawPowerups(R3Camera camera);
 	  void CreatePowerUp(PowerUpType type);
 		void RemovePowerUp(int index);
     void Simulate();

@@ -478,8 +478,12 @@ void World::Draw(R3Camera camera) {
       // FIXME peter textured particles
     }
   }
+}
+
+void World::DrawPowerups(R3Camera camera) {
   glEnable(GL_LIGHTING);
 
+  GLfloat c[4];
   GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
   GLfloat c_yellow[4] = {1, 1, 0, 1};
 
@@ -506,7 +510,6 @@ void World::Draw(R3Camera camera) {
   }
   glDisable(GL_LIGHTING);
 }
-
 
 void World::DrawWorld() {
 
