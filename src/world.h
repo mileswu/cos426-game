@@ -43,7 +43,9 @@ class World {
     World();
     void DrawMinimap();
     void Draw(R3Camera camera);
+    void DrawTrails(R3Camera camera);
     void DrawWorld();
+    void DrawPowerups(R3Camera camera);
 	  void CreatePowerUp(PowerUpType type);
 		void RemovePowerUp(int index);
     void Simulate();
@@ -56,7 +58,7 @@ class World {
     
     std::vector<Bubble *> bubbles;
     std::vector<PowerUpShape> power_ups;
-    std::list<Particle *> particles;
+    std::vector<Particle *> particles;
     struct timeval lasttime_updated;
 };
 

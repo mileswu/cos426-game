@@ -1,10 +1,15 @@
 varying vec3 vtx_normal;
-varying vec2 texcoord;
+varying vec3 texcoord;
 varying vec3 light_dir[2];
 varying vec3 eye_dir;
+uniform samplerCube tex;
 
 void main() {
+
 	vec3 normal = normalize(vtx_normal);
+	normal += vec3(sin(texcoord.x*20.0), sin(texcoord.y*20.0), 0.0);
+	normal = normalize(normal);
+	
 	vec3 toeye = normalize(eye_dir);
 
 	vec4 ambient = gl_LightModel.ambient * gl_FrontMaterial.ambient;
@@ -22,7 +27,7 @@ void main() {
 		specular = clamp(specular, 0.0, 1.0);
 		
 		gl_FragColor += diffuse + specular;
-	}
-	
+	}	
 	gl_FragColor = clamp(gl_FragColor, 0.0, 1.0);
+	gl_FragColor *= textureCube(tex, texcoord);
 }

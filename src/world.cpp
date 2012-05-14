@@ -249,20 +249,41 @@ void World::Simulate() {
     if (!(*it)->material->emits_particles) {
       continue;
     }
+	if((*it)->v.IsZero()) continue;
+	
     double rate = (*it)->material->particle_rate;
     int curr_count = (int)(rate * curr_time + 0.5);
     int last_count = (int)(rate * (curr_time - timestep) + 0.5);
-    int nparticles = 5; //curr_count - last_count;
+    int nparticles = 500; //curr_count - last_count;
     for (int j = 0; j < nparticles; ++j) {
-      //printf("emit particle\n");
       Particle *particle = new Particle();
+      
+      R3Vector normal = -(*it)->v;
+      normal.Normalize();
+      R3Vector tangentplanevector = normal;
+      tangentplanevector[2] += 1;
+      tangentplanevector[0] += 1;
+      tangentplanevector[1] += 1;
+      tangentplanevector.Cross(normal);
+      tangentplanevector.Normalize();
+      double t1, t2;
+      t1 = rand(2.0*M_PI);
+      t2 = rand(1.0)*sin(M_PI/6.0);
+      R3Vector direction = tangentplanevector;
+      direction.Rotate(normal, t1);
+      R3Vector vcrossn = direction;
+      vcrossn.Cross(normal);
+      direction.Rotate(vcrossn, acos(t2));
+      direction.Normalize();
+      particle->velocity = 1.5*direction;
+
+      //printf("emit particle\n");
       particle->color[0] = (*it)->material->particle_color[0];
       particle->color[1] = (*it)->material->particle_color[1];
       particle->color[2] = (*it)->material->particle_color[2];
       particle->color[3] = (*it)->material->particle_color[3];
-      particle->velocity = R3null_vector; //0.75 * (*it)->v;
       particle->position = (*it)->pos;
-      particle->lifetime = 2.;
+      particle->lifetime = 2000. + glutGet(GLUT_ELAPSED_TIME);
       particle->is_point = true;
       particle->point_size = (*it)->material->particle_size;
       particles.push_back(particle);
@@ -403,17 +424,16 @@ void World::Simulate() {
     (*it)->pos += (*it)->v*timestep;
   }
 
-  for (list<Particle *>::iterator it = particles.begin(),
-       ie = particles.end(); it != ie; ++it) {
+  for (vector<Particle *>::iterator it = particles.begin(); it < particles.end(); ++it) {
     // Update particles.
     (*it)->position += timestep * (*it)->velocity;
     (*it)->lifetime -= timestep;
 
     // Particle lifetime.
-    if (0 > (*it)->lifetime) {
-      delete *it;
-      particles.erase(it);
-      --it;
+    if (glutGet(GLUT_ELAPSED_TIME) > (*it)->lifetime) {
+      Particle *p = *it;
+      it = particles.erase(it);
+      delete p;
     }
   }
   
@@ -485,29 +505,49 @@ void World::Draw(R3Camera camera) {
       (*it)->Draw();
     }
   }
+}
+
+class Sorter {
+  public:
+  Sorter(R3Camera c) { camera = c; }
+  R3Camera camera;
+  bool operator()(Particle const *p1, Particle const *p2) const {
+    double d1 = (p1->position - camera.eye).Length();
+    double d2 = (p2->position - camera.eye).Length();
+    return (d1 > d2);
+  }
+};
+
+void World::DrawTrails(R3Camera camera) {
 
   // Render particle trails. We want to disable lighting so that
   // the trail is always bright and lens-flare-ful.
   glDisable(GL_LIGHTING);
-  for (list<Particle *>::iterator it = particles.begin(),
+  sort(particles.begin(), particles.end(), Sorter(camera));
+  for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
+      if (!inView(camera, (*it)->position, (*it)->point_size)) {
+        continue;
+      }
       glPointSize((*it)->point_size);
       glBegin(GL_POINTS);
       // FIXME peter fix the color
       GLfloat *c = (*it)->color;
-      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
-      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
-      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
-      //glColor3d((*it)->color[0], (*it)->color[1], (*it)->color[2]);
-      glVertex3d((*it)->position[0], (*it)->position[1], (*it)->position[2]);
+      c[3] = ((*it)->lifetime - glutGet(GLUT_ELAPSED_TIME))/2000.0;
+      glColor4d(c[0], c[1], c[2], c[3]);
+      glVertex3f((*it)->position[0], (*it)->position[1], (*it)->position[2]);
       glEnd();
     } else {
       // FIXME peter textured particles
     }
   }
+}
+
+void World::DrawPowerups(R3Camera camera) {
   glEnable(GL_LIGHTING);
 
+  GLfloat c[4];
   GLfloat c_purple[4] = {0.5, 0, 0.5, 1};
   GLfloat c_yellow[4] = {1, 1, 0, 1};
 
@@ -535,9 +575,9 @@ void World::Draw(R3Camera camera) {
   glDisable(GL_LIGHTING);
 }
 
-
 void World::DrawWorld() {
-
+  glDisable(GL_LIGHTING);
+  glColor3d(0,0,0);
   double size = 50;
   static GLUquadricObj *glu_sphere = gluNewQuadric();
   gluQuadricTexture(glu_sphere, GL_TRUE);
