@@ -512,7 +512,8 @@ void World::DrawPowerups(R3Camera camera) {
 }
 
 void World::DrawWorld() {
-
+  glDisable(GL_LIGHTING);
+  glColor3d(0,0,0);
   double size = 50;
   static GLUquadricObj *glu_sphere = gluNewQuadric();
   gluQuadricTexture(glu_sphere, GL_TRUE);
