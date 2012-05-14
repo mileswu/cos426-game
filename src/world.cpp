@@ -505,11 +505,23 @@ void World::Draw(R3Camera camera) {
   }
 }
 
+class Sorter {
+  public:
+  Sorter(R3Camera c) { camera = c; }
+  R3Camera camera;
+  bool operator()(Particle const *p1, Particle const *p2) const {
+    double d1 = (p1->position - camera.eye).Length();
+    double d2 = (p2->position - camera.eye).Length();
+    return (d1 > d2);
+  }
+};
+
 void World::DrawTrails(R3Camera camera) {
 
   // Render particle trails. We want to disable lighting so that
   // the trail is always bright and lens-flare-ful.
   glDisable(GL_LIGHTING);
+  sort(particles.begin(), particles.end(), Sorter(camera));
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
