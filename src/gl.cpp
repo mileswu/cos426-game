@@ -317,6 +317,7 @@ void RedrawWindow() {
   
   DrawFullscreenQuad();
   world->DrawMinimap();
+    
   glPopMatrix();
   
   glMatrixMode(GL_MODELVIEW);
@@ -326,6 +327,21 @@ void RedrawWindow() {
 
   
   glViewport(0, 0, window_width, window_height);
+  
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  world->DrawOverlay();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  
   
   glutSwapBuffers();
   
@@ -348,6 +364,18 @@ void KeyboardInput(unsigned char key, int x, int y) {
   }
   else if (key == 'd') { // right
     vx = -1;
+  }
+  else if (key == 'r') {
+    delete world;
+    world = new World();
+    view_camera.eye = R3Point(0,0,-4);
+    view_camera.yfov = 0.8;
+    view_camera.xfov = 0.8;
+    view_camera.up = R3Vector(0, 1, 0);
+    view_camera.right = R3Vector(-1, 0, 0);
+    view_camera.towards = R3Vector(0,0,1);
+    back_camera = view_camera;
+    return;
   }
   else {
     cout << "Key pressed: " << key << endl;
