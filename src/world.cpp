@@ -1,5 +1,6 @@
 #include "world.h"
 #include "ai.h"
+#include "bubble.h"
 #include "gl.h"
 //#include "particle.h"
 #include <iostream>
@@ -134,6 +135,7 @@ World::World() {
   //Player bubble
   Bubble *b = new Bubble(NULL);
   b->player_id = 0;
+  b->material = &Bubble::trail_material;
   bubbles.push_back(b);
   
   for (int i=0; i<200; i++) {
@@ -141,7 +143,7 @@ World::World() {
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
-		b->player_id = -1;
+    b->player_id = -1;
     bubbles.push_back(b);
   }
 
@@ -241,15 +243,34 @@ void World::Simulate() {
   }
   lasttime_updated = curtime;
 
-  // Based on bubble material and state, emit particles.
-  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
-       it != ie; ++it) {
-    // FIXME peter
+  // Based on bubble material, emit particle trail.
+  for (vector<Bubble *>::iterator it = bubbles.begin(),
+       ie = bubbles.end(); it != ie; ++it) {
+    if (!(*it)->material->emits_particles) {
+      continue;
+    }
+    double rate = (*it)->material->particle_rate;
+    int curr_count = (int)(rate * curr_time + 0.5);
+    int last_count = (int)(rate * (curr_time - timestep) + 0.5);
+    int nparticles = 5; //curr_count - last_count;
+    for (int j = 0; j < nparticles; ++j) {
+      //printf("emit particle\n");
+      Particle *particle = new Particle();
+      particle->color[0] = (*it)->material->particle_color[0];
+      particle->color[1] = (*it)->material->particle_color[1];
+      particle->color[2] = (*it)->material->particle_color[2];
+      particle->color[3] = (*it)->material->particle_color[3];
+      particle->velocity = R3null_vector; //0.75 * (*it)->v;
+      particle->position = (*it)->pos;
+      particle->lifetime = 2.;
+      particle->is_point = true;
+      particle->point_size = (*it)->material->particle_size;
+      particles.push_back(particle);
+    }
   }
 
   //check if powerups mesh die
-  for (unsigned int i = 0; i < power_ups.size(); i++)
-  {
+  for (unsigned int i = 0; i < power_ups.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
     if (cur_time > power_ups[i].die_time)
     {
@@ -259,39 +280,36 @@ void World::Simulate() {
   }
 
   //check if powerup effect time already expired
-  for (unsigned int i = 0; i < bubbles.size(); i++)
-  {
+  for (unsigned int i = 0; i < bubbles.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
     if (cur_time > bubbles[i]->effect_end_time 
-                    && bubbles[i]->effect_end_time != -1)
-    {
-            bubbles[i]->state = reg_state;
-            bubbles[i]->effect_end_time = -1;
+                    && bubbles[i]->effect_end_time != -1) {
+      bubbles[i]->state = reg_state;
+      bubbles[i]->effect_end_time = -1;
     }
   }
 
   //random chance for power ups to spawn
   double random_chance = rand(100);
-  if (random_chance < 1)
-  {
+  if (random_chance < 1) {
     int rand_num = floor(rand(5));
     PowerUpType type;
     switch (rand_num) {
-            case 0:
-                    type = invincible_type;
-                    break;
-            case 1:
-                    type = small_sink_type;
-                    break;
-            case 2:
-                    type = sink_type;
-                    break;
-            case 3:
-                    type = speed_up_type;
-                    break;
-            case 4:
-                    type = slow_down_type;
-                    break;
+    case 0:
+      type = invincible_type;
+      break;
+    case 1:
+      type = small_sink_type;
+      break;
+    case 2:
+      type = sink_type;
+      break;
+    case 3:
+      type = speed_up_type;
+      break;
+    case 4:
+      type = slow_down_type;
+      break;
     }
     CreatePowerUp(type);
   }
@@ -384,6 +402,7 @@ void World::Simulate() {
     // Update bubbles.
     (*it)->pos += (*it)->v*timestep;
   }
+
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     // Update particles.
@@ -391,8 +410,8 @@ void World::Simulate() {
     (*it)->lifetime -= timestep;
 
     // Particle lifetime.
-    if ((*it)->lifetime < 0) {
-      // FIXME peter
+    if (0 > (*it)->lifetime) {
+      //delete *it;
     }
   }
   
@@ -465,13 +484,20 @@ void World::Draw(R3Camera camera) {
     }
   }
 
+  // Render particle trails. We want to disable lighting so that
+  // the trail is always bright and lens-flare-ful.
   glDisable(GL_LIGHTING);
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
       glPointSize((*it)->point_size);
       glBegin(GL_POINTS);
-      glColor3d((*it)->color[0], (*it)->color[1], (*it)->color[2]);
+      // FIXME peter fix the color
+      GLfloat *c = (*it)->color;
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+      //glColor3d((*it)->color[0], (*it)->color[1], (*it)->color[2]);
       glVertex3d((*it)->position[0], (*it)->position[1], (*it)->position[2]);
       glEnd();
     } else {
