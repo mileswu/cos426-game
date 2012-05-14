@@ -25,7 +25,7 @@ static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_comp
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
-static GLuint world_texture, bubble_texture;
+static GLuint world_texture, bubble_texture, particle_sprite;
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
@@ -183,6 +183,17 @@ void RedrawWindow() {
     glBindTexture(GL_TEXTURE_2D, 0);
   }
   world->DrawPowerups(view_camera);
+  
+  glBindTexture(GL_TEXTURE_2D, particle_sprite);
+  glColor4d(1,1,1,0.1);
+  glEnable(GL_POINT_SPRITE);
+  glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+  //glPointSize(15.0);
+  //glBegin(GL_POINTS);
+  world->DrawTrails(view_camera);
+  //glVertex3f(0,0,-2);
+  glEnd();
+  glBindTexture(GL_TEXTURE_2D, 0);
   
   if(hasgoodgpu) {
     glBindTexture(GL_TEXTURE_CUBE_MAP, world_texture);
@@ -494,7 +505,7 @@ int CreateGameWindow(int argc, char **argv) {
   world = new World();
 
   if(GLEW_ARB_framebuffer_object && GLEW_ARB_fragment_program) { hasgoodgpu = 1;}
-  
+  //hasgoodgpu = 0;
   if(hasgoodgpu) {
     direct_render_fbo = new Framebuffer(window_width, window_height);
     processing_fbo1 = new Framebuffer(window_width, window_height);
@@ -508,6 +519,20 @@ int CreateGameWindow(int argc, char **argv) {
     LoadCubemap("./textures/stars.rgb", &world_texture, 1024, 1024);
     LoadCubemap("./textures/ball.rgb", &bubble_texture, 512, 512);
   }
+  
+  int width = 128, height = 128;
+  ifstream texture_file ("./textures/particle.rgba", ios::in | ios::binary | ios::ate);
+  int texture_file_size = texture_file.tellg();
+  texture_file.seekg(0, ios::beg);
+  char *texture_source = (char *)malloc(texture_file_size);
+  texture_file.read(texture_source, texture_file_size);
+  glGenTextures(1, &particle_sprite);
+  glBindTexture(GL_TEXTURE_2D, particle_sprite);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_source);
+  texture_file.close();
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   cout << glGetString(GL_VERSION) << endl;
   

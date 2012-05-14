@@ -262,7 +262,7 @@ void World::Simulate() {
       particle->color[3] = (*it)->material->particle_color[3];
       particle->velocity = R3null_vector; //0.75 * (*it)->v;
       particle->position = (*it)->pos;
-      particle->lifetime = 2.;
+      particle->lifetime = 2000. + glutGet(GLUT_ELAPSED_TIME);
       particle->is_point = true;
       particle->point_size = (*it)->material->particle_size;
       particles.push_back(particle);
@@ -410,8 +410,10 @@ void World::Simulate() {
     (*it)->lifetime -= timestep;
 
     // Particle lifetime.
-    if (0 > (*it)->lifetime) {
-      //delete *it;
+    if (glutGet(GLUT_ELAPSED_TIME) > (*it)->lifetime) {
+      Particle *p = *it;
+      it = particles.erase(it);
+      delete p;
     }
   }
   
@@ -483,6 +485,9 @@ void World::Draw(R3Camera camera) {
       (*it)->Draw();
     }
   }
+}
+
+void World::DrawTrails(R3Camera camera) {
 
   // Render particle trails. We want to disable lighting so that
   // the trail is always bright and lens-flare-ful.
@@ -490,15 +495,16 @@ void World::Draw(R3Camera camera) {
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
+      if (!inView(camera, (*it)->position, (*it)->point_size)) {
+        continue;
+      }
       glPointSize((*it)->point_size);
       glBegin(GL_POINTS);
       // FIXME peter fix the color
       GLfloat *c = (*it)->color;
-      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
-      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
-      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
-      //glColor3d((*it)->color[0], (*it)->color[1], (*it)->color[2]);
-      glVertex3d((*it)->position[0], (*it)->position[1], (*it)->position[2]);
+      c[3] = ((*it)->lifetime - glutGet(GLUT_ELAPSED_TIME))/2000.0;
+      glColor4d(c[0], c[1], c[2], c[3]);
+      glVertex3f((*it)->position[0], (*it)->position[1], (*it)->position[2]);
       glEnd();
     } else {
       // FIXME peter textured particles
