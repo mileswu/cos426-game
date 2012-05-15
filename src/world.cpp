@@ -55,9 +55,9 @@ static R3Point randpoint(double max, double min = 0) {
 
 Bubble *World::CreateBubble() {
   Bubble *b = new Bubble();
-  b->pos = randpoint(30);
-  b->v = randvector(0.1);
-  b->size = rand(1.2, 0.1);
+  b->pos = randpoint(20);
+  b->v = randvector(0.2);
+  b->size = rand(1.5, 0.1);
   b->player_id = -1;
   b->material = &Bubble::neutral_material;
   bubbles.push_back(b);
@@ -66,7 +66,7 @@ Bubble *World::CreateBubble() {
 
 Bubble *World::CreatePlayerBubble() {
   Bubble *player = new Bubble();
-  player->size = 1.3;
+  player->size = 1.0;
   player->player_id = 0;
   player->material = &Bubble::player_material;
   bubbles.push_back(player);
@@ -208,7 +208,7 @@ void World::CreatePowerUp(PowerUpType type) {
   int rand_x = floor(rand(2));
   int rand_y = floor(rand(2));
   int rand_z = floor(rand(2));
-  p.Center = R3Point(rand(30, rand_x, 0), rand(30, rand_y, 0), rand(30, rand_z, 0));
+  p.Center = R3Point(rand(20, rand_x, 0), rand(20, rand_y, 0), rand(20, rand_z, 0));
   
   power_ups.push_back(p);
 }
