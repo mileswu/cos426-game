@@ -246,15 +246,19 @@
 		<li>Ability to have AI or powerups        </li>
 		<li>Turn on or off particle trails        </li>
 	</ul>
+    <img style="float: right" src="./menu.png" />
 </section>
 
 <section class="slide">
    <h2>Level of Detail</h2>
 	<h3>Dynamic LoD</h3>
 	<ul>
-		<li>Level of detail relative to distance  </li>
-		<li>Multiple meshes </li>
-		<li>Sphere segments          </li>
+      <li>Multiple meshes </li>
+      We rendered multiple versions of each of the meshes with varying quality using collapse edges code from a2. Meshes are one of the more computationally consuming parts of the calculations, so having simpler versions of the meshes speeds things up at a cost of the objects looking a bit worse.
+      <li>Sphere segments          </li>
+      Spheres are rendered in OpenGL as polygons with a given number of vertices along the horizontal plane and a number along the vertical plane. By reducing the number of vertices for each sphere, the per-vertex calculations are done much faster.
+      <li>Level of detail relative to distance  </li>
+      Level of detail relative to distance renders the low quality meshes and spheres when they are far from the camera but high quality ones when the camera approaches. When the meshes and spheres are far away, the models are smaller on screen, so the loss of detail is not as noticeable.
 	</ul>
 
 </section>
