@@ -56,18 +56,16 @@ static R3Point randpoint(double max, double min = 0) {
 }
 
 void World::GenerateLevel() {
-  Bubble *b, *player;
-
   // Generate player bubble.
-  b = new Bubble();
-  b->player_id = 0;
-  b->material = &Bubble::player_material;
-  bubbles.push_back(b);
-  player = b;
+  Bubble *player = new Bubble();
+  player->player_id = 0;
+  player->material = &Bubble::player_material;
+  bubbles.push_back(player);
 
   // Generate dumb NPC bubbles.
-  for (int i = 0; i < 200; i++) {
-    b = new Bubble();
+  int num_bubbles = 200;
+  for (int i = 0; i < num_bubbles; i++) {
+    Bubble *b = new Bubble();
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
@@ -77,10 +75,22 @@ void World::GenerateLevel() {
   }
 
   // TODO peter(5/14) generate enemy bubbles.
-  EnemyAI *enemy_ai = new EnemyAI();
-  enemy_ai->world = this;
-  enemy_ai->self = NULL;
-  enemy_ai->target = player;
+  int num_enemies = 1;
+  for (int i = 0; false && num_enemies; i++) {
+    Bubble *enemy = new Bubble();
+    enemy->pos = randpoint(30);
+    enemy->v = randvector(0.1);
+    enemy->size = rand(1.5, 1.3);
+    enemy->player_id = 1 + i;
+    enemy->material = &Bubble::enemy_material;
+
+    // Initialize the AI to target teh player.
+    EnemyAI *ai = new EnemyAI();
+    ai->world = this;
+    ai->self = enemy;
+    ai->target = player;
+    enemy->ai = ai;
+  }
 
   // Generate random powerups.
   for (unsigned int i = 0; i < bubbles.size() / 10; i++) {
