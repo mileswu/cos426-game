@@ -205,11 +205,22 @@
    <h2>Powerups</h2>
 	<h3>Collisions</h3>
 	<ul>
-		<li>bbox TODO</li>
+		<li>Collisions with Powerups are determined by the collision with the bounding box of the mesh. </li>
+		<li>To calculate the collisons, we test collision of the spehre by creating an effective radius around the box</li>
+		<li>And then we use the calculated effective radius to gauge whether the distance between the center of the sphere 
+		    and the center of the mesh is less than or equal to the radius of the sphere along with the effective radius of the box.</li>
+			<li>If it is, then there is a collision. Else, there is no collision.</li>
 	</ul>
 	<h3>Types</h3>
 	<ul>
-		<li>TODO</li>
+		<li>There are 5 types of PowerUps total.</li>
+		<li>The invincible powerup, denoted by the mushroom, makes your bubble temporarily invincible (i.e. you can absorb bubbles larger than you). 
+		    To implement this I basically had a check in absorbtion code that overrides the player bubble being absorbed and instead the player absorbs the bigger bubble. When power up is active, color will flash between blue and yellow</li>
+		<li>The small sink powerup, denoted by the pear. This powerup attracts all particles around the player bubble that are smaller than it. 
+		    For this I basically change the player bubble to a sink that exerts attractive force on all particles smaller than it. When power up is active, color will flash between blue and lime green.</li>
+		<li>The sink powerup, denoted by the octopus. This power is similar to small sink, except all particles are attracted regardless of size. When power up is active, color will flash between blue and hot pink. </li>
+		<li>The speed up powerup, denoted by the heart. This powerup just make the player bubble go 10 times as fast.</li>
+		<li>The slow down powerup, denoted by the sword. This powerup makes the velocity of the player bubble 0 the moment the player hits it.</li>
 	</ul>
 </section>
 
