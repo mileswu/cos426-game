@@ -117,7 +117,7 @@ void World::GenerateLevel() {
       type = slow_down_type;
       break;
     }
-    CreatePowerUp(sink_type);
+    CreatePowerUp(type);
   }
 
   // Check level of detail.
@@ -133,7 +133,7 @@ static R3Mesh* CreateInvincible() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/mushroom.off");
   m->Scale(1, 1, 1);
-  //m-> Translate(0,0,3);
+  //m-> Translate(0,0,10);
   randTranslate(m);
   return m;
 }
@@ -142,7 +142,7 @@ static R3Mesh* CreateSmallSink() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/pear.off");
   m->Scale(0.05, 0.05, 0.05);
-  //m->Translate(0,0,5);
+  //m->Translate(0,0,3);
   randTranslate(m);
   return m;
 }
@@ -151,8 +151,8 @@ static R3Mesh* CreateSink() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/octopus.off");
   m->Scale(0.05, 0.05, 0.05);
-  m->Translate(0,0,3);
-  //randTranslate(m);
+  //m->Translate(0,0,7);
+  randTranslate(m);
   return m;
 }
 
@@ -659,16 +659,38 @@ void World::Draw(R3Camera camera) {
 	
 	GLfloat c_new[4];
 	GLfloat c_yellow[4] = {1, 1, 0, 1};
+	double limegreen_bot = 50 + 205 + 50;
+	GLfloat c_limegreen[4] = {50/255.0, 205/255.0, 50/255.0, 1};
+	GLfloat c_hotpink[4] = {1, 105/255.0, 180/255.0, 1};
     // Apply material.
 
 	if ((*it) -> state != reg_state && (*it) == bubbles[0])
-	{	
+	{
 	  double cur_time = glutGet(GLUT_ELAPSED_TIME);
       double factor = (cos(cur_time/10.0) + 1)/2.0;
-      for (unsigned int k = 0; k < 3; k++) {
-        c_new[k] = factor * c_yellow[k] + (1-factor) * c[k]; 
-      }
-      c_new[3] = 1;
+	  BubbleState state = (*it) -> state;
+	  switch (state) {
+      case invincible_state:
+        for (unsigned int k = 0; k < 3; k++) {
+          c_new[k] = factor * c_yellow[k] + (1-factor) * c[k]; 
+        }
+        c_new[3] = 1;       
+      break;
+      case small_sink_state:
+        for (unsigned int k = 0; k < 3; k++) {
+          c_new[k] = factor * c_limegreen[k] + (1-factor) * c[k]; 
+        }
+        c_new[3] = 1;  
+      break;
+      case sink_state:
+        for (unsigned int k = 0; k < 3; k++) {
+          c_new[k] = factor * c_hotpink[k] + (1-factor) * c[k]; 
+        }
+        c_new[3] = 1; 
+      break;
+	  default:break;
+	  }
+
 	  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c_new);
       glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c_new);
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c_new);
@@ -683,9 +705,7 @@ void World::Draw(R3Camera camera) {
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
-    /*glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);*/
+
 
     GLfloat shininess = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
