@@ -860,10 +860,11 @@ void World::DrawPowerups(R3Camera camera) {
 
 void World::DrawWorld(R3Camera camera) {
   glDisable(GL_LIGHTING);
-  glTranslated(bubbles[0]->pos[0], bubbles[0]->pos[1], bubbles[0]->pos[2]);
+  //glTranslated(bubbles[0]->pos[0], bubbles[0]->pos[1], bubbles[0]->pos[2]);
   glColor3d(1,1,1);
   R3Vector dist = bubbles[0]->pos - camera.eye;
-  double size = world_size * dist.Length();;
+  double size = world_size + 30;
+  //double size = world_size * dist.Length();;
   static GLUquadricObj *glu_sphere = gluNewQuadric();
   gluQuadricTexture(glu_sphere, GL_TRUE);
   gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);
