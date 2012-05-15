@@ -14,6 +14,7 @@ using namespace std;
 
 double World::emission_speed = 5.0;
 double World::emission_sizefactor = 0.05;
+const double World::world_size = 50;
 
 World::World() {
   GenerateLevel();
@@ -528,6 +529,24 @@ void World::Simulate() {
       }
     }
   }
+
+  // Check for collisions with the world
+  R3Vector normal;
+  for (vector<Bubble *>::iterator it = bubbles.begin();
+       it < bubbles.end(); it++) {
+
+    // Check to see if this position is too close to the wall
+    // Note: world center is (0,0,0)
+    if ((*it)->pos.Vector().Length() > (world_size - (*it)->size)) {
+      normal = (*it)->pos.Vector();
+      normal.Normalize();
+      normal.Flip();
+      (*it)->pos = (normal * (world_size - (*it)->size)).Point();
+      (*it)->v = 2.0 * ((*it)->v.Dot(normal)) * normal - (*it)->v;
+
+    }
+  }
+
 }
 
 void World::DrawOverlay() {
@@ -678,7 +697,7 @@ void World::DrawWorld() {
 
   glDisable(GL_LIGHTING);
   glColor3d(0,0,0);
-  double size = 50;
+  double size = world_size;
   static GLUquadricObj *glu_sphere = gluNewQuadric();
   gluQuadricTexture(glu_sphere, GL_TRUE);
   gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);
