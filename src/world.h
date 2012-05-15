@@ -41,54 +41,70 @@ struct Particle {
   int point_size;
 };
 
-class World {
-  public:
-    World();
+struct World {
+  World();
 
-    void DrawMinimap();
-    void Draw(R3Camera camera, Shader *bump_shader);
-    void DrawTrails(R3Camera camera);
-    void DrawWorld(R3Camera camera);
-    void DrawOverlay();
-    void DrawPowerups(R3Camera camera);
-    void CreatePowerUp(PowerUpType type);
-    void RemovePowerUp(int index);
+  void DrawMinimap();
+  void Draw(R3Camera camera, Shader *bump_shader);
+  void DrawTrails(R3Camera camera);
+  void DrawWorld(R3Camera camera);
+  void DrawOverlay();
+  void DrawPowerups(R3Camera camera);
 
-    void LoadMeshes();
-    void GenerateLevel();
-    void Simulate();
-    void EmitAtBubble(Bubble *b, R3Vector direction);
-    void Emit(R3Vector camera_direction);
-    bool InView(R3Camera camera, R3Point pos, double radius);
-    void PlayMusic(SoundType type);
-    
-    R3Point PlayerPosition();
-    R3Vector PlayerDirection();
-    double PlayerSize();
-    std::string PlayerStatus();
-    
-    std::vector<Bubble *> bubbles;
-    std::vector<PowerUpShape> power_ups;
-    std::vector<Particle *> particles;
-    struct timeval lasttime_updated;
-    int world_status;
+  void CreatePowerUp(PowerUpType type);
+  void RemovePowerUp(int index);
 
-    static double emission_speed;
-    static double emission_sizefactor;
-    static const double world_size;
-    
-    int level_of_detail;
-    int trails_enabled;
-    int powerups_enabled;
-    int num_enemies;
-    int num_bubbles;
-    
-    R3Mesh *invincible_mesh[2];
-    R3Mesh *smallsink_mesh[2];
-    R3Mesh *sink_mesh[2];
-    R3Mesh *speedup_mesh[2];
-    R3Mesh *slowdown_mesh[2];
-    
+  Bubble *CreateBubble();
+  Bubble *CreatePlayerBubble();
+  Bubble *CreateEnemyBubble();
+  void GenerateEmptyLevel();
+  void GenerateRandomLevel();
+  void LoadMeshes();
+
+  void Timestep();
+  void SimulateParticles();
+  void SimulateAI();
+  void SimulatePowerups();
+  void SimulateMotion();
+  void SimulateCollisions();
+  void Simulate();
+  void EmitAtBubble(Bubble *b, R3Vector direction);
+  void Emit(R3Vector camera_direction);
+  bool InView(R3Camera camera, R3Point pos, double radius);
+  void PlayMusic(SoundType type);
+
+  void SetPlayerVelocity(R3Vector v);
+  void SetPlayerPosition(R3Point p);
+  R3Point PlayerPosition();
+  R3Vector PlayerDirection();
+  double PlayerSize();
+  std::string PlayerStatus();
+  
+  std::vector<Bubble *> bubbles;
+  std::vector<PowerUpShape> power_ups;
+  std::vector<Particle *> particles;
+  struct timeval lasttime_updated;
+  int world_status;
+
+  double curr_time;
+  double last_time;
+  double timestep;
+
+  static double emission_speed;
+  static double emission_sizefactor;
+  static const double world_size;
+  
+  int level_of_detail;
+  int trails_enabled;
+  int powerups_enabled;
+  int num_enemies;
+  int num_bubbles;
+  
+  R3Mesh *invincible_mesh[2];
+  R3Mesh *smallsink_mesh[2];
+  R3Mesh *sink_mesh[2];
+  R3Mesh *speedup_mesh[2];
+  R3Mesh *slowdown_mesh[2];
 };
 
 #endif

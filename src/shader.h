@@ -5,7 +5,7 @@
 
 class Shader {
   public:
-    Shader(char *name);
+    Shader(const char *name);
     GLuint fragment;
     GLuint vertex;
     GLuint program;

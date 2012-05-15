@@ -86,11 +86,11 @@ int Bubble::Collides(R3Mesh* mesh, R3Vector offset) {
   double y = SepAxis.Y();
   double z = SepAxis.Z();
 
-  if (x >= y && x >= z)
+  if (x >= y && x >= z && x != 0)
     SepAxis /= x;
-  else if (y >= x && y >= z)
+  else if (y >= x && y >= z != 0)
     SepAxis /= y;
-  else 
+  else if (z != 0)
     SepAxis /= z;
 
   double x_len = box.XLength();
