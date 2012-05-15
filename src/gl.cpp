@@ -29,6 +29,7 @@ static GLuint world_texture, world_texture_2d, bubble_texture, bubble_texture2, 
 static int config[7] = {1, 0, 1, 1, 1, 1, 0};
 static int config_pointer = 0;
 static int config_maxpointer = 6;
+static int paused = 0;
 #define ADV_CONTROLS config[6]
 
 void Reset(int status);
@@ -234,10 +235,12 @@ void RedrawWindow() {
   R3Vector cameradisplacement_before = world->PlayerPosition() - view_camera.eye;
   R3Vector back_cameradisplacement_before = world->PlayerPosition() - back_camera.eye;
   world->Timestep();
-  if (world->world_status != -1) {
-    world->Simulate();
-  } else {
-    world->SimulateMotion();
+  if(paused == 0) {
+    if (world->world_status != -1) {
+      world->Simulate();
+    } else {
+      world->SimulateMotion();
+    }
   }
 
   // Camera
@@ -553,6 +556,9 @@ void KeyboardInput(unsigned char key, int x, int y) {
   else if (key == 'r') {
     Reset(0);
     return;
+  }
+  else if (key == 'p') {
+    paused = (paused == 0 ? 1 : 0);
   }
   else {
     cout << "Key pressed: " << key << endl;
