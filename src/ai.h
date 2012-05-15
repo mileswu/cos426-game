@@ -45,14 +45,4 @@ public:
   void Aggress();
 };
 
-// This cell is in a group of boid-like cells.
-class SwarmAI : public AI {
-public:
-  void Idle();
-  void Aggress();
-
-  Bubble *leader;
-};
-
-
 #endif

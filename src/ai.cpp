@@ -89,11 +89,3 @@ void EnemyAI::Aggress() {
   direction.Normalize();
   world->EmitAtBubble(self, direction);
 }
-
-void SwarmAI::Idle() {
-  // Silence is golden.
-}
-
-void SwarmAI::Aggress() {
-  // Silence is golden.
-}
