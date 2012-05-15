@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Deck Skeleton</title>
+	<meta name="viewport" content="width=1024, user-scalable=no">
+	
+	<!-- Replace path with correct path to deck.core.css. -->
+	<link rel="stylesheet" href="deck/deck.core.css" type="text/css">
+	<link rel="stylesheet" href="deck/deck.menu.css" type="text/css">
+	<link rel="stylesheet" href="deck/deck.navigation.css" type="text/css">
+	<link rel="stylesheet" href="deck/deck.status.css" type="text/css">
+	<link rel="stylesheet" href="deck/deck.hash.css" type="text/css">
+	
+	<!-- Any other extension CSS files go here. -->
+	<style>
+		.deck-container {
+			background-slide: rgb(240, 240, 240);
+		}
+		html, .deck-menu .slide {
+			background-color: black;
+			font-family: 'Gill Sans', sans-serif;
+		}
+		.center {
+			margin-left: auto;
+			margin-right: auto;
+		}
+		.slide h2 {
+			font-weight: 200;
+			font-size: 300%;
+			color: rgb(200, 200, 200);
+		}
+		.slide h3 {
+			font-weight: 200;
+			font-size: 200%;
+			color: rgb(150, 150, 150);
+		}
+		
+		
+		#titleslide img{
+			margin-top: 20px;
+			margin-bottom: 200px;
+		}
+		#titleslide h2 {
+			color: white;
+			border-style: none;
+			font-weight: 100;
+			text-align: center;
+			padding: 0 0 0 0;
+			margin: 0 0 0 0;
+		}
+	</style>
+	<!-- Replace path with correct path to Modernizr file. -->
+	<script src="deck/modernizr.custom.js"></script>
+</head>
+<body class="deck-container">
+
+<!-- Create any number of elements with class slide within the container -->
+<section class="slide" id="titleslide">
+	<div class="center">
+		<img src="images/logo.png" />
+	</div>
+	<h2>Michael Bailey</h2>
+	<h2>Leon Ho</h2>
+	<h2>Peter Jin</h2>
+	<h2>Miles Wu</h2>
+</section>
+
+<section class="slide">
+   <h2>Inspiration</h2>
+   <h3>Osmos</h3>
+	<img src="images/osmos1.jpeg" />
+	<img src="images/osmos2.jpeg" />
+</section>
+
+
+<section class="slide">
+   <h2>Gameplay</h2>
+   <h3>How to play</h3>
+	<ul>
+	<li>	Sphere in space                          </li>
+	<li>	Move by emitting parts of yourself       </li>
+	<li>	Absorb other spheres smaller than you    </li>
+	<li>	Avoid death by larger spheres            </li>
+	<li>	Hit powerups for interesting effects     </li>
+</ul>
+</section>
+
+<section class="slide">
+   <h2>Feature list</h2>
+	<ul>                                                             
+	<li>	Texture Mapping                                          </li>
+	<li>	Multiple views (onscreen minimap)                        </li>
+	<li>	On-screen control panel                                  </li>
+	<li>	Collision detection                                      </li>
+	<li>	View frustrum culling                                    </li>
+	<li>	Physics-based (conservation of momentum and mass)        </li>
+	<li>	Vertex and fragment shaders                              </li>
+	<li>	Multipass rendering effects                              </li>
+	<li>	Advanced image techniques                                </li>
+	<li>	Level of detail control                                  </li>
+	<li>	Sound (SFML)                                             </li>
+	<li>	Game level editor                                        </li>
+</ul>
+</section>
+
+<section class="slide">
+   <h2>Texture Mapping</h2>
+	<h3>Used where?</h3>
+	<ul>
+		<li>Menu screen</li>
+		<li>Spheres</li>
+		<li>World background</li>
+	</ul>
+	<h3>Standard OpenGL</h3>
+	<h3>Cube mapping</h3>
+</section>
+
+<section class="slide">
+   <h2>Minimap</h2>
+	<ul>
+		<li>2D view of the world around you, projecting everything onto Z plane</li>
+		<li>color indicates size</li>
+		<li>shape indicates direction on Z axis</li>
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>HUD</h2>
+	<ul>
+		<li>TODO</li>
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>Physics</h2>
+	<h3>Euler Integration</h3>
+	<ul>
+		<li>TODO</li>
+	</ul>
+	<h3>Collisions</h3>
+	<ul>
+		<li>TODO</li>
+		<li>With the encompassing world sphere      </li>
+		<li>With other spheres                      </li>
+		<li>With powerups (bounding box, visible)   </li>
+		<li>Conservation of mass and momentum</li>
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>Powerups</h2>
+	<h3>Collisions</h3>
+	<ul>
+		<li>bbox TODO</li>
+	</ul>
+	<h3>Types</h3>
+	<ul>
+		<li>TODO</li>
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>Lighting</h2>
+	<ul>
+		<li>Vertex and fragment shaders      </li>
+		<li>Bump mapping                     </li>
+		<li>Multipass rendering, compositing </li>
+		<li>Bloom                            </li>
+		<!-- TODO -->
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>Advanced Image Techniques</h2>
+	<ul><!-- TODO -->
+	
+		<li>Billboarded sprites in particle trails </li>
+		<li>Blending images for animated textures  </li>
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>End-result</h2>
+	<!-- TODO -->
+</section>
+
+<section class="slide">
+   <h2>Start Menu</h2>
+	<ul>
+		<li>Quality settings and effects          </li>
+		<li>High or low count of spheres          </li>
+		<li>Ability to have AI or powerups        </li>
+		<li>Turn on or off particle trails        </li>
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>Level of Detail</h2>
+	<h3>Dynamic LoD</h3>
+	<ul>
+		<li>Level of detail relative to distance  </li>
+		<li>Multiple meshes </li>
+		<li>Sphere segments          </li>
+	</ul>
+
+</section>
+
+<section class="slide">
+   <h2>Compataiblity</h2>
+	<h3>Operating Systems</h3>
+	<ul>
+		<li>Windows (cygwin/mingw)</li>
+		<li>Mac OS X</li>
+		<li>Linux</li>
+	</ul>
+	<h3>Hardware</h3>
+	<ul>
+		<li>Some levels of detail are automatically determined if your computer does not support it</li>
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>Sound</h2>
+	<h3>Library</h3>
+	<ul>
+		<li>SFML</li>
+	</ul>
+	<h3>When</h3>
+	<ul>
+		<li>Constant game music                                                       </li>
+		<li>Sound effects upon death and another bubble being completely absorbed     </li>
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>Computer AI</h2>
+	<h3>Library</h3>
+</section>
+
+<section class="slide">
+   <h2>Level Editor</h2>
+<ul>
+	<li>Move around in space                                             </li>
+	<li>Drop normal and AI bubbles of random sizes around in space       </li>
+	<li>Can play level immediately after                                 </li>
+</section>
+
+<!-- Other extension HTML snippets go here, at the bottom of the deck container. -->
+
+<!-- Update these paths to point to the correct files. -->
+<script src="deck/jquery.min.js"></script>
+<script src="deck/deck.core.js"></script>
+<script src="deck/deck.menu.js"></script>
+<script src="deck/deck.hash.js"></script>
+<script src="deck/deck.status.js"></script>
+<script src="deck/deck.navigation.js"></script>
+
+<!-- Add any other extension JS files here -->
+
+
+<!-- Initialize the deck. You can put this in an external file if desired. -->
+<script>
+	$(function() {
+		$.deck('.slide');
+	});
+</script>
+</body>
+</html>
