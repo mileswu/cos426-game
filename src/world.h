@@ -47,7 +47,7 @@ class World {
     void DrawMinimap();
     void Draw(R3Camera camera, Shader *bump_shader);
     void DrawTrails(R3Camera camera);
-    void DrawWorld();
+    void DrawWorld(R3Camera camera);
     void DrawOverlay();
     void DrawPowerups(R3Camera camera);
     void CreatePowerUp(PowerUpType type);

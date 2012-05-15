@@ -327,14 +327,14 @@ void RedrawWindow() {
   glEnd();
   glColor4d(1,1,1,1);
   
-  // Render bubbles.
+  // Render world sphere.
   if (hasgoodgpu) {
     glUseProgram(0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, world_texture);
     glUseProgram(world_cubemap_shader->program);
     glUniform1i(glGetUniformLocation(blur_shader_x->program, "tex"), 0);
   }
-  world->DrawWorld();
+  world->DrawWorld(view_camera);
   if (hasgoodgpu) {
     glUseProgram(0);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -527,8 +527,6 @@ void KeyboardInput(unsigned char key, int x, int y) {
   back_camera.towards.Normalize();
   back_camera.up.Normalize();
   back_camera.right.Normalize();
-
-
 }
 
 void KeyboardMenuInput(unsigned char key, int x, int y) {
