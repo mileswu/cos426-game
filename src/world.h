@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include "bubble.h"
+#include "shader.h"
 #include <sys/time.h>
 #include <string>
 #include <vector>
@@ -30,6 +31,7 @@ struct PowerUpShape {
 };
 
 struct Particle {
+  Bubble *parent;
   GLfloat color[4];
   R3Vector velocity;
   R3Point position;
@@ -43,7 +45,7 @@ class World {
     World();
 
     void DrawMinimap();
-    void Draw(R3Camera camera);
+    void Draw(R3Camera camera, Shader *bump_shader);
     void DrawTrails(R3Camera camera);
     void DrawWorld();
     void DrawOverlay();

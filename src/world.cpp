@@ -2,6 +2,7 @@
 #include "ai.h"
 #include "bubble.h"
 #include "gl.h"
+#include "shader.h"
 #include <iostream>
 #include <map>
 #include <string>
@@ -15,7 +16,7 @@ using namespace std;
 
 double World::emission_speed = 5.0;
 double World::emission_sizefactor = 0.05;
-const double World::world_size = 25;
+const double World::world_size = 50.0;
 
 World::World() {
   GenerateLevel();
@@ -316,6 +317,7 @@ void World::Simulate() {
 
     for (int j = 0; j < numtogen; ++j) {
       Particle *particle = new Particle();
+      particle->parent = *it;
 
       R3Vector normal = -(*it)->v;
       normal.Normalize();
@@ -600,9 +602,7 @@ static double BubbleVectorIntersection(Bubble *b, R3Ray *ray) {
   return t;
 }
 
-void World::Draw(R3Camera camera) {  
-  
-  bool transparency = false;
+void World::Draw(R3Camera camera, Shader *bump_shader) {  
   glEnable(GL_LIGHTING);
   //int light_index = GL_LIGHT0 + 10;
   
@@ -614,6 +614,8 @@ void World::Draw(R3Camera camera) {
 
   for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
        it != ie; it++) {
+    bool transparency = false;
+
     if ((*it)->player_id == 0) {
       // The player is blue.
       c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
@@ -640,8 +642,8 @@ void World::Draw(R3Camera camera) {
       if (t < player_dist) {
         //printf("is transparent\n");
         transparency = true;
-        c[0] = c[1] = c[2] = 1.;
-        c[3] = 0.25;
+        //c[0] = c[1] = c[2] = 1.;
+        c[3] = 0.4;
       }
     }
 
@@ -692,28 +694,39 @@ void World::Draw(R3Camera camera) {
 	  }
 
 	  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c_new);
+
+    GLfloat c_new[4];
+    GLfloat c_yellow[4] = {1, 1, 0, c[3]};
+
+    // Apply material.
+    if ((*it) -> state != reg_state && (*it) == bubbles[0]) {	
+      double cur_time = glutGet(GLUT_ELAPSED_TIME);
+      double factor = (cos(cur_time/10.0) + 1)/2.0;
+      for (unsigned int k = 0; k < 3; k++) {
+        c_new[k] = factor * c_yellow[k] + (1-factor) * c[k]; 
+      }
+      c_new[3] = 1;
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c_new);
       glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c_new);
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c_new);
-	}
-	else
-	{
+    } else {
       glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
       glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
-	}
-    if (transparency) {
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
-
 
     GLfloat shininess = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
+    if (transparency) {
+      glUseProgram(0);
+      glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+    }
     if (InView(camera, (*it)->pos, (*it)->size)) {
       (*it)->Draw();
     }
     if (transparency) {
-      glDisable(GL_BLEND);
+      glUseProgram(bump_shader->program);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
   }
 }

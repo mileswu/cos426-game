@@ -23,9 +23,13 @@ void NullAI::Aggress() {
 }
 
 void EnemyAI::Idle() {
-  // If we're bigger than the player, enter attack mode.
-  if (self->Mass() > world->bubbles[0]->Mass()) {
+  // If we're bigger than the player, plus with the needed
+  // mass to get to the player, then enter attack mode.
+  double fuel = self->Mass() * World::emission_sizefactor
+                             / (1.0 - World::emission_sizefactor);
+  if (self->Mass() > world->bubbles[0]->Mass() + fuel) {
     state = kAggress;
+    delay = 1.0;
     return;
   }
 
@@ -60,29 +64,20 @@ void EnemyAI::Idle() {
     }
   }
 
-  // Counter its current trajectory and go toward the bubble.
-  // There are different ways to weight this.
-  // Here, we just uniformly weight a, v, and d.
-  // TODO but what we really want is for the NPC bubbles to shoot
-  // their own bubble trails to accelerate.
-  //R3Vector current_a;
-  //R3Vector current_v;
+  // Go toward the bubble.
   R3Vector direction;
-  //current_a = self->a;
-  //current_a.Normalize();
-  //current_v = self->v;
-  //current_v.Normalize();
   direction = closest_bubble->pos - self->pos;
   direction.Normalize();
-  //a = d - a - v;
-  //a.Normalize();
   world->EmitAtBubble(self, -direction);
 }
 
 void EnemyAI::Aggress() {
   // If we're smaller than the player, enter idle mode.
-  if (self->Mass() < target->Mass()) {
+  double fuel = self->Mass() * World::emission_sizefactor
+                             / (1.0 - World::emission_sizefactor);
+  if (self->Mass() < target->Mass() + fuel) {
     state = kIdle;
+    delay = 1.0;
     return;
   }
 
