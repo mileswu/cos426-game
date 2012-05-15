@@ -694,22 +694,10 @@ void World::Draw(R3Camera camera, Shader *bump_shader) {
 	  }
 
 	  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c_new);
-
-    GLfloat c_new[4];
-    GLfloat c_yellow[4] = {1, 1, 0, c[3]};
-
-    // Apply material.
-    if ((*it) -> state != reg_state && (*it) == bubbles[0]) {	
-      double cur_time = glutGet(GLUT_ELAPSED_TIME);
-      double factor = (cos(cur_time/10.0) + 1)/2.0;
-      for (unsigned int k = 0; k < 3; k++) {
-        c_new[k] = factor * c_yellow[k] + (1-factor) * c[k]; 
-      }
-      c_new[3] = 1;
-      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c_new);
-      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c_new);
+	  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c_new);
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c_new);
-    } else {
+    }
+	else {
       glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
       glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
