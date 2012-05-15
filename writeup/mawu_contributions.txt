@@ -1,0 +1,27 @@
+- Basic skeleton of game
+- HUD
+- Start Menu (both code and images in Photoshop)
+
+- Shaders: Off-screen framebuffers
+- Shaders: Bloom (bright region selection, gaussian, compositing)
+- Shaders: per pixel Lighting
+- Shaders: Bump mapping
+- Shaders: specific-laser shader
+
+- Texture: Cube mapping
+- Texture: image for sphere (Photoshop)
+- Texture: image for world (Photoshop)
+- Texture: dynamic blending of textures
+
+- Physics: collision with other spheres (including numerical bisection solving and conservation of mass/momentum)
+- Physics: Euler integration
+
+- Trails: Sprite billboarding
+- Trails: Alpha blending (drawing in correct order)
+- Trails: Modified to have angle cut-off and dynamic alpha based on lifetime
+
+- Level of Detail: Created smaller meshes
+- Level of Detail: Distance relative for Dynamic LoD
+
+
+
