@@ -5,7 +5,11 @@ varying vec3 eye_dir;
 uniform samplerCube tex;
 
 void main() {
+
 	vec3 normal = normalize(vtx_normal);
+	normal += vec3(sin(texcoord.x*20.0), sin(texcoord.y*20.0), 0.0);
+	normal = normalize(normal);
+	
 	vec3 toeye = normalize(eye_dir);
 
 	vec4 ambient = gl_LightModel.ambient * gl_FrontMaterial.ambient;

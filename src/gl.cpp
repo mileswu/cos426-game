@@ -21,11 +21,11 @@ static R3Camera back_camera;
 static R3Camera view_camera;
 static double fps = 60;
 static Framebuffer *direct_render_fbo, *processing_fbo1, *processing_fbo2;
-static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader, *bump_shader, *world_cubemap_shader;
+static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_composite_shader, *bump_shader, *world_cubemap_shader, *laser_shader;
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
-static GLuint world_texture, bubble_texture;
+static GLuint world_texture, bubble_texture, particle_sprite;
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
@@ -184,7 +184,35 @@ void RedrawWindow() {
   }
   world->DrawPowerups(view_camera);
   
+  glBindTexture(GL_TEXTURE_2D, particle_sprite);
+  glColor4d(1,1,1,0.1);
+  glEnable(GL_POINT_SPRITE);
+  glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+  //glPointSize(15.0);
+  //glBegin(GL_POINTS);
+  world->DrawTrails(view_camera);
+  //glVertex3f(0,0,-2);
+  glEnd();
+  glDisable(GL_POINT_SPRITE);
+  glBindTexture(GL_TEXTURE_2D, 0);
+    
   if(hasgoodgpu) {
+    glUseProgram(laser_shader->program);
+  }  
+  R3Point playerpos = world->PlayerPosition();
+  glLineWidth(3.0);
+  glBegin(GL_LINE_STRIP);
+  double length = world->PlayerSize() * 3.0;
+  for(double i=0; i<length; i += 0.01) {
+    glColor4d(1,0.5,0.0,1.0 - i/length);
+    glVertex3f(playerpos[0] + back_camera.towards.X()*i, playerpos[1] + back_camera.towards.Y()*i, playerpos[2] + back_camera.towards.Z()*i);
+  }
+  glEnd();
+  glColor4d(1,1,1,1);
+  
+  
+  if(hasgoodgpu) {
+    glUseProgram(0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, world_texture);
     glUseProgram(world_cubemap_shader->program);
     glUniform1i(glGetUniformLocation(blur_shader_x->program, "tex"), 0);
@@ -301,12 +329,10 @@ void RedrawWindow() {
   glPushMatrix();
   glLoadIdentity();
   
-  glPushMatrix();
   glDisable(GL_DEPTH_TEST);
   
   DrawFullscreenQuad();
-  world->DrawMinimap();
-  glPopMatrix();
+  world->DrawMinimap();    
   
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
@@ -315,6 +341,21 @@ void RedrawWindow() {
 
   
   glViewport(0, 0, window_width, window_height);
+  
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  world->DrawOverlay();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  
   
   glutSwapBuffers();
   
@@ -337,6 +378,18 @@ void KeyboardInput(unsigned char key, int x, int y) {
   }
   else if (key == 'd') { // right
     vx = -1;
+  }
+  else if (key == 'r') {
+    delete world;
+    world = new World();
+    view_camera.eye = R3Point(0,0,-4);
+    view_camera.yfov = 0.8;
+    view_camera.xfov = 0.8;
+    view_camera.up = R3Vector(0, 1, 0);
+    view_camera.right = R3Vector(-1, 0, 0);
+    view_camera.towards = R3Vector(0,0,1);
+    back_camera = view_camera;
+    return;
   }
   else {
     cout << "Key pressed: " << key << endl;
@@ -495,7 +548,7 @@ int CreateGameWindow(int argc, char **argv) {
   world = new World();
 
   if(GLEW_ARB_framebuffer_object && GLEW_ARB_fragment_program) { hasgoodgpu = 1;}
-  
+  //hasgoodgpu = 0;
   if(hasgoodgpu) {
     direct_render_fbo = new Framebuffer(window_width, window_height);
     processing_fbo1 = new Framebuffer(window_width, window_height);
@@ -506,9 +559,24 @@ int CreateGameWindow(int argc, char **argv) {
     bloom_composite_shader = new Shader("bloomcomposite");
     world_cubemap_shader = new Shader("worldcubemap");
     bump_shader = new Shader("bump");
+    laser_shader = new Shader("laser");
     LoadCubemap("./textures/stars.rgb", &world_texture, 1024, 1024);
     LoadCubemap("./textures/ball.rgb", &bubble_texture, 512, 512);
   }
+  
+  int width = 128, height = 128;
+  ifstream texture_file ("./textures/particle.rgba", ios::in | ios::binary | ios::ate);
+  int texture_file_size = texture_file.tellg();
+  texture_file.seekg(0, ios::beg);
+  char *texture_source = (char *)malloc(texture_file_size);
+  texture_file.read(texture_source, texture_file_size);
+  glGenTextures(1, &particle_sprite);
+  glBindTexture(GL_TEXTURE_2D, particle_sprite);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_source);
+  texture_file.close();
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   cout << glGetString(GL_VERSION) << endl;
   

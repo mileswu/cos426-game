@@ -26,7 +26,7 @@ struct BubbleMaterial {
 
 class Bubble {
   public:
-    explicit Bubble(AI *ai_);
+    Bubble();
     ~Bubble();
     
     void Draw();
@@ -50,7 +50,9 @@ class Bubble {
     AI *ai;
 
     static BubbleMaterial default_material;
-    static BubbleMaterial trail_material;
+    static BubbleMaterial player_material;
+    static BubbleMaterial neutral_material;
+    static BubbleMaterial enemy_material;
 
   private:
   
