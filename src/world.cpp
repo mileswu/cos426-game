@@ -224,10 +224,11 @@ void World::EmitAtBubble(Bubble *b, R3Vector direction) {
 }
 
 void World::Emit(R3Vector camera_direction) {
-  if(world_status != 0) return;
-  camera_direction.Normalize();
+  //if(world_status != 0) return;
+  //camera_direction.Normalize();
   Bubble *b = bubbles[0];
-  
+  EmitAtBubble(b, camera_direction);
+/*
   double total_mass = b->Mass();
   R3Vector total_momentum = b->Mass() * b->v;
   R3Vector orig_v = b->v;
@@ -241,6 +242,7 @@ void World::Emit(R3Vector camera_direction) {
   b_emitted->v = orig_v - emission_speed*camera_direction;
 
   b->v = (total_momentum - b_emitted->Mass()*b_emitted->v)/b->Mass();
+*/
 }
 
 R3Point World::PlayerPosition() {
