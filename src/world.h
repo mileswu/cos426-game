@@ -55,7 +55,7 @@ class World {
     void Simulate();
     void EmitAtBubble(Bubble *b, R3Vector direction);
     void Emit(R3Vector camera_direction);
-    bool inView(R3Camera camera, R3Point pos, double radius);
+    bool InView(R3Camera camera, R3Point pos, double radius);
     void PlayMusic(SoundType type);
     
     R3Point PlayerPosition();
