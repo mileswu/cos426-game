@@ -15,8 +15,8 @@
 using namespace std;
 
 static World *world = NULL;
-static int window_height = 512;
-static int window_width = 512;
+static int window_height = 850;
+static int window_width = 850;
 static R3Camera back_camera;
 static R3Camera view_camera;
 static double fps = 60;
@@ -25,10 +25,16 @@ static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_comp
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
-static GLuint world_texture, bubble_texture, particle_sprite, menu_texture, menu_on_texture, menu_off_texture;
+static GLuint world_texture, bubble_texture, particle_sprite, menu_texture, menu_on_texture, menu_off_texture, menu_ball_texture;
+static int config[6] = {1, 0, 1, 1, 1, 1};
+static int config_pointer = 0;
+static int config_maxpointer = 5;
+
+void Reset();
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
+  
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
@@ -88,6 +94,110 @@ void printShaderInfoLog(GLuint obj)
   	        free(infoLog);
   	    }
   	}
+  	
+void RedrawMenu() {
+  glDisable(GL_DEPTH_TEST);
+  
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  
+  glMatrixMode(GL_TEXTURE);
+  glLoadIdentity();
+  glScalef(1.0, -1.0, 1.0);
+  glMatrixMode(GL_MODELVIEW);
+  
+
+  glEnable(GL_TEXTURE_2D);
+  
+  glBindTexture(GL_TEXTURE_2D, menu_texture);
+  DrawFullscreenQuad();
+  glBindTexture(GL_TEXTURE_2D, 0);
+  
+  int config_i = 0;
+  for(double i=445.0; i<700; i+=44.0) {
+    //if(i < 524) continue;
+    glPushMatrix();
+    glTranslatef((705.0-512.0)/512.0, -(i-512.0)/512.0, 0.0);
+
+    glBindTexture(GL_TEXTURE_2D, menu_on_texture);
+    if(config[config_i] == 0)
+      glColor3d(11.0/255.0,1.0,1.0);
+    else
+      glColor3d(1.0,151.0/255.0,59.0/255.0);
+    
+    glBegin(GL_QUADS);
+    glTexCoord2f (0.0, 0.0);
+    glVertex3f (-0.03125, -0.03125, 0.0);
+    glTexCoord2f (1.0, 0.0);
+    glVertex3f (0.03125, -0.03125, 0.0);
+    glTexCoord2f (1.0, 1.0);
+    glVertex3f (0.03125, 0.03125, 0.0);
+    glTexCoord2f (0.0, 1.0);
+    glVertex3f (-0.03125, 0.03125, 0.0);
+    glEnd();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    glTranslatef(50.0/512.0, 0, 0.0);
+    glBindTexture(GL_TEXTURE_2D, menu_off_texture);
+    if(config[config_i] != 0)
+      glColor3d(11.0/255.0,1.0,1.0);
+    else
+      glColor3d(1.0,151.0/255.0,59.0/255.0);
+    glBegin(GL_QUADS);
+    glTexCoord2f (0.0, 0.0);
+    glVertex3f (-0.03125, -0.03125, 0.0);
+    glTexCoord2f (1.0, 0.0);
+    glVertex3f (0.03125, -0.03125, 0.0);
+    glTexCoord2f (1.0, 1.0);
+    glVertex3f (0.03125, 0.03125, 0.0);
+    glTexCoord2f (0.0, 1.0);
+    glVertex3f (-0.03125, 0.03125, 0.0);
+    glEnd();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    if(config_pointer == config_i) {
+      glTranslatef(-585.0/512.0, 3.0/512.0, 0.0);
+      
+      glColor3d(1.0,1.0, 1.0);
+      
+      glBindTexture(GL_TEXTURE_2D, menu_ball_texture);
+      glBegin(GL_QUADS);
+      glTexCoord2f (0.0, 0.0);
+      glVertex3f (-0.04, -0.04, 0.0);
+      glTexCoord2f (1.0, 0.0);
+      glVertex3f (0.04, -0.04, 0.0);
+      glTexCoord2f (1.0, 1.0);
+      glVertex3f (0.04, 0.04, 0.0);
+      glTexCoord2f (0.0, 1.0);
+      glVertex3f (-0.04, 0.04, 0.0);
+      glEnd();
+      glBindTexture(GL_TEXTURE_2D, 0);
+      
+      /*static GLUquadricObj *glu_sphere = gluNewQuadric();
+      gluQuadricTexture(glu_sphere, GL_TRUE);
+      gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);
+      gluQuadricOrientation(glu_sphere, GLU_OUTSIDE);
+      gluSphere(glu_sphere, 0.05, 32, 32);*/
+    }
+    
+    glPopMatrix();
+    config_i++;
+  }
+  
+  
+  
+  
+  glutSwapBuffers();
+  
+}
 
 void RedrawWindow() {
   // FPS timing
@@ -361,9 +471,11 @@ void RedrawWindow() {
   
 }
 
+
+void GoBackToMenu();
 void KeyboardInput(unsigned char key, int x, int y) {
-  if(key == 'q')
-    exit(0);
+  if(key == 'q' || key == 27)
+    GoBackToMenu();
   double vx = 0;
   double vy = 0;
   // move the placement of where the bubbles emit from
@@ -380,15 +492,7 @@ void KeyboardInput(unsigned char key, int x, int y) {
     vx = -1;
   }
   else if (key == 'r') {
-    delete world;
-    world = new World();
-    view_camera.eye = R3Point(0,0,-4);
-    view_camera.yfov = 0.8;
-    view_camera.xfov = 0.8;
-    view_camera.up = R3Vector(0, 1, 0);
-    view_camera.right = R3Vector(-1, 0, 0);
-    view_camera.towards = R3Vector(0,0,1);
-    back_camera = view_camera;
+    Reset();
     return;
   }
   else {
@@ -418,6 +522,29 @@ void KeyboardInput(unsigned char key, int x, int y) {
   back_camera.right.Normalize();
 
 
+}
+
+void KeyboardMenuInput(unsigned char key, int x, int y) {
+  if(key == 'q' || key == 27)
+    exit(0);
+  else if(key == 13) {
+    Reset();
+  }
+}
+
+
+void SpecialMenuInput(int key, int x, int y) {
+  if(key == GLUT_KEY_UP) {
+    config_pointer = config_pointer-1;
+    if(config_pointer < 0) { config_pointer = config_maxpointer; }
+  }
+  else if(key == GLUT_KEY_DOWN) {
+    config_pointer = config_pointer+1;
+    if(config_pointer > config_maxpointer) { config_pointer = 0; }
+  }
+  else if(key == GLUT_KEY_RIGHT || key == GLUT_KEY_LEFT) {
+    config[config_pointer] = (config[config_pointer]+1)%2;
+  }
 }
 
 void SpecialInput(int key, int x, int y) {
@@ -539,28 +666,10 @@ int CreateGameWindow(int argc, char **argv) {
 
   glutWarpPointer(window_width/2, window_height/2);
   glutSetCursor(GLUT_CURSOR_NONE);
-  glutDisplayFunc(RedrawWindow);
-  glutKeyboardFunc(KeyboardInput);
-  glutMouseFunc(MouseInput);
-  glutPassiveMotionFunc(MouseMovement);
-  
   glutIdleFunc(IdleLoop);
-  //glutTimerFunc(1000.0/fps, TimerFunc, 0);
-  
-  /*
-  glutReshapeFunc(GLUTResize);*/
-  glutSpecialFunc(SpecialInput);
-
-  view_camera.eye = R3Point(0,0,-4);
-  view_camera.yfov = 0.8;
-  view_camera.xfov = 0.8;
-  view_camera.up = R3Vector(0, 1, 0);
-  view_camera.right = R3Vector(-1, 0, 0);
-  view_camera.towards = R3Vector(0,0,1);
-
-  back_camera = view_camera;
-  
-  world = new World();
+  GoBackToMenu();
+    
+  world = NULL;
 
   if(GLEW_ARB_framebuffer_object && GLEW_ARB_fragment_program) { hasgoodgpu = 1;}
   //hasgoodgpu = 0;
@@ -583,8 +692,37 @@ int CreateGameWindow(int argc, char **argv) {
   LoadTexture("./textures/menu.rgb", &menu_texture, 1024, 1024, GL_RGB);
   LoadTexture("./textures/menu_on.rgb", &menu_on_texture, 32, 32, GL_RGB);
   LoadTexture("./textures/menu_off.rgb", &menu_off_texture, 32, 32, GL_RGB);
+  LoadTexture("./textures/menu_ball.rgb", &menu_ball_texture, 64, 64, GL_RGB);
   
   cout << glGetString(GL_VERSION) << endl;
   
   return 0;
+}
+
+void Reset() {
+  if(world != NULL)
+    delete world;
+  world = new World();
+  view_camera.eye = R3Point(0,0,-4);
+  view_camera.yfov = 0.8;
+  view_camera.xfov = 0.8;
+  view_camera.up = R3Vector(0, 1, 0);
+  view_camera.right = R3Vector(-1, 0, 0);
+  view_camera.towards = R3Vector(0,0,1);
+  back_camera = view_camera;
+  
+  glutDisplayFunc(RedrawWindow);
+  glutKeyboardFunc(KeyboardInput);
+  glutMouseFunc(MouseInput);
+  glutPassiveMotionFunc(MouseMovement);
+  glutSpecialFunc(SpecialInput);
+  glutWarpPointer(window_width/2, window_height/2);
+}
+
+void GoBackToMenu() {
+  glutDisplayFunc(RedrawMenu);
+  glutKeyboardFunc(KeyboardMenuInput);
+  glutMouseFunc(NULL);
+  glutPassiveMotionFunc(NULL);
+  glutSpecialFunc(SpecialMenuInput);
 }
