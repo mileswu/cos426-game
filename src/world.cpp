@@ -562,13 +562,36 @@ void World::DrawOverlay() {
   }
 }
 
+static double BubbleVectorIntersection(Bubble *b, R3Ray *ray) {
+  R3Point c = b->pos;
+  R3Vector l = c - ray->Start();
+  double tca = l.Dot(ray->Vector());
+  if (tca < 0.0) {
+    return INFINITY;
+  }
+  double r2 = b->size * b->size;
+  double d2 = l.Dot(l) - tca * tca;
+  if (d2 > r2) {
+    return INFINITY;
+  }
+  double thc = sqrt(r2 - d2);
+
+  // The ray parameter t is the 'proper time' with velocity normalized to 1.
+  double t = tca - thc;
+  return t;
+}
+
 void World::Draw(R3Camera camera) {  
+  bool transparency = false;
   glEnable(GL_LIGHTING);
   //int light_index = GL_LIGHT0 + 10;
   
   GLfloat c[4];
   double player_size = bubbles[0]->size;
   
+  R3Ray player_ray(camera.eye, bubbles[0]->pos - camera.eye);
+  double player_dist = BubbleVectorIntersection(bubbles[0], &player_ray);
+
   for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
        it != ie; it++) {
     if ((*it)->player_id == 0) {
@@ -591,6 +614,17 @@ void World::Draw(R3Camera camera) {
       }
     }
 
+    // Prevent player occlusion by giving bubbles transparency.
+    if ((*it)->player_id != 0) {
+      double t = BubbleVectorIntersection(*it, &player_ray);
+      if (t < player_dist) {
+        //printf("is transparent\n");
+        transparency = true;
+        c[0] = c[1] = c[2] = 1.;
+        c[3] = 0.25;
+      }
+    }
+
     /* Lighting idea
     if(0) {
     glDisable(light_index);
@@ -606,6 +640,7 @@ void World::Draw(R3Camera camera) {
 	GLfloat c_new[4];
 	GLfloat c_yellow[4] = {1, 1, 0, 1};
     // Apply material.
+
 	if ((*it) -> state != reg_state)
 	{
 	  double cur_time = glutGet(GLUT_ELAPSED_TIME);
@@ -624,10 +659,21 @@ void World::Draw(R3Camera camera) {
       glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
 	}
+    if (transparency) {
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+
     GLfloat shininess = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
     if (InView(camera, (*it)->pos, (*it)->size)) {
       (*it)->Draw();
+    }
+    if (transparency) {
+      glDisable(GL_BLEND);
     }
   }
 }
@@ -723,10 +769,10 @@ void DrawCircle(double x0, double y0, double size) {
 }
 
 void DrawTriangle(double x0, double y0, double size, int orientation=0) {
-  int nsteps = 16;
+  //int nsteps = 16;
   glNormal3d(0, 0, -1);
   glBegin(GL_POLYGON);
-  if(orientation == 1) {
+  if (orientation == 1) {
     size *= -1;
   }
   glVertex3d(x0, y0+size, 0);
@@ -773,7 +819,7 @@ void World::DrawMinimap() {
     if ((*it)->player_id == 0 || size > 0.1) {
       size = 0.1;
     }
-    int orientation = 0;
+    //int orientation = 0;
     if (fabs(zdist) < 5) {
       DrawCircle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size);
     } else if (zdist < 0) {
