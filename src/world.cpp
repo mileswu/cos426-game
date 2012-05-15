@@ -60,42 +60,61 @@ static R3Point randpoint(double max, double min = 0) {
   return randvector(max, min).Point();
 }
 
-void World::GenerateLevel() {
-  // Generate player bubble.
+Bubble *World::CreateBubble() {
+  Bubble *b = new Bubble();
+  b->pos = randpoint(30);
+  b->v = randvector(0.1);
+  b->size = rand(1.2, 0.1);
+  b->player_id = -1;
+  b->material = &Bubble::neutral_material;
+  bubbles.push_back(b);
+  return b;
+}
+
+Bubble *World::CreatePlayerBubble() {
   Bubble *player = new Bubble();
   player->size = 1.3;
   player->player_id = 0;
   player->material = &Bubble::player_material;
   bubbles.push_back(player);
+  return player;
+}
+
+Bubble *World::CreateEnemyBubble() {
+  Bubble *enemy = new Bubble();
+  enemy->pos = randpoint(30);
+  enemy->v = R3null_vector;
+  enemy->size = 1.5;
+  enemy->player_id = 1;
+  enemy->material = &Bubble::enemy_material;
+
+  EnemyAI *ai = new EnemyAI();
+  ai->world = this;
+  ai->self = enemy;
+  ai->target = NULL;
+  enemy->ai = ai;
+
+  bubbles.push_back(enemy);
+  return enemy;
+}
+
+void World::GenerateEmptyLevel() {
+  // Generate player bubble.
+  CreatePlayerBubble();
+}
+
+void World::GenerateRandomLevel() {
+  // Generate player bubble.
+  CreatePlayerBubble();
 
   // Generate dumb NPC bubbles.
   for (int i = 0; i < num_bubbles; i++) {
-    Bubble *b = new Bubble();
-    b->pos = randpoint(30);
-    b->v = randvector(0.1);
-    b->size = rand(1.2, 0.1);
-    b->player_id = -1;
-    b->material = &Bubble::neutral_material;
-    bubbles.push_back(b);
+    CreateBubble();
   }
 
-  // TODO peter(5/14) generate enemy bubbles.
+  // Generate enemy bubbles.
   for (int i = 0; i < num_enemies; i++) {
-    Bubble *enemy = new Bubble();
-    enemy->pos = randpoint(30);
-    enemy->v = R3null_vector;
-    enemy->size = 1.5;
-    enemy->player_id = 1;
-    enemy->material = &Bubble::enemy_material;
-
-    // Initialize the AI to target teh player.
-    EnemyAI *ai = new EnemyAI();
-    ai->world = this;
-    ai->self = enemy;
-    ai->target = player;
-    enemy->ai = ai;
-  
-    bubbles.push_back(enemy);
+    CreateEnemyBubble();
   }
 
   // Generate random powerups.
@@ -257,6 +276,14 @@ void World::Emit(R3Vector camera_direction) {
 */
 }
 
+void World::SetPlayerVelocity(R3Vector v) {
+  bubbles[0]->v = v;
+}
+
+void World::SetPlayerPosition(R3Point p) {
+  bubbles[0]->pos = p;
+}
+
 R3Point World::PlayerPosition() {
   return bubbles[0]->pos;
 }
@@ -292,77 +319,79 @@ string World::PlayerStatus() {
   return ss.str();
 }
 
-void World::Simulate() {
+void World::Timestep() {
   struct timeval curtime;
-  double curr_time = 0;
-  double last_time = 0;
-  double timestep = 0;
+  curr_time = 0;
+  last_time = 0;
+  timestep = 0;
   gettimeofday(&curtime, NULL);
   if (lasttime_updated.tv_sec != 0) {
     curr_time = curtime.tv_sec + 1.0e-6 * curtime.tv_usec;
     last_time = lasttime_updated.tv_sec + 1.0e-6 * lasttime_updated.tv_usec;
-    //timestep = (curtime.tv_sec - lasttime_updated.tv_sec) + 1.0E-6F * (curtime.tv_usec - lasttime_updated.tv_usec);
     timestep = curr_time - last_time;
   }
   lasttime_updated = curtime;
+}
 
-  // Based on bubble material, emit particle trail.
-  if(trails_enabled == 1) {
-    for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
-         it != ie; ++it) {
-      if (!(*it)->material->emits_particles) {
-        continue;
-      }
-      if ((*it)->v.IsZero()) {
-        continue;
-      }
+void World::SimulateParticles() {
+  if (trails_enabled != 1) {
+    return;
+  }
+  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
+        it != ie; ++it) {
+    if (!(*it)->material->emits_particles) {
+      continue;
+    }
+    if ((*it)->v.IsZero()) {
+      continue;
+    }
 
-      double idealnumtogen = (*it)->material->particle_rate * timestep;
-      int numtogen = 0;
-      numtogen += idealnumtogen;
+    double idealnumtogen = (*it)->material->particle_rate * timestep;
+    int numtogen = 0;
+    numtogen += idealnumtogen;
 
-      if (rand(1.0) < idealnumtogen-numtogen) {
-        numtogen++;
-      }
+    if (rand(1.0) < idealnumtogen-numtogen) {
+      numtogen++;
+    }
 
-      for (int j = 0; j < numtogen; ++j) {
-        Particle *particle = new Particle();
-        particle->parent = *it;
+    for (int j = 0; j < numtogen; ++j) {
+      Particle *particle = new Particle();
+      particle->parent = *it;
 
-        R3Vector normal = -(*it)->v;
-        normal.Normalize();
-        R3Vector tangentplanevector = normal;
-        tangentplanevector[2] += 1;
-        tangentplanevector[0] += 1;
-        tangentplanevector[1] += 1;
-        tangentplanevector.Cross(normal);
-        tangentplanevector.Normalize();
-        double t1, t2;
-        t1 = rand(2.0*M_PI);
-        t2 = rand(1.0)*sin(M_PI/6.0);
-        R3Vector direction = tangentplanevector;
-        direction.Rotate(normal, t1);
-        R3Vector vcrossn = direction;
-        vcrossn.Cross(normal);
-        direction.Rotate(vcrossn, acos(t2));
-        direction.Normalize();
-        particle->velocity = 1.5*direction;
+      R3Vector normal = -(*it)->v;
+      normal.Normalize();
+      R3Vector tangentplanevector = normal;
+      tangentplanevector[2] += 1;
+      tangentplanevector[0] += 1;
+      tangentplanevector[1] += 1;
+      tangentplanevector.Cross(normal);
+      tangentplanevector.Normalize();
+      double t1, t2;
+      t1 = rand(2.0*M_PI);
+      t2 = rand(1.0)*sin(M_PI/6.0);
+      R3Vector direction = tangentplanevector;
+      direction.Rotate(normal, t1);
+      R3Vector vcrossn = direction;
+      vcrossn.Cross(normal);
+      direction.Rotate(vcrossn, acos(t2));
+      direction.Normalize();
+      particle->velocity = 1.5*direction;
 
-        //printf("emit particle\n");
-        particle->color[0] = (*it)->material->particle_color[0];
-        particle->color[1] = (*it)->material->particle_color[1];
-        particle->color[2] = (*it)->material->particle_color[2];
-        particle->color[3] = (*it)->material->particle_color[3];
-        particle->position = (*it)->pos;
-        particle->lifetime = 2000. + glutGet(GLUT_ELAPSED_TIME);
-        particle->is_point = true;
-        particle->point_size = (*it)->material->particle_size;
-        particles.push_back(particle);
-      }
+      //printf("emit particle\n");
+      particle->color[0] = (*it)->material->particle_color[0];
+      particle->color[1] = (*it)->material->particle_color[1];
+      particle->color[2] = (*it)->material->particle_color[2];
+      particle->color[3] = (*it)->material->particle_color[3];
+      particle->position = (*it)->pos;
+      particle->lifetime = 2000. + glutGet(GLUT_ELAPSED_TIME);
+      particle->is_point = true;
+      particle->point_size = (*it)->material->particle_size;
+      particles.push_back(particle);
     }
   }
+}
 
-  // Perform AI action depending on the AI thinking rate.
+void World::SimulateAI() {
   for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
        it != ie; ++it) {
     if (NULL == (*it)->ai) {
@@ -375,13 +404,17 @@ void World::Simulate() {
       (*it)->ai->last_action_time = curr_time;
     }
   }
+}
+
+void World::SimulatePowerups() {
+  Bubble *player = bubbles[0];
 
   // Check if powerups mesh die
   for (unsigned int i = 0; i < power_ups.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
     if (cur_time > power_ups[i].die_time) {
       RemovePowerUp(i);
-      i--;
+      --i;
     }
   }
 
@@ -419,10 +452,11 @@ void World::Simulate() {
     }
     CreatePowerUp(type);
   }
+}
 
+void World::SimulateMotion() {
   Bubble* player = bubbles[0];
   double m1 = player->Mass();
-  //player->state = sink_state;
 
   // A calculation
   for (vector<Bubble *>::iterator it = bubbles.begin();
@@ -430,30 +464,19 @@ void World::Simulate() {
     (*it)->a = R3Vector(0,0,0);
     if ((*it) != bubbles[0]) {
       // Player sink status moves NPC bubbles toward it.
-      switch (player->state) {
-      case sink_state: {
+      if (player->state == sink_state) {
         R3Vector towards = player->pos - (*it)->pos;
         double m2 = (*it)->Mass();
         double towards_mag = sqrt(towards.Dot(towards));
         (*it)->a += towards/towards_mag * m1 * m2/(towards_mag * towards_mag); 
-      } break;
-      case small_sink_state: {
+      } else if (player->state == small_sink_state) {
         if ((*it)->size < player->size) {
           R3Vector towards = player->pos - (*it)->pos;
           double m2 = (*it)->Mass();
           double towards_mag = sqrt(towards.Dot(towards));
           (*it)->a += towards/towards_mag * m1 * m2/(towards_mag * towards_mag); 
         }
-      } break;
-      default: ;
       }
-
-      // Do AI calculation for NPC bubbles.
-      // FIXME peter(5/14) the AI class can just call World::EmitAtBubble
-      // to directly make an action at each state calculation.
-      //if (NULL != (*it)->ai) {
-      //  (*it)->a += (*it)->ai->GetAcceleration();
-      //}
     }
   }
 
@@ -473,6 +496,55 @@ void World::Simulate() {
     }
   }
 
+  // P update
+  for (vector<Bubble *>::iterator it = bubbles.begin();
+       it < bubbles.end(); it++) {
+    // Update bubbles.
+    (*it)->pos += (*it)->v*timestep;
+  }
+
+  for (vector<Particle *>::iterator it = particles.begin(); it < particles.end(); ++it) {
+    // Update particles.
+    (*it)->position += timestep * (*it)->velocity;
+    (*it)->lifetime -= timestep;
+
+    // Particle lifetime.
+    if (glutGet(GLUT_ELAPSED_TIME) > (*it)->lifetime) {
+      Particle *p = *it;
+      it = particles.erase(it);
+      delete p;
+    }
+  }
+}
+
+void World::SimulateCollisions() {
+  // Bubble-bubble collision.
+  for (vector<Bubble *>::iterator it = bubbles.begin();
+       it < bubbles.end(); it++) {  
+    for (vector<Bubble *>::iterator it2 = it+1;
+         it2 < bubbles.end(); it2++) {      
+      int retval = (*it)->Collides(*it2);
+      if (retval == -1) {
+        it = bubbles.erase(it);
+        if (it==bubbles.begin()) {
+          world_status = 1;
+          PlayMusic(DEATH_SOUND);
+        } else if (it2==bubbles.begin()) {
+          PlayMusic(ABSORBING_SOUND);
+        }
+      } else if (retval == -2) {
+        it2 = bubbles.erase(it2);
+        if (it2==bubbles.begin()) {
+          world_status = 1;
+          PlayMusic(DEATH_SOUND);
+        } else if (it==bubbles.begin()) {
+          PlayMusic(ABSORBING_SOUND);
+        }
+      }
+    }
+  }
+
+  // Powerup get!
   for (unsigned int j = 0; j < power_ups.size(); j++) {
     if (!player->Collides(power_ups[j].mesh)) {
       continue;
@@ -501,60 +573,13 @@ void World::Simulate() {
       break;
     }
     RemovePowerUp(j);
-    j--;
+    --j;
   }
 
-  // P update
-  for (vector<Bubble *>::iterator it = bubbles.begin();
-       it < bubbles.end(); it++) {
-    // Update bubbles.
-    (*it)->pos += (*it)->v*timestep;
-  }
-
-  for (vector<Particle *>::iterator it = particles.begin(); it < particles.end(); ++it) {
-    // Update particles.
-    (*it)->position += timestep * (*it)->velocity;
-    (*it)->lifetime -= timestep;
-
-    // Particle lifetime.
-    if (glutGet(GLUT_ELAPSED_TIME) > (*it)->lifetime) {
-      Particle *p = *it;
-      it = particles.erase(it);
-      delete p;
-    }
-  }
-  
-  // Collisions
-  for (vector<Bubble *>::iterator it = bubbles.begin();
-       it < bubbles.end(); it++) {  
-    for (vector<Bubble *>::iterator it2 = it+1;
-         it2 < bubbles.end(); it2++) {      
-      int retval = (*it)->Collides(*it2);
-      if (retval == -1) {
-        it = bubbles.erase(it);
-        if (it==bubbles.begin()) {
-          world_status = 1;
-          PlayMusic(DEATH_SOUND);
-        } else if (it2==bubbles.begin()) {
-          PlayMusic(ABSORBING_SOUND);
-        }
-      } else if (retval == -2) {
-        it2 = bubbles.erase(it2);
-        if (it2==bubbles.begin()) {
-          world_status = 1;
-          PlayMusic(DEATH_SOUND);
-        } else if (it==bubbles.begin()) {
-          PlayMusic(ABSORBING_SOUND);
-        }
-      }
-    }
-  }
-
-  // Check for collisions with the world
+  // Check for collisions with the world border.
   R3Vector normal;
   for (vector<Bubble *>::iterator it = bubbles.begin();
        it < bubbles.end(); it++) {
-
     // Check to see if this position is too close to the wall
     // Note: world center is (0,0,0)
     if ((*it)->pos.Vector().Length() > (world_size - (*it)->size)) {
@@ -563,10 +588,25 @@ void World::Simulate() {
       (*it)->pos = (normal * (world_size - (*it)->size-0.1)).Point();
       (*it)->v = 2.0 * ((*it)->v.Dot(normal)) * normal - (*it)->v;
       (*it)->v.Flip();
-
     }
   }
+}
 
+void World::Simulate() {
+  // Based on bubble material, emit particle trail.
+  SimulateParticles();
+
+  // Perform AI action depending on the AI thinking rate.
+  SimulateAI();
+
+  // Create new powerups and expire old ones.
+  SimulatePowerups();
+
+  // A, V, P updates.
+  SimulateMotion();
+
+  // All collisions.
+  SimulateCollisions();
 }
 
 void World::DrawOverlay() {
@@ -672,7 +712,7 @@ void World::Draw(R3Camera camera, Shader *bump_shader) {
 	
 	GLfloat c_new[4];
 	GLfloat c_yellow[4] = {1, 1, 0, 1};
-	double limegreen_bot = 50 + 205 + 50;
+	//double limegreen_bot = 50 + 205 + 50;
 	GLfloat c_limegreen[4] = {50/255.0, 205/255.0, 50/255.0, 1};
 	GLfloat c_hotpink[4] = {1, 105/255.0, 180/255.0, 1};
     // Apply material.
@@ -743,27 +783,51 @@ public:
 
 void World::DrawTrails(R3Camera camera) {
   if(trails_enabled == 0) return;
+  if(particles.size() == 0) return;
+  
   // Render particle trails. We want to disable lighting so that
   // the trail is always bright and lens-flare-ful.
   glDisable(GL_LIGHTING);
   sort(particles.begin(), particles.end(), Sorter(camera));
+  
+  GLfloat *colors = (GLfloat *)malloc(particles.size()*4*sizeof(float));
+  GLfloat *positions = (GLfloat *)malloc(particles.size()*3*sizeof(float));
+  
+  double size = particles[0]->point_size;
+  int count = 0;
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
       if (!InView(camera, (*it)->position, (*it)->point_size)) {
         continue;
       }
-      glPointSize((*it)->point_size);
-      glBegin(GL_POINTS);
-      GLfloat *c = (*it)->color;
+      
+      GLfloat *c = &(colors[count*4]);
+      c[0] = (*it)->color[0]; c[1] = (*it)->color[1]; c[2] = (*it)->color[2]; 
       c[3] = ((*it)->lifetime - glutGet(GLUT_ELAPSED_TIME))/2000.0;
-      glColor4d(c[0], c[1], c[2], c[3]);
-      glVertex3f((*it)->position[0], (*it)->position[1], (*it)->position[2]);
-      glEnd();
+      
+      GLfloat *p = &(positions[count*3]);
+      p[0] = (*it)->position[0]; p[1] = (*it)->position[1]; p[2] = (*it)->position[2];
+      
+      count++;
+      
     } else {
       // FIXME peter custom textured particles?
     }
   }
+  if(count != 0) {
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glPointSize(size);
+    glVertexPointer(3, GL_FLOAT, 3*sizeof(float), positions);
+    glColorPointer(4, GL_FLOAT, 4*sizeof(float), colors);
+    glDrawArrays(GL_POINTS, 0, count);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+  }
+  free(colors);
+  free(positions);
 }
 
 void World::DrawPowerups(R3Camera camera) {

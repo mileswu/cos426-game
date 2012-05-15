@@ -1,3 +1,6 @@
+#ifndef FBO_H
+#define FBO_H
+
 #include "gl.h"
 
 class Framebuffer {
@@ -7,3 +10,5 @@ class Framebuffer {
     GLuint texture;
     GLuint renderbuffer;
 };
+
+#endif
