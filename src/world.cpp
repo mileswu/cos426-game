@@ -9,6 +9,7 @@
 #include <fstream>
 #include <algorithm>
 #include <SFML/Audio.hpp>
+#include <stdio.h>
 
 using namespace std;
 
@@ -115,7 +116,7 @@ void World::GenerateLevel() {
       type = slow_down_type;
       break;
     }
-    CreatePowerUp(sink_type);
+    CreatePowerUp(small_sink_type);
   }
 
   // Check level of detail.
@@ -139,8 +140,9 @@ static R3Mesh* CreateInvincible() {
 static R3Mesh* CreateSmallSink() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/pear.off");
-  m->Scale(0.01, 0.01, 0.01);
-  randTranslate(m);
+  m->Scale(0.05, 0.05, 0.05);
+  m->Translate(0,0,5);
+  //randTranslate(m);
   return m;
 }
 
@@ -156,8 +158,8 @@ static R3Mesh* CreateSink() {
 static R3Mesh* CreateSpeedUp() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/heart.off");
-  m->Scale(0.1, 0.1, 0.1);
-  //m->Translate(0,0,3);
+  m->Scale(0.25, 0.25, 0.25);
+  //m->Translate(0,0,10);
   randTranslate(m);
   return m;
 }
@@ -165,7 +167,8 @@ static R3Mesh* CreateSpeedUp() {
 static R3Mesh* CreateSlowDown() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/Sword01.off");
-  m->Scale(0.001, 0.001, 0.001);
+  m->Scale(0.001, 0.0001, 0.001);
+  //m->Translate(0,0,10);
   randTranslate(m);
   return m;
 }
@@ -178,26 +181,30 @@ void World::CreatePowerUp(PowerUpType type) {
   case invincible_type:
     m = CreateInvincible();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
     break;
   case small_sink_type:
     m = CreateSmallSink();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
     break;
   case sink_type:
     m = CreateSink();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
     break;
   case speed_up_type:
     m = CreateSpeedUp();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
     break;
   case slow_down_type:
     m = CreateSlowDown();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
     break;
   }
-  p.die_time = glutGet(GLUT_ELAPSED_TIME) + 
-               glutGet(GLUT_ELAPSED_TIME) * rand(30);
+
   power_ups.push_back(p);
 }
 
@@ -441,12 +448,12 @@ void World::Simulate() {
        it < bubbles.end(); it++) {
     // Update bubble velocities.
     (*it)->v += (*it)->a*timestep;
-    if (player->state == speed_up_state && (*it) != player) {
-      (*it)->v += 100 * R3Vector(1,1,1);
+    if (player->state == speed_up_state && (*it) == player) {
+	  (*it)->v *= 10;
       player->state = reg_state;
       player->effect_end_time = -1;
-    } else if (player->state == slow_down_state && (*it) != player) {
-      (*it)->v -= 20 * R3Vector(1,1,1);
+    } else if (player->state == slow_down_state && (*it) == player) {
+      (*it)->v *= 1;
       player->state = reg_state;
       player->effect_end_time = -1;
     }
@@ -595,11 +602,28 @@ void World::Draw(R3Camera camera) {
     glEnable(light_index);
     light_index++;
     }*/
-
+	
+	GLfloat c_new[4];
+	GLfloat c_yellow[4] = {1, 1, 0, 1};
     // Apply material.
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+	if ((*it) -> state != reg_state)
+	{
+	  double cur_time = glutGet(GLUT_ELAPSED_TIME);
+      double factor = (cos(cur_time/10.0) + 1)/2.0;
+      for (unsigned int k = 0; k < 3; k++) {
+        c_new[k] = factor * c_yellow[k] + (1-factor) * c[k]; 
+      }
+      c_new[3] = 1;
+	  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c_new);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c_new);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c_new);
+	}
+	else
+	{
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+	}
     GLfloat shininess = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
     if (InView(camera, (*it)->pos, (*it)->size)) {
