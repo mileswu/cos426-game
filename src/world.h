@@ -65,7 +65,7 @@ struct World {
   void SimulateParticles();
   void SimulateAI();
   void SimulatePowerups();
-  void SimulateMotion();
+  void SimulateMotion(bool player_only);
   void SimulateCollisions();
   void Simulate();
   void EmitAtBubble(Bubble *b, R3Vector direction);
