@@ -435,6 +435,38 @@ void World::SimulatePowerups() {
       CreatePowerUp(type);
     }
   }
+
+  // Powerup get!
+  for (unsigned int j = 0; j < power_ups.size(); j++) {
+    if (!player->Collides(power_ups[j].mesh[0], power_ups[j].Center.Vector())) {
+      continue;
+    }
+    PowerUpType type = power_ups[j].type;
+    switch (type) {
+    case invincible_type:
+      player->state = invincible_state;
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
+      break;
+    case small_sink_type:
+      player->state = small_sink_state;
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 2000;
+      break;
+    case sink_type:
+      player->state = sink_state;
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
+      break;
+    case speed_up_type:
+      player->state = speed_up_state;
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 1000;
+      break;
+    case slow_down_type:
+      player->state = slow_down_state;
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 1000;
+      break;
+    }
+    RemovePowerUp(j);
+    --j;
+  }
 }
 
 void World::SimulateMotion() {
@@ -525,39 +557,6 @@ void World::SimulateCollisions() {
         }
       }
     }
-  }
-
-  // Powerup get!
-  Bubble* player = bubbles[0];
-  for (unsigned int j = 0; j < power_ups.size(); j++) {
-    if (!player->Collides(power_ups[j].mesh[0], power_ups[j].Center.Vector())) {
-      continue;
-    }
-    PowerUpType type = power_ups[j].type;
-    switch (type) {
-    case invincible_type:
-      player->state = invincible_state;
-      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
-      break;
-    case small_sink_type:
-      player->state = small_sink_state;
-      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 2000;
-      break;
-    case sink_type:
-      player->state = sink_state;
-      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
-      break;
-    case speed_up_type:
-      player->state = speed_up_state;
-      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 1000;
-      break;
-    case slow_down_type:
-      player->state = slow_down_state;
-      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 1000;
-      break;
-    }
-    RemovePowerUp(j);
-    --j;
   }
 
   // Check for collisions with the world border.
