@@ -13,8 +13,24 @@ BubbleMaterial Bubble::default_material = {
   {1, 1, 1, 1},
 };
 
-BubbleMaterial Bubble::trail_material = {
+BubbleMaterial Bubble::player_material = {
+  {0, 0, 1, 1},
+  true,
+  3000,
+  5,
   {1, 1, 1, 1},
+};
+
+BubbleMaterial Bubble::neutral_material = {
+  {0, 1, 0, 1},
+  false,
+  3000,
+  5,
+  {1, 1, 1, 1},
+};
+
+BubbleMaterial Bubble::enemy_material = {
+  {1, 0, 0, 1},
   true,
   3000,
   5,

@@ -17,18 +17,13 @@ public:
     kNumStates,
   };
 
-  explicit AI(World *world_)
-    : state(0), a(R3null_vector), world(world_), self(NULL), target(NULL) { }
-
-  // Whose bubble's thoughts are these?
-  void SetHost(Bubble *self_) { self = self_; }
-
-  // Each bubble gets up to one target.
-  void Target(Bubble *target_) { target = target_; }
+  AI()
+    : state(0), world(NULL), self(NULL), target(NULL) { }
+  ~AI() { }
 
   // Bubble has to call AI->Get_ rather than AI modifying bubble state.
   // FIXME action instead of acceleration?
-  R3Vector &GetAcceleration() { return a; }
+  //R3Vector &GetAcceleration() { return a; }
 
   // Bubble does whatever its current AI state tells it to.
   void ActFromState();
@@ -39,7 +34,6 @@ public:
   virtual void Avoid() = 0;
 
   unsigned state;
-  R3Vector a;
   World *world;
   Bubble *self;
   Bubble *target;
@@ -50,8 +44,6 @@ public:
 // Also known as `apathetic AI'.
 class NullAI : public AI {
 public:
-  explicit NullAI(World *world_)
-    : AI(world_) { }
   void Idle();
   void Seek();
   void Aggress();
@@ -62,8 +54,6 @@ public:
 // Enemy is a broad term, basically it chases and attacks its target.
 class EnemyAI : public AI {
 public:
-  explicit EnemyAI(World *world_)
-    : AI(world_) { }
   void Idle();
   void Seek();
   void Aggress();
@@ -74,8 +64,6 @@ public:
 // This cell is in a group of boid-like cells.
 class SwarmAI : public AI {
 public:
-  explicit SwarmAI(World *world_)
-    : AI(world_) { }
   void Idle();
   void Seek();
   void Aggress();

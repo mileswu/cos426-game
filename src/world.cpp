@@ -56,14 +56,15 @@ static R3Point randpoint(double max, double min = 0) {
 }
 
 void World::GenerateLevel() {
-  Bubble *b;
-  
+  Bubble *b, *player;
+
   // Generate player bubble.
   b = new Bubble();
   b->player_id = 0;
-  b->material = &Bubble::trail_material;
+  b->material = &Bubble::player_material;
   //b->ai = NULL;
   bubbles.push_back(b);
+  player = b;
 
   // Generate dumb NPC bubbles.
   for (int i = 0; i < 200; i++) {
@@ -76,6 +77,10 @@ void World::GenerateLevel() {
   }
 
   // TODO peter(5/14) generate enemy bubbles.
+  EnemyAI *enemy = new EnemyAI();
+  enemy->world = this;
+  enemy->self = NULL;
+  enemy->target = player;
 
   // Generate random powerups.
   for (unsigned int i = 0; i < bubbles.size() / 10; i++) {
@@ -157,21 +162,27 @@ void World::CreatePowerUp(PowerUpType type) {
   R3Mesh* m;
   PowerUpShape p;
   p.type = type;
-  if (type == invincible_type) {
+  switch (type) {
+  case invincible_type:
     m = CreateInvincible();
     p.mesh = m;
-  } else if (type == small_sink_type) {
+    break;
+  case small_sink_type:
     m = CreateSmallSink();
     p.mesh = m;
-  } else if (type == sink_type) {
+    break;
+  case sink_type:
     m = CreateSink();
     p.mesh = m;
-  } else if (type == speed_up_type) {
+    break;
+  case speed_up_type:
     m = CreateSpeedUp();
     p.mesh = m;
-  } else if (type == slow_down_type) {
+    break;
+  case slow_down_type:
     m = CreateSlowDown();
     p.mesh = m;
+    break;
   }
   p.die_time = glutGet(GLUT_ELAPSED_TIME) + 
                glutGet(GLUT_ELAPSED_TIME) * rand(30);
@@ -228,8 +239,7 @@ double World::PlayerSize() {
   return bubbles[0]->size;
 }
 
-void World::RemovePowerUp(int index)
-{
+void World::RemovePowerUp(int index) {
   PowerUpShape temp = power_ups.back();
   power_ups[index] = temp;
   power_ups.pop_back();
@@ -240,8 +250,9 @@ string World::PlayerStatus() {
   ss << "Player size: " << bubbles[0]->size << endl;
   ss << "Bubbles left (excluding yourself): " << bubbles.size() - 1 << endl;
   double max_size = 0;
-  for(vector<Bubble *>::iterator it=bubbles.begin()+1; it < bubbles.end(); it++) {
-    if((*it)->size > max_size) {
+  for (vector<Bubble *>::iterator it = bubbles.begin() + 1, ie = bubbles.end();
+       it != ie; it++) {
+    if ((*it)->size > max_size) {
       max_size = (*it)->size;
     }
   }
@@ -264,23 +275,26 @@ void World::Simulate() {
   lasttime_updated = curtime;
 
   // Based on bubble material, emit particle trail.
-  for (vector<Bubble *>::iterator it = bubbles.begin(),
-       ie = bubbles.end(); it != ie; ++it) {
+  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
+       it != ie; ++it) {
     if (!(*it)->material->emits_particles) {
       continue;
     }
-	  if((*it)->v.IsZero()) continue;
-	  
-	  double idealnumtogen = (*it)->material->particle_rate*timestep;
+    if ((*it)->v.IsZero()) {
+      continue;
+    }
+
+    double idealnumtogen = (*it)->material->particle_rate * timestep;
     int numtogen = 0;
     numtogen += idealnumtogen;
-    
-    if(rand(1.0) < idealnumtogen-numtogen)
+
+    if (rand(1.0) < idealnumtogen-numtogen) {
       numtogen++;
-	
+    }
+
     for (int j = 0; j < numtogen; ++j) {
       Particle *particle = new Particle();
-      
+
       R3Vector normal = -(*it)->v;
       normal.Normalize();
       R3Vector tangentplanevector = normal;
@@ -316,18 +330,17 @@ void World::Simulate() {
   //check if powerups mesh die
   for (unsigned int i = 0; i < power_ups.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
-    if (cur_time > power_ups[i].die_time)
-    {
-            RemovePowerUp(i);
-            i--;
+    if (cur_time > power_ups[i].die_time) {
+      RemovePowerUp(i);
+      i--;
     }
   }
 
   //check if powerup effect time already expired
   for (unsigned int i = 0; i < bubbles.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
-    if (cur_time > bubbles[i]->effect_end_time 
-                    && bubbles[i]->effect_end_time != -1) {
+    if (cur_time > bubbles[i]->effect_end_time &&
+        bubbles[i]->effect_end_time != -1) {
       bubbles[i]->state = reg_state;
       bubbles[i]->effect_end_time = -1;
     }
@@ -357,11 +370,11 @@ void World::Simulate() {
     }
     CreatePowerUp(type);
   }
-  
+
   Bubble* player = bubbles[0];
   double m1 = player->Mass();
   //player->state = sink_state;
-	
+
   // A calculation
   for (vector<Bubble *>::iterator it = bubbles.begin();
        it < bubbles.end(); it++) {
@@ -394,7 +407,7 @@ void World::Simulate() {
       //}
     }
   }
-  
+
   // V update
   for (vector<Bubble *>::iterator it = bubbles.begin();
        it < bubbles.end(); it++) {
@@ -412,36 +425,36 @@ void World::Simulate() {
   }
 
   for (unsigned int j = 0; j < power_ups.size(); j++) {
-    if (player->Collides(power_ups[j].mesh)) {
-      PowerUpType type = power_ups[j].type;
-      switch (type) {
-      case invincible_type:
-        player->state = invincible_state;
-        player->effect_end_time = 1.5 * glutGet(GLUT_ELAPSED_TIME);
-        break;
-      case small_sink_type:
-        player->state = small_sink_state;
-        player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
-        break;
-      case sink_type:
-        player->state = sink_state;
-        player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
-        break;
-      case speed_up_type:
-        player->state = speed_up_state;
-        player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
-        break;
-      case slow_down_type:
-        player->state = slow_down_state;
-        player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
-        break;
-      }
-      RemovePowerUp(j);
-      j--;
+    if (!player->Collides(power_ups[j].mesh)) {
+      continue;
     }
+    PowerUpType type = power_ups[j].type;
+    switch (type) {
+    case invincible_type:
+      player->state = invincible_state;
+      player->effect_end_time = 1.5 * glutGet(GLUT_ELAPSED_TIME);
+      break;
+    case small_sink_type:
+      player->state = small_sink_state;
+      player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      break;
+    case sink_type:
+      player->state = sink_state;
+      player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      break;
+    case speed_up_type:
+      player->state = speed_up_state;
+      player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      break;
+    case slow_down_type:
+      player->state = slow_down_state;
+      player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      break;
+    }
+    RemovePowerUp(j);
+    j--;
   }
 
-  
   // P update
   for (vector<Bubble *>::iterator it = bubbles.begin();
        it < bubbles.end(); it++) {
@@ -481,17 +494,16 @@ void World::Simulate() {
         if (it2==bubbles.begin()) {
           world_status = 1;
           PlayMusic(DEATH_SOUND);
-        }
-        else if (it==bubbles.begin())
+        } else if (it==bubbles.begin()) {
           PlayMusic(ABSORBING_SOUND);
+        }
       }
     }
   }
-
 }
 
 void World::DrawOverlay() {
-  if(world_status == 1) {
+  if (world_status == 1) {
     glColor4f(0.0, 0.0, 0.0, 0.8);
     glBegin(GL_QUADS);
     glTexCoord2f (0.0, 0.0);
@@ -509,7 +521,7 @@ void World::DrawOverlay() {
     glRasterPos2i(0.5,0.5);
 
     string osd_text = string("You died.");
-    for( string::iterator it = osd_text.begin(); it < osd_text.end(); it++) {
+    for (string::iterator it = osd_text.begin(); it < osd_text.end(); it++) {
       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *it);
     }
   }
@@ -561,7 +573,7 @@ void World::Draw(R3Camera camera) {
 }
 
 class Sorter {
-  public:
+public:
   Sorter(R3Camera c) { camera = c; }
   R3Camera camera;
   bool operator()(Particle const *p1, Particle const *p2) const {
@@ -670,14 +682,15 @@ void World::DrawMinimap() {
   GLfloat c[4];
   double player_size = bubbles[0]->size;
   
-  for(vector<Bubble *>::iterator it=bubbles.begin(); it < bubbles.end(); it++) {
-    if((*it)->size / player_size < 0.5) continue;
-    
-    
-    if((*it)->player_id == 0) {
-      c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
+  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
+       it != ie; it++) {
+    if ((*it)->size / player_size < 0.5) {
+      continue;
     }
-    else {
+
+    if ((*it)->player_id == 0) {
+      c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
+    } else {
       double s = (*it)->size;
       if(s < 0.8*player_size) {
         c[0] = 0; c[1] = 1; c[2] = 0; c[3] = 1;
@@ -692,29 +705,26 @@ void World::DrawMinimap() {
     }
     c[0] = 0.5;
     glColor3f(c[0], c[1], c[2]);
-    
+
     double zdist = (*it)->pos[2] - bubbles[0]->pos[2];
     double absdist = ((*it)->pos - bubbles[0]->pos).Length();
     double size = 1.5/absdist;
-    
-    if((*it)->player_id == 0 || size > 0.1)
+
+    if ((*it)->player_id == 0 || size > 0.1) {
       size = 0.1;
+    }
     int orientation = 0;
-    if(fabs(zdist) < 5) {
+    if (fabs(zdist) < 5) {
       DrawCircle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size);
-    }
-    else if(zdist < 0) {
+    } else if (zdist < 0) {
       DrawTriangle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size, 0);
-    }
-    else {
+    } else {
       DrawTriangle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size, 1);
     }
-    
   }
 }
 
 bool World::inView(R3Camera camera, R3Point pos, double radius) {
-
   double dist;
   dist = R3SignedDistance(camera.right_plane, pos);
   if (dist > 0 && !(fabs(dist) < radius)) return false;
@@ -724,32 +734,26 @@ bool World::inView(R3Camera camera, R3Point pos, double radius) {
   if (dist > 0 && !(fabs(dist) < radius)) return false;
   dist = R3SignedDistance(camera.bottom_plane, pos);
   if (dist > 0 && !(fabs(dist) < radius)) return false;
-
   dist = R3SignedDistance(camera.camera_plane, pos);
   if (dist < 0 && !(fabs(dist) < radius)) return false;
-
   return true;
-
 }
 
 void World::PlayMusic(SoundType type) {
-
   static sf::Music music;
-
   string file;
 
-  if (type==DEATH_SOUND)
+  if (type == DEATH_SOUND) {
     file = "audio/kiss.wav";
-  else if (type==ABSORBING_SOUND)
+  } else if (type == ABSORBING_SOUND) {
     file = "audio/crunch.wav";
+  }
 
-  
   // http://www.grsites.com/archive/sounds/category/23/?offset=0 
   if (!music.openFromFile(file)) {
     printf("failed to find music\n");
   }
   music.setVolume(75);
   music.play();
-
 }
 
