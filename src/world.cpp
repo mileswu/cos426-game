@@ -410,28 +410,30 @@ void World::SimulatePowerups() {
   }
 
   // Random chance for power ups to spawn
-  double random_chance = rand(100);
-  if (random_chance < 1) {
-    int rand_num = floor(rand(5));
-    PowerUpType type;
-    switch (rand_num) {
-    case 0:
-      type = invincible_type;
-      break;
-    case 1:
-      type = small_sink_type;
-      break;
-    case 2:
-      type = sink_type;
-      break;
-    case 3:
-      type = speed_up_type;
-      break;
-    case 4:
-      type = slow_down_type;
-      break;
+  if(powerups_enabled == 1) {
+    double random_chance = rand(100);
+    if (random_chance < 1) {
+      int rand_num = floor(rand(5));
+      PowerUpType type;
+      switch (rand_num) {
+      case 0:
+        type = invincible_type;
+        break;
+      case 1:
+        type = small_sink_type;
+        break;
+      case 2:
+        type = sink_type;
+        break;
+      case 3:
+        type = speed_up_type;
+        break;
+      case 4:
+        type = slow_down_type;
+        break;
+      }
+      CreatePowerUp(type);
     }
-    CreatePowerUp(type);
   }
 }
 
