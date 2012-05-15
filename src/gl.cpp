@@ -480,6 +480,21 @@ void TimerFunc(int stuff) {
   glutTimerFunc(1000.0/fps, TimerFunc, stuff);
 }
 
+void LoadTexture(const char *filename, GLuint *tex, int width, int height, GLuint type) {
+  ifstream texture_file (filename, ios::in | ios::binary | ios::ate);
+  int texture_file_size = texture_file.tellg();
+  texture_file.seekg(0, ios::beg);
+  char *texture_source = (char *)malloc(texture_file_size);
+  texture_file.read(texture_source, texture_file_size);
+  glGenTextures(1, tex);
+  glBindTexture(GL_TEXTURE_2D, *tex);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, type, GL_UNSIGNED_BYTE, texture_source);
+  texture_file.close();
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void LoadCubemap(const char *filename, GLuint *tex, int width, int height) {
   ifstream texture_file (filename, ios::in | ios::binary | ios::ate);
   int texture_file_size = texture_file.tellg();
@@ -564,20 +579,11 @@ int CreateGameWindow(int argc, char **argv) {
     LoadCubemap("./textures/ball.rgb", &bubble_texture, 512, 512);
   }
   
-  int width = 128, height = 128;
-  ifstream texture_file ("./textures/particle.rgba", ios::in | ios::binary | ios::ate);
-  int texture_file_size = texture_file.tellg();
-  texture_file.seekg(0, ios::beg);
-  char *texture_source = (char *)malloc(texture_file_size);
-  texture_file.read(texture_source, texture_file_size);
-  glGenTextures(1, &particle_sprite);
-  glBindTexture(GL_TEXTURE_2D, particle_sprite);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_source);
-  texture_file.close();
-  glBindTexture(GL_TEXTURE_2D, 0);
-
+  LoadTexture("./textures/particle.rgba", &particle_sprite, 128, 128, GL_RGBA);
+  LoadTexture("./textures/menu.rgb", &menu_texture, 1024, 1024, GL_RGB);
+  LoadTexture("./textures/menu_on.rgb", &menu_on_texture, 32, 32, GL_RGB);
+  LoadTexture("./textures/menu_off.rgb", &menu_off_texture, 32, 32, GL_RGB);
+  
   cout << glGetString(GL_VERSION) << endl;
   
   return 0;
