@@ -34,7 +34,7 @@ BubbleMaterial Bubble::enemy_material = {
   true,
   3000,
   5,
-  {1, 1, 1, 1},
+  {25.0/255.0, 220.0/255.0, 250.0/255.0, 1},
 };
 
 /*static BubbleMaterial player_material = {
