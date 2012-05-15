@@ -191,7 +191,6 @@
 	</ul>
 	<h3>Collisions</h3>
 	<ul>
-		<li>TODO</li>
 		<li>With the encompassing world sphere      </li>
         If the position of a sphere is ever found to be farther from the center of the world than the radius of the world minus the sphere, the sphere collides with the world sphere. Reflections are made specularly, reversing the perpendicular component of the sphere's velocity with respect to the normal of the world sphere at this point. The normal is calculated by casting a vector from the point of the sphere to the center of the world. The positions are also immediately snapped to the inside of the sphere if the current position is found to be outside of the acceptable range.
         <li>With other spheres                      </li>
@@ -253,13 +252,13 @@
 
 <section class="slide">
    <h2>Start Menu</h2>
+    <img width=550 style="float: right" src="./images/menu.png" />
 	<ul>
 		<li>Quality settings and effects          </li>
 		<li>High or low count of spheres          </li>
 		<li>Ability to have AI or powerups        </li>
 		<li>Turn on or off particle trails        </li>
 	</ul>
-    <img style="float: right" src="./images/menu.png" />
 </section>
 
 <section class="slide">
@@ -288,7 +287,8 @@
       Windows requires the algorithm library, and because of its lack of time library, we used glut's time library. We had to change SFML by including certain dlls from MinGW for it to work in cygwin. 
       <li>Mac OS X</li>
       Installing SFML for OS X is very simple using the release candidate installer. The Makefile is also slightly different as OS X 
-		<li>Linux</li>
+      <li>Linux</li>
+      Linux users need to install SFML RC 2.0 from the website. No other major compatibility issues seemed to arise.
 	</ul>
 	<h3>Hardware</h3>
 	<ul>
