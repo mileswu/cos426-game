@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Deck Skeleton</title>
+	<title>3DsmOS</title>
 	<meta name="viewport" content="width=1024, user-scalable=no">
 	
 	<!-- Replace path with correct path to deck.core.css. -->
@@ -69,20 +69,32 @@
 <section class="slide">
    <h2>Inspiration</h2>
    <h3>Osmos</h3>
-	<img src="images/osmos1.jpeg" />
-	<img src="images/osmos2.jpeg" />
+<table>
+	<tr><td style="padding-right: 50px"><a href="http://www.hemispheregames.com/osmos/"><img style="display: inline" width="150px" src="images/osmos1.jpeg" /></a></td>
+	<td><iframe width="420" height="315" src="http://www.youtube.com/embed/pso6UBicLWU" frameborder="0" allowfullscreen></iframe></td></tr>
+</table>
+	<ul>
+		<li>Existing game on PC, iOS and Android</li>
+		<li>iPad game of the year (2010)</li>
+		<li>Recreate in 3D</li>
+	</ul>
 </section>
-
 
 <section class="slide">
    <h2>Gameplay</h2>
    <h3>How to play</h3>
 	<ul>
-	<li>	Sphere in space                          </li>
+	<li>	Player is a sphere in space                          </li>
 	<li>	Move by emitting parts of yourself       </li>
 	<li>	Absorb other spheres smaller than you    </li>
-	<li>	Avoid death by larger spheres            </li>
-	<li>	Hit powerups for interesting effects     </li>
+	<li>	Avoid death by larger spheres absorbing you          </li>
+	<li>	Hit power-ups for interesting effects     </li>
+</ul>
+<h3>Control</h3>
+	<ul>
+	<li>	Two control systems                         </li>
+	<li> Standard: third-person camera using mouse for rotation, always aiming straight ahead </li>
+	<li> Advanced: third-person camera using mouse for rotation, aim can be independently controlled using keyboard</li>
 </ul>
 </section>
 
@@ -94,41 +106,78 @@
 	<li>	On-screen control panel                                  </li>
 	<li>	Collision detection                                      </li>
 	<li>	View frustrum culling                                    </li>
-	<li>	Physics-based (conservation of momentum and mass)        </li>
+	<li>	Physics simulations (conservation of momentum and mass)        </li>
 	<li>	Vertex and fragment shaders                              </li>
 	<li>	Multipass rendering effects                              </li>
 	<li>	Advanced image techniques                                </li>
-	<li>	Level of detail control                                  </li>
-	<li>	Sound (SFML)                                             </li>
+	<li>	Dynamic level of detail control                                  </li>
+	<li>	Sound effects                                            </li>
 	<li>	Game level editor                                        </li>
 </ul>
 </section>
 
 <section class="slide">
    <h2>Texture Mapping</h2>
+	<img style="float: right" src="images/texture.png" />
+
 	<h3>Used where?</h3>
 	<ul>
 		<li>Menu screen</li>
 		<li>Spheres</li>
-		<li>World background</li>
+		<li>World background (the inside of a sphere)</li>
+	</ul>
+	<h3>Cube mapping</h3>
+	<ul>
+		<li>Used for both spheres and world background</li>
+		<li>Six textures corresponding to each face of a cube that is mapped onto the 3D sphere, using the normal vector on the sphere as the mapping</li>
+		<li>Uses GLSL fragment shader and GL_TEXTURE_CUBE_MAP</li>
 	</ul>
 	<h3>Standard OpenGL</h3>
-	<h3>Cube mapping</h3>
-</section>
-
-<section class="slide">
-   <h2>Minimap</h2>
 	<ul>
-		<li>2D view of the world around you, projecting everything onto Z plane</li>
-		<li>color indicates size</li>
-		<li>shape indicates direction on Z axis</li>
+		<li>Used for menu screen</li>
+		<li>Only used for spheres if cube mapping is unavailable (it requires fragment shaders)</li>
 	</ul>
 </section>
 
 <section class="slide">
-   <h2>HUD</h2>
+   <h2>Frustrum Culling</h2>
+   <h3>Used to limit the number of polygons drawn on screen</h3>
+   <h3>Basic Algorithm</h3>
+    <ul>
+      <li>Project planes along the four sides of the camera view</li>
+      <li>Check to see which side of each plane each object lies on</li>
+      <li>If the object is ever on the wrong side of a plane, do not draw it</li>
+	</ul>
+</section>
+
+<section class="slide">
+   <h2>Overlays</h2>
+	<h3>Minimap</h3>
+	<img style="float: right" src="images/minimap.png" />
+
 	<ul>
-		<li>TODO</li>
+		<li>2D view of the world around you, projecting everything onto Z plane</li>
+		<li>Centered on the player</li>
+		<li>Color indicates size of other bubbles relative to the player</li>
+		<li>Triangles indicates whether the bubble is above or below (in Z) relative to the player</li>
+		<li>Size is proportional to the distance to the bubble from the player</li>
+		<li>Very small bubbles and those very far away in Z distance are not shown to make the map clearer</li>
+		<li>Rendered like HUD</li>
+	</ul>
+
+   <h3>HUD</h3>
+	<img style="float: right" src="images/hud.png" />
+
+	<ul>
+		<li>Gives information to player and current game FPS</li>
+		<li>Uses glutBitmapCharacter() to draw characters</li>
+	</ul>
+	
+	<h3>Overlays</h3>
+	<ul>
+		<li>Overlays uses Orthographic Projection (gluOrtho2D)
+			<li>Depth buffer disabled</li>
+			<li>glViewport to restrict rendering region </li>
 	</ul>
 </section>
 
@@ -136,13 +185,17 @@
    <h2>Physics</h2>
 	<h3>Euler Integration</h3>
 	<ul>
-		<li>TODO</li>
+		<li>Used in both the Trail particle system and for the spheres</li>
+		<li>Timestep for integration tied to render framerate</li>
+		<li>Acceleration for powerups</li>
 	</ul>
 	<h3>Collisions</h3>
 	<ul>
 		<li>TODO</li>
 		<li>With the encompassing world sphere      </li>
-		<li>With other spheres                      </li>
+        If the position of a sphere is ever found to be farther from the center of the world than the radius of the world minus the sphere, the sphere collides with the world sphere. Reflections are made specularly, reversing the perpendicular component of the sphere's velocity with respect to the normal of the world sphere at this point. The normal is calculated by casting a vector from the point of the sphere to the center of the world. The positions are also immediately snapped to the inside of the sphere if the current position is found to be outside of the acceptable range.
+        <li>With other spheres                      </li>
+        Intersection between two spheres is fairly simple. In our case, when spheres hit each other, the bigger one begins to absorb the smaller one, so the check for a collision is just finding the distance between each pair of balls and seeing if this is less than the sum of the radii of the two balls.
 		<li>With powerups (bounding box, visible)   </li>
 		<li>Conservation of mass and momentum</li>
 	</ul>
@@ -204,15 +257,19 @@
 		<li>Ability to have AI or powerups        </li>
 		<li>Turn on or off particle trails        </li>
 	</ul>
+    <img style="float: right" src="./menu.png" />
 </section>
 
 <section class="slide">
    <h2>Level of Detail</h2>
 	<h3>Dynamic LoD</h3>
 	<ul>
-		<li>Level of detail relative to distance  </li>
-		<li>Multiple meshes </li>
-		<li>Sphere segments          </li>
+      <li>Multiple meshes </li>
+      We rendered multiple versions of each of the meshes with varying quality using collapse edges code from a2. Meshes are one of the more computationally consuming parts of the calculations, so having simpler versions of the meshes speeds things up at a cost of the objects looking a bit worse.
+      <li>Sphere segments          </li>
+      Spheres are rendered in OpenGL as polygons with a given number of vertices along the horizontal plane and a number along the vertical plane. By reducing the number of vertices for each sphere, the per-vertex calculations are done much faster.
+      <li>Level of detail relative to distance  </li>
+      Level of detail relative to distance renders the low quality meshes and spheres when they are far from the camera but high quality ones when the camera approaches. When the meshes and spheres are far away, the models are smaller on screen, so the loss of detail is not as noticeable.
 	</ul>
 
 </section>
@@ -235,12 +292,14 @@
    <h2>Sound</h2>
 	<h3>Library</h3>
 	<ul>
-		<li>SFML</li>
+		<li>SFML - Simple and Fast Music Library</li>
 	</ul>
 	<h3>When</h3>
 	<ul>
-		<li>Constant game music                                                       </li>
-		<li>Sound effects upon death and another bubble being completely absorbed     </li>
+      <li>Constant game music - Hello World (2006 Remix)
+      <ul>http://offog.org/music/songs.html</ul></li>
+      <li>Sound effects upon death and another bubble being completely absorbed
+      <ul>http://www.grsites.com/archive/sounds/</ul></li>
 	</ul>
 </section>
 
