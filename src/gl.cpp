@@ -405,8 +405,6 @@ void RedrawWindow() {
     glActiveTexture(GL_TEXTURE0);
     
     glUseProgram(0);
-    
-    printProgramInfoLog(bump_shader->program);
   }
   
   // OSD

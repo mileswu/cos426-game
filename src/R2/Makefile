@@ -3,7 +3,7 @@
 #
 
 CXX=g++
-CXXFLAGS=-Wall -I. -I.. -g -DUSE_JPEG
+CXXFLAGS=-Wall -I. -I.. -g -DUSE_JPEG -O2
 
 ifneq (,$(findstring Darwin,$(shell uname)))
   AR=libtool -static -o
