@@ -127,7 +127,7 @@ void RedrawMenu() {
     glPushMatrix();
     glTranslatef((705.0-512.0)/512.0, -(i-512.0)/512.0, 0.0);
 
-    if(config_i == 0 || config_i == 4) 
+    if(config_i == 0) 
       glBindTexture(GL_TEXTURE_2D, menu_high_texture);
     else
       glBindTexture(GL_TEXTURE_2D, menu_on_texture);
@@ -149,7 +149,7 @@ void RedrawMenu() {
     glBindTexture(GL_TEXTURE_2D, 0);
     
     glTranslatef(50.0/512.0, 0, 0.0);
-    if(config_i == 0 || config_i == 4) 
+    if(config_i == 0) 
       glBindTexture(GL_TEXTURE_2D, menu_low_texture);
     else
       glBindTexture(GL_TEXTURE_2D, menu_off_texture);

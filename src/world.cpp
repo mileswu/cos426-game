@@ -743,7 +743,7 @@ void World::Draw(R3Camera camera, Shader *bump_shader) {
       glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
     }
     if (InView(camera, (*it)->pos, (*it)->size)) {
-      if(  ((*it)->pos - camera.eye).Length() < 20  )
+      if( level_of_detail == 0 ||  ((*it)->pos - camera.eye).Length() < 20  )
         (*it)->Draw(0);
       else
         (*it)->Draw(1);
@@ -840,7 +840,7 @@ void World::DrawPowerups(R3Camera camera) {
       glTranslated(power_ups[i].Center[0], power_ups[i].Center[1], power_ups[i].Center[2]);
       
       // Level of Detail
-      if((power_ups[i].Center - camera.eye).Length() < 30)
+      if(level_of_detail == 0 || (power_ups[i].Center - camera.eye).Length() < 30)
         power_ups[i].mesh[0]->Draw();
       else
         power_ups[i].mesh[1]->Draw();
