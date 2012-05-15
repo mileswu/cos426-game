@@ -469,7 +469,7 @@ void World::SimulatePowerups() {
   }
 }
 
-void World::SimulateMotion() {
+void World::SimulateMotion(bool player_only = false) {
   Bubble* player = bubbles[0];
   double m1 = player->Mass();
 
@@ -478,6 +478,9 @@ void World::SimulateMotion() {
        it < bubbles.end(); it++) {
     (*it)->a = R3Vector(0,0,0);
     if ((*it) != bubbles[0]) {
+      if (player_only) {
+        break;
+      }
       // Player sink status moves NPC bubbles toward it.
       if (player->state == sink_state) {
         R3Vector towards = player->pos - (*it)->pos;
@@ -500,6 +503,9 @@ void World::SimulateMotion() {
        it < bubbles.end(); it++) {
     // Update bubble velocities.
     (*it)->v += (*it)->a*timestep;
+    if ((*it) != bubbles[0] && player_only) {
+      break;
+    }
     if (player->state == speed_up_state && (*it) == player) {
 	  (*it)->v *= 10;
       player->state = reg_state;
@@ -516,6 +522,9 @@ void World::SimulateMotion() {
        it < bubbles.end(); it++) {
     // Update bubbles.
     (*it)->pos += (*it)->v*timestep;
+    if ((*it) != bubbles[0] && player_only) {
+      break;
+    }
   }
 
   for (vector<Particle *>::iterator it = particles.begin(); it < particles.end(); ++it) {

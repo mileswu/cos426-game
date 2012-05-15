@@ -239,7 +239,7 @@ void RedrawWindow() {
     if (world->world_status != -1) {
       world->Simulate();
     } else {
-      world->SimulateMotion();
+      world->SimulateMotion(true);
     }
   }
 
@@ -692,7 +692,7 @@ void MouseInput(int button, int state, int x, int y) {
 void MouseEditInput(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
     Bubble *b = world->CreateBubble();
-    b->v = R3null_vector;
+    //b->v = R3null_vector;
     b->pos = world->PlayerPosition();
   } else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
     Bubble *enemy = world->CreateEnemyBubble();
