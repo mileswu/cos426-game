@@ -48,8 +48,8 @@ class World {
     void DrawWorld();
     void DrawOverlay();
     void DrawPowerups(R3Camera camera);
-	  void CreatePowerUp(PowerUpType type);
-		void RemovePowerUp(int index);
+    void CreatePowerUp(PowerUpType type);
+    void RemovePowerUp(int index);
 
     void GenerateLevel();
     void Simulate();

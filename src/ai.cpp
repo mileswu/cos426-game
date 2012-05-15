@@ -5,9 +5,7 @@
 #include <vector>
 using namespace std;
 
-
-void AI::ActFromState()
-{
+void AI::ActFromState() {
   switch (state) {
   case kIdle:     Idle();     break;
   case kSeek:     Seek();     break;
@@ -17,33 +15,23 @@ void AI::ActFromState()
   }
 }
 
-
-void NullAI::Idle()
-{
+void NullAI::Idle() {
   // Silence is golden.
 }
 
-
-void NullAI::Seek()
-{
+void NullAI::Seek() {
   // Silence is golden.
 }
 
-
-void NullAI::Aggress()
-{
+void NullAI::Aggress() {
   // Silence is golden.
 }
 
-
-void NullAI::Avoid()
-{
+void NullAI::Avoid() {
   // Silence is golden.
 }
 
-
-void EnemyAI::Idle()
-{
+void EnemyAI::Idle() {
   state = kIdle;
 
   // Find the bubbles that are smaller than us.
@@ -73,66 +61,52 @@ void EnemyAI::Idle()
   // Here, we just uniformly weight a, v, and d.
   // TODO but what we really want is for the NPC bubbles to shoot
   // their own bubble trails to accelerate.
-  /*R3Vector current_a;
-  R3Vector current_v;
+  //R3Vector current_a;
+  //R3Vector current_v;
   R3Vector direction;
-  current_a = self->a;
-  current_a.Normalize();
-  current_v = self->v;
-  current_v.Normalize();
+  //current_a = self->a;
+  //current_a.Normalize();
+  //current_v = self->v;
+  //current_v.Normalize();
   direction = closest_bubble->pos - self->pos;
   direction.Normalize();
-  a = d - a - v;
-  a.Normalize();*/
+  //a = d - a - v;
+  //a.Normalize();
+  world->EmitAtBubble(self, direction);
 }
 
-
-void EnemyAI::Seek()
-{
+void EnemyAI::Seek() {
   state = kSeek;
 
   // Path toward the target.
 }
 
-
-void EnemyAI::Aggress()
-{
+void EnemyAI::Aggress() {
   state = kAggress;
 
   // Path toward the target and shoot stuff at it.
 
 }
 
-
-void EnemyAI::Avoid()
-{
+void EnemyAI::Avoid() {
   state = kAvoid;
 
   // Path away from the target.
 
 }
 
-
-void SwarmAI::Idle()
-{
+void SwarmAI::Idle() {
   // Silence is golden.
 }
 
-
-void SwarmAI::Seek()
-{
+void SwarmAI::Seek() {
   // Silence is golden.
 }
 
-
-void SwarmAI::Aggress()
-{
+void SwarmAI::Aggress() {
   // Silence is golden.
 }
 
-
-void SwarmAI::Avoid()
-{
+void SwarmAI::Avoid() {
   // Silence is golden.
 }
-

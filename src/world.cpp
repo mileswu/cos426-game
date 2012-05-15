@@ -58,6 +58,7 @@ static R3Point randpoint(double max, double min = 0) {
 void World::GenerateLevel() {
   // Generate player bubble.
   Bubble *player = new Bubble();
+  player->size = 1.3;
   player->player_id = 0;
   player->material = &Bubble::player_material;
   bubbles.push_back(player);
@@ -76,20 +77,23 @@ void World::GenerateLevel() {
 
   // TODO peter(5/14) generate enemy bubbles.
   int num_enemies = 1;
-  for (int i = 0; false && num_enemies; i++) {
+  for (int i = 0; i < num_enemies; i++) {
     Bubble *enemy = new Bubble();
     enemy->pos = randpoint(30);
-    enemy->v = randvector(0.1);
-    enemy->size = rand(1.5, 1.3);
+    enemy->v = R3null_vector;
+    enemy->size = 1.5;
     enemy->player_id = 1 + i;
     enemy->material = &Bubble::enemy_material;
 
     // Initialize the AI to target teh player.
     EnemyAI *ai = new EnemyAI();
+    ai->rate = 0;
     ai->world = this;
     ai->self = enemy;
     ai->target = player;
     enemy->ai = ai;
+  
+    bubbles.push_back(enemy);
   }
 
   // Generate random powerups.
@@ -337,7 +341,25 @@ void World::Simulate() {
     }
   }
 
-  //check if powerups mesh die
+  // Perform AI action depending on the AI thinking rate.
+  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
+       it != ie; ++it) {
+    if (NULL == (*it)->ai) {
+      continue;
+    }
+
+    // Calculate the action rate.
+    double ideal_ai_calcs = (*it)->ai->rate * timestep;
+    int ai_calcs = 0;
+    ai_calcs += ideal_ai_calcs;
+
+    // Shoot.
+    if (0 < ai_calcs) {
+      (*it)->ai->ActFromState();
+    }
+  }
+
+  // Check if powerups mesh die
   for (unsigned int i = 0; i < power_ups.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
     if (cur_time > power_ups[i].die_time) {
@@ -346,7 +368,7 @@ void World::Simulate() {
     }
   }
 
-  //check if powerup effect time already expired
+  // Check if powerup effect time already expired
   for (unsigned int i = 0; i < bubbles.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
     if (cur_time > bubbles[i]->effect_end_time &&
@@ -356,7 +378,7 @@ void World::Simulate() {
     }
   }
 
-  //random chance for power ups to spawn
+  // Random chance for power ups to spawn
   double random_chance = rand(100);
   if (random_chance < 1) {
     int rand_num = floor(rand(5));
@@ -547,10 +569,14 @@ void World::Draw(R3Camera camera) {
   for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
        it != ie; it++) {
     if ((*it)->player_id == 0) {
+      // The player is blue.
       c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
     } else if ((*it)->player_id == 1) {
-      // FIXME enemy colors
+      // The enemy is a sickly magenta color.
+      c[0] = 1; c[1] = 0; c[2] = 1; c[3] = 1;
     } else {
+      // The neutrals range from green to red depending on their size
+      // relative to the player's.
       double s = (*it)->size;
       if (s < 0.8*player_size) {
         c[0] = 0; c[1] = 1; c[2] = 0; c[3] = 1;
