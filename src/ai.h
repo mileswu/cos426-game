@@ -50,6 +50,8 @@ class SwarmAI : public AI {
 public:
   void Idle();
   void Aggress();
+
+  Bubble *leader;
 };
 
 
