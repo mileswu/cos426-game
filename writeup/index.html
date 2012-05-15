@@ -272,9 +272,9 @@
       Level of detail relative to distance renders the low quality meshes and spheres when they are far from the camera but high quality ones when the camera approaches. When the meshes and spheres are far away, the models are smaller on screen, so the loss of detail is not as noticeable.
 	</ul>
     <h2>Low Quality</h2>
-    <img style="float: right" src="./images/lowdetail.png" />
-    <h2>Hight Quality</h2>
-    <img style="float: right" src="./images/highdetail.png" />
+    <img style="float: left" src="./images/lowdetail.png" />
+    <h2>High Quality</h2>
+    <img style="float: left" src="./images/highdetail.png" />
 
 </section>
 
@@ -282,13 +282,15 @@
    <h2>Compataiblity</h2>
 	<h3>Operating Systems</h3>
 	<ul>
-		<li>Windows (cygwin/mingw)</li>
-		<li>Mac OS X</li>
+      <li>Windows (cygwin/mingw)</li>
+      Windows requires the algorithm library, and because of its lack of time library, we used glut's time library. We had to change SFML by including certain dlls from MinGW for it to work in cygwin. 
+      <li>Mac OS X</li>
+      Installing SFML for OS X is very simple using the release candidate installer. The Makefile is also slightly different as OS X 
 		<li>Linux</li>
 	</ul>
 	<h3>Hardware</h3>
 	<ul>
-		<li>Some levels of detail are automatically determined if your computer does not support it</li>
+		<li>Some levels of detail are automatically determined if your computer does not support it. In particular, we checked to see if the computer has GLEW_ARB_framebuffer_object and GLEW_ARB_fragment_program before allowing the computer to have shaders and framebuffers.</li>
 	</ul>
 </section>
 
