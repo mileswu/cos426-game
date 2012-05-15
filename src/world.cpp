@@ -540,9 +540,9 @@ void World::Simulate() {
     if ((*it)->pos.Vector().Length() > (world_size - (*it)->size)) {
       normal = (*it)->pos.Vector();
       normal.Normalize();
-      normal.Flip();
-      (*it)->pos = (normal * (world_size - (*it)->size)).Point();
+      (*it)->pos = (normal * (world_size - (*it)->size-0.1)).Point();
       (*it)->v = 2.0 * ((*it)->v.Dot(normal)) * normal - (*it)->v;
+      (*it)->v.Flip();
 
     }
   }
