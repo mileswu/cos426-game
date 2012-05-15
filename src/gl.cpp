@@ -627,6 +627,7 @@ void KeyboardEditInput(unsigned char key, int x, int y) {
     R3Vector d = world->PlayerPosition() - R3Point(0, 0, 0);
     view_camera.eye.Translate(-d);
     back_camera.eye.Translate(-d);
+    world->SetPlayerVelocity(R3null_vector);
     world->SetPlayerPosition(R3Point(0, 0, 0));
     world->world_status = 0;
   } break;
