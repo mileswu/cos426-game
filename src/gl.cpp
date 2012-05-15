@@ -30,7 +30,7 @@ static int config[6] = {1, 0, 1, 1, 1, 1};
 static int config_pointer = 0;
 static int config_maxpointer = 5;
 
-void Reset();
+void Reset(int status);
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
@@ -228,20 +228,24 @@ void RedrawWindow() {
   // Initialization
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
-  
+
   // Simulation
   R3Vector cameradisplacement_before = world->PlayerPosition() - view_camera.eye;
   R3Vector back_cameradisplacement_before = world->PlayerPosition() - back_camera.eye;
-  world->Simulate();
-  
+  world->Timestep();
+  if (world->world_status != -1) {
+    world->Simulate();
+  } else {
+    world->SimulateMotion();
+  }
+
   // Camera
   R3Vector cameradisplacement_after = world->PlayerPosition() - view_camera.eye;
   R3Vector back_cameradisplacement_after = world->PlayerPosition() - back_camera.eye;
   view_camera.eye.Translate(cameradisplacement_after - cameradisplacement_before);
   back_camera.eye.Translate(back_cameradisplacement_after - back_cameradisplacement_before);
   view_camera.Load(window_width, window_height);
-  
+
   // Lighting
   //glMatrixMode(GL_MODELVIEW);
   //glPopMatrix();
@@ -255,7 +259,7 @@ void RedrawWindow() {
   c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
   glLightfv(light_index, GL_POSITION, c);
   glEnable(light_index);
-    
+
   //c[0] = 1; c[1] = 1; c[2] = 1; c[3] = 1;
   c[0] = 0.2; c[1] = 0.2; c[2] = 0.2; c[3] = 1;  
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, c);
@@ -484,8 +488,9 @@ void RedrawWindow() {
 
 void GoBackToMenu();
 void KeyboardInput(unsigned char key, int x, int y) {
-  if(key == 'q' || key == 27)
+  if (key == 'q' || key == 27) {
     GoBackToMenu();
+  }
   double vx = 0;
   double vy = 0;
   // move the placement of where the bubbles emit from
@@ -502,7 +507,7 @@ void KeyboardInput(unsigned char key, int x, int y) {
     vx = -1;
   }
   else if (key == 'r') {
-    Reset();
+    Reset(0);
     return;
   }
   else {
@@ -532,14 +537,42 @@ void KeyboardInput(unsigned char key, int x, int y) {
   back_camera.right.Normalize();
 }
 
-void KeyboardMenuInput(unsigned char key, int x, int y) {
-  if(key == 'q' || key == 27)
-    exit(0);
-  else if(key == 13) {
-    Reset();
+void MouseInput(int button, int state, int x, int y);
+
+void KeyboardEditInput(unsigned char key, int x, int y) {
+  static int v = 0;
+  static double c = 5.;
+  switch (key) {
+  case 27:
+  case 'q': GoBackToMenu(); break;
+  case 'w': v = 1;  world->SetPlayerVelocity(v * c * view_camera.towards); break;
+  case 's': v = -1; world->SetPlayerVelocity(v * c * view_camera.towards); break;
+  case 'e': v = 0;  world->SetPlayerVelocity(v * c * view_camera.towards); break;
+  case 'r': Reset(-1); break;
+  case 13: {
+    glutKeyboardFunc(KeyboardInput);
+    glutMouseFunc(MouseInput);
+    R3Vector d = world->PlayerPosition() - R3Point(0, 0, 0);
+    view_camera.eye.Translate(-d);
+    back_camera.eye.Translate(-d);
+    world->SetPlayerPosition(R3Point(0, 0, 0));
+    world->world_status = 0;
+  } break;
+  default: ;
   }
+  return;
 }
 
+void KeyboardMenuInput(unsigned char key, int x, int y) {
+  switch (key) {
+  case 27:
+  case 'q': exit(0);
+  case 13:  Reset(0); break;
+  case 'e': Reset(-1); break;
+  default: ;
+  }
+  return;
+}
 
 void SpecialMenuInput(int key, int x, int y) {
   if(key == GLUT_KEY_UP) {
@@ -573,6 +606,18 @@ void MouseInput(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
     //world->Emit(back_camera.towards);
     world->Emit(view_camera.towards);
+  }
+}
+
+void MouseEditInput(int button, int state, int x, int y) {
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    Bubble *b = world->CreateBubble();
+    b->v = R3null_vector;
+    b->pos = world->PlayerPosition();
+  } else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+    Bubble *enemy = world->CreateEnemyBubble();
+    enemy->v = R3null_vector;
+    enemy->pos = world->PlayerPosition();
   }
 }
 
@@ -664,7 +709,7 @@ int CreateGameWindow(int argc, char **argv) {
 #if defined(__APPLE__)
   CGSetLocalEventsSuppressionInterval(0.0);
 #endif
-  int GLUTwindow = glutCreateWindow("Game");
+  glutCreateWindow("Game");
   
   GLenum err = glewInit();
   if (GLEW_OK != err)
@@ -710,9 +755,10 @@ int CreateGameWindow(int argc, char **argv) {
   return 0;
 }
 
-void Reset() {
-  if(world != NULL)
+void Reset(int status) {
+  if (world != NULL) {
     delete world;
+  }
   world = new World();
   view_camera.eye = R3Point(0,0,-4);
   view_camera.yfov = 0.8;
@@ -728,11 +774,22 @@ void Reset() {
   world->powerups_enabled = config[2];
   world->num_enemies = config[1];
   world->num_bubbles = (config[0] == 1 ? 200: 50);
-  world->GenerateLevel();
+  world->world_status = status;
+
+  if (status == -1) {
+    world->GenerateEmptyLevel();
+  } else {
+    world->GenerateRandomLevel();
+  }
   
   glutDisplayFunc(RedrawWindow);
-  glutKeyboardFunc(KeyboardInput);
-  glutMouseFunc(MouseInput);
+  if (status == -1) {
+    glutKeyboardFunc(KeyboardEditInput);
+    glutMouseFunc(MouseEditInput);
+  } else {
+    glutKeyboardFunc(KeyboardInput);
+    glutMouseFunc(MouseInput);
+  }
   glutPassiveMotionFunc(MouseMovement);
   glutSpecialFunc(SpecialInput);
   glutWarpPointer(window_width/2, window_height/2);

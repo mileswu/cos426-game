@@ -5,7 +5,7 @@
 #include <sstream>
 using namespace std;
 
-Shader::Shader(char *name) {
+Shader::Shader(const char *name) {
   stringstream ss_f, ss_v;
   ss_f << "shaders/" << name << ".frag";
   ss_v << "shaders/" << name << ".vert";
