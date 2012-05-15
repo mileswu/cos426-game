@@ -658,16 +658,15 @@ void World::Draw(R3Camera camera) {
     }*/
 	
 	GLfloat c_new[4];
-	GLfloat c_purple[4] = {1, 1, 1, 1};
-	GLfloat c_yellow[4] = {0, 0, 0, 1};
+	GLfloat c_yellow[4] = {1, 1, 0, 1};
     // Apply material.
 
-	if ((*it) -> state != reg_state)
+	if ((*it) -> state != reg_state && (*it) == bubbles[0])
 	{	
 	  double cur_time = glutGet(GLUT_ELAPSED_TIME);
       double factor = (cos(cur_time/10.0) + 1)/2.0;
       for (unsigned int k = 0; k < 3; k++) {
-        c_new[k] = factor * c_yellow[k] + (1-factor) * c_purple[k]; 
+        c_new[k] = factor * c_yellow[k] + (1-factor) * c[k]; 
       }
       c_new[3] = 1;
 	  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c_new);
@@ -684,9 +683,9 @@ void World::Draw(R3Camera camera) {
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+    /*glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);*/
 
     GLfloat shininess = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
