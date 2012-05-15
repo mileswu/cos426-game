@@ -67,6 +67,9 @@ class World {
     std::vector<Particle *> particles;
     struct timeval lasttime_updated;
     int world_status;
+
+    static double emission_speed;
+    static double emission_sizefactor;
 };
 
 #endif

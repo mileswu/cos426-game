@@ -10,9 +10,7 @@ class AI {
 public:
   enum State {
     kIdle = 0,
-    kSeek,
     kAggress,
-    kAvoid,
     kNumStates,
   };
 
@@ -28,9 +26,7 @@ public:
   void ActFromState();
 
   virtual void Idle() = 0;
-  virtual void Seek() = 0;
   virtual void Aggress() = 0;
-  virtual void Avoid() = 0;
 
   int state;
   double rate;
@@ -44,27 +40,21 @@ public:
 class NullAI : public AI {
 public:
   void Idle();
-  void Seek();
   void Aggress();
-  void Avoid();
 };
 
 // Enemy is a broad term, basically it chases and attacks its target.
 class EnemyAI : public AI {
 public:
   void Idle();
-  void Seek();
   void Aggress();
-  void Avoid();
 };
 
 // This cell is in a group of boid-like cells.
 class SwarmAI : public AI {
 public:
   void Idle();
-  void Seek();
   void Aggress();
-  void Avoid();
 };
 
 

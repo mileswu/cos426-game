@@ -2,7 +2,6 @@
 #include "ai.h"
 #include "bubble.h"
 #include "gl.h"
-//#include "particle.h"
 #include <iostream>
 #include <map>
 #include <string>
@@ -13,8 +12,8 @@
 
 using namespace std;
 
-static double emission_speed = 5.0;
-static double emission_sizefactor = 0.05;
+double World::emission_speed = 5.0;
+double World::emission_sizefactor = 0.05;
 
 World::World() {
   GenerateLevel();
@@ -82,12 +81,12 @@ void World::GenerateLevel() {
     enemy->pos = randpoint(30);
     enemy->v = R3null_vector;
     enemy->size = 1.5;
-    enemy->player_id = 1 + i;
+    enemy->player_id = 1;
     enemy->material = &Bubble::enemy_material;
 
     // Initialize the AI to target teh player.
     EnemyAI *ai = new EnemyAI();
-    ai->rate = 0;
+    ai->rate = 25;
     ai->world = this;
     ai->self = enemy;
     ai->target = player;
@@ -215,14 +214,14 @@ void World::EmitAtBubble(Bubble *b, R3Vector direction) {
   R3Vector orig_v = b->v;
 
   Bubble *b_emitted = new Bubble();
-  bubbles.push_back(b_emitted);
   b_emitted->SetSizeFromMass(total_mass * emission_sizefactor);
   b->SetSizeFromMass(total_mass * (1 - emission_sizefactor));
 
   b_emitted->pos = b->pos - (b->size + b_emitted->size) * direction;
   b_emitted->v = orig_v - emission_speed * direction;
-
   b->v = (total_momentum - b_emitted->Mass() * b_emitted->v) / b->Mass();
+
+  bubbles.push_back(b_emitted);
 }
 
 void World::Emit(R3Vector camera_direction) {
@@ -354,7 +353,7 @@ void World::Simulate() {
     ai_calcs += ideal_ai_calcs;
 
     // Shoot.
-    if (0 < ai_calcs) {
+    if (ai_calcs > 0) {
       (*it)->ai->ActFromState();
     }
   }
@@ -728,6 +727,8 @@ void World::DrawMinimap() {
 
     if ((*it)->player_id == 0) {
       c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
+    } else if ((*it)->player_id == 1) {
+      c[0] = 1; c[1] = 0; c[2] = 1; c[3] = 1;
     } else {
       double s = (*it)->size;
       if(s < 0.8*player_size) {

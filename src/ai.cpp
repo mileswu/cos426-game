@@ -6,11 +6,12 @@
 using namespace std;
 
 void AI::ActFromState() {
+  //printf("AI working\n");
   switch (state) {
   case kIdle:     Idle();     break;
-  case kSeek:     Seek();     break;
+  //case kSeek:     Seek();     break;
   case kAggress:  Aggress();  break;
-  case kAvoid:    Avoid();    break;
+  //case kAvoid:    Avoid();    break;
   default:                    return;
   }
 }
@@ -19,28 +20,31 @@ void NullAI::Idle() {
   // Silence is golden.
 }
 
-void NullAI::Seek() {
-  // Silence is golden.
-}
-
 void NullAI::Aggress() {
   // Silence is golden.
 }
 
-void NullAI::Avoid() {
-  // Silence is golden.
-}
-
 void EnemyAI::Idle() {
+  // If we're bigger than the player, enter attack mode.
+  if (self->Mass() > world->bubbles[0]->Mass()) {
+    state = kAggress;
+    return;
+  }
   state = kIdle;
 
-  // Find the bubbles that are smaller than us.
+  // Find the bubbles that are smaller than us and
+  // larger than emitted bubble mass.
   vector<Bubble *> smaller_bubbles;
   for (vector<Bubble *>::iterator it = world->bubbles.begin(),
        ie = world->bubbles.end(); it != ie; ++it) {
-    if (self->Mass() > (*it)->Mass()) {
+    if ((*it)->Mass() < self->Mass() &&
+        (*it)->Mass() > self->Mass() * World::emission_sizefactor) {
       smaller_bubbles.push_back(*it);
     }
+  }
+
+  if (smaller_bubbles.size() == 0) {
+    return;
   }
 
   // Pick the closest one.
@@ -68,45 +72,31 @@ void EnemyAI::Idle() {
   //current_a.Normalize();
   //current_v = self->v;
   //current_v.Normalize();
-  direction = closest_bubble->pos - self->pos;
+  direction = self->pos - closest_bubble->pos;
   direction.Normalize();
   //a = d - a - v;
   //a.Normalize();
   world->EmitAtBubble(self, direction);
 }
 
-void EnemyAI::Seek() {
-  state = kSeek;
-
-  // Path toward the target.
-}
-
 void EnemyAI::Aggress() {
+  // If we're smaller than the player, enter idle mode.
+  if (self->Mass() < target->Mass()) {
+    state = kIdle;
+    return;
+  }
   state = kAggress;
 
   // Path toward the target and shoot stuff at it.
-
-}
-
-void EnemyAI::Avoid() {
-  state = kAvoid;
-
-  // Path away from the target.
-
+  R3Vector direction = self->pos - target->pos;
+  direction.Normalize();
+  world->EmitAtBubble(self, direction);
 }
 
 void SwarmAI::Idle() {
   // Silence is golden.
 }
 
-void SwarmAI::Seek() {
-  // Silence is golden.
-}
-
 void SwarmAI::Aggress() {
-  // Silence is golden.
-}
-
-void SwarmAI::Avoid() {
   // Silence is golden.
 }
