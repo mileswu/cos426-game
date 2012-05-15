@@ -23,7 +23,7 @@ INCS=$(HSRCS) $(CCSRCS:.cpp=.h)
 #
 
 CC=g++
-CPPFLAGS=-Wall -I. -I.. -g
+CPPFLAGS=-Wall -I. -I.. -g -O2
 LDFLAGS=-g
 
 

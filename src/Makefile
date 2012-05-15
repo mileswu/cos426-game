@@ -1,6 +1,6 @@
 CXX      := g++
-CXXFLAGS := -Wall -g -I. -I../deps/SFML-2.0-rc/include
-CFLAGS   := -Wall -g -I. 
+CXXFLAGS := -Wall -g -I. -I../deps/SFML-2.0-rc/include -O2
+CFLAGS   := -Wall -g -I. -O2 
 MAKE     := make
 
 all: game
