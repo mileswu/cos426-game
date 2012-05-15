@@ -3,11 +3,13 @@ varying vec3 texcoord;
 varying vec3 light_dir[2];
 varying vec3 eye_dir;
 uniform samplerCube tex;
+uniform samplerCube tex2;
+uniform float mixer;
+uniform float bumpmixer;
 
 void main() {
-
 	vec3 normal = normalize(vtx_normal);
-	normal += vec3(sin(texcoord.x*20.0), sin(texcoord.y*20.0), 0.0);
+	normal += bumpmixer*vec3(sin(texcoord.x*20.0), sin(texcoord.y*20.0), 0.0);
 	normal = normalize(normal);
 	
 	vec3 toeye = normalize(eye_dir);
@@ -29,5 +31,6 @@ void main() {
 		gl_FragColor += diffuse + specular;
 	}	
 	gl_FragColor = clamp(gl_FragColor, 0.0, 1.0);
-	gl_FragColor *= textureCube(tex, texcoord);
+	gl_FragColor *= (mixer*textureCube(tex, texcoord) + (1.0-mixer)*textureCube(tex2, texcoord));
+	
 }

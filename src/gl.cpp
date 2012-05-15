@@ -25,7 +25,7 @@ static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_comp
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
-static GLuint world_texture, world_texture_2d, bubble_texture, particle_sprite, menu_texture, menu_on_texture, menu_off_texture, menu_ball_texture, menu_low_texture, menu_high_texture;
+static GLuint world_texture, world_texture_2d, bubble_texture, bubble_texture2, particle_sprite, menu_texture, menu_on_texture, menu_off_texture, menu_ball_texture, menu_low_texture, menu_high_texture;
 static int config[7] = {1, 0, 1, 1, 1, 1, 0};
 static int config_pointer = 0;
 static int config_maxpointer = 6;
@@ -287,7 +287,27 @@ void RedrawWindow() {
     glBindFramebuffer(GL_FRAMEBUFFER, direct_render_fbo->framebuffer);
     glUseProgram(bump_shader->program);
     glBindTexture(GL_TEXTURE_CUBE_MAP, bubble_texture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, bubble_texture2);
+    glActiveTexture(GL_TEXTURE0);
+    
+    double t = 0.5*glutGet(GLUT_ELAPSED_TIME)/1000.0;
+    double mixer = 2.0*(t - (int)t);
+    if(mixer > 1) {
+      mixer = 2.0 - mixer;
+    }
+    t += 666;
+    t *= 1.5;
+    double bumpmixer = 2.0*(t - (int)t);
+    if(bumpmixer > 1) {
+      bumpmixer = 2.0 - bumpmixer;
+    }
+    bumpmixer = bumpmixer*0.5 + 0.5;
+    
     glUniform1i(glGetUniformLocation(bump_shader->program, "tex"), 0);
+    glUniform1i(glGetUniformLocation(bump_shader->program, "tex2"), 1);
+    glUniform1f(glGetUniformLocation(bump_shader->program, "mixer"), mixer);
+    glUniform1f(glGetUniformLocation(bump_shader->program, "bumpmixer"), bumpmixer);
   }
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -306,6 +326,7 @@ void RedrawWindow() {
   int occlusion = (ADV_CONTROLS == 1) ? 0 : 1;
   if(hasgoodgpu) {
     world->Draw(view_camera, bump_shader, occlusion);
+    printProgramInfoLog(bump_shader->program);
   } else {
     world->Draw(view_camera, NULL, occlusion);
   }
@@ -771,6 +792,7 @@ int CreateGameWindow(int argc, char **argv) {
     laser_shader = new Shader("laser");
     LoadCubemap("./textures/stars.rgb", &world_texture, 1024, 1024);
     LoadCubemap("./textures/ball.rgb", &bubble_texture, 512, 512);
+    LoadCubemap("./textures/ball_bw2.rgb", &bubble_texture2, 512, 512);
   }
   
   LoadTexture("./textures/stars.rgb", &world_texture_2d, 1024, 1024, GL_RGB);
