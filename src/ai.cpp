@@ -68,7 +68,7 @@ void EnemyAI::Idle() {
   R3Vector direction;
   direction = closest_bubble->pos - self->pos;
   direction.Normalize();
-  world->EmitAtBubble(self, -direction);
+  world->EmitAtBubble(self, direction);
 }
 
 void EnemyAI::Aggress() {
