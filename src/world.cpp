@@ -116,7 +116,7 @@ void World::GenerateLevel() {
       type = slow_down_type;
       break;
     }
-    CreatePowerUp(small_sink_type);
+    CreatePowerUp(sink_type);
   }
 
   // Check level of detail.
@@ -141,8 +141,8 @@ static R3Mesh* CreateSmallSink() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/pear.off");
   m->Scale(0.05, 0.05, 0.05);
-  m->Translate(0,0,5);
-  //randTranslate(m);
+  //m->Translate(0,0,5);
+  randTranslate(m);
   return m;
 }
 
@@ -471,11 +471,11 @@ void World::Simulate() {
       break;
     case small_sink_type:
       player->state = small_sink_state;
-      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 2000;
       break;
     case sink_type:
       player->state = sink_state;
-      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 10000;
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
       break;
     case speed_up_type:
       player->state = speed_up_state;
@@ -582,6 +582,7 @@ static double BubbleVectorIntersection(Bubble *b, R3Ray *ray) {
 }
 
 void World::Draw(R3Camera camera) {  
+  
   bool transparency = false;
   glEnable(GL_LIGHTING);
   //int light_index = GL_LIGHT0 + 10;
@@ -638,15 +639,16 @@ void World::Draw(R3Camera camera) {
     }*/
 	
 	GLfloat c_new[4];
-	GLfloat c_yellow[4] = {1, 1, 0, 1};
+	GLfloat c_purple[4] = {1, 1, 1, 1};
+	GLfloat c_yellow[4] = {0, 0, 0, 1};
     // Apply material.
 
 	if ((*it) -> state != reg_state)
-	{
+	{	
 	  double cur_time = glutGet(GLUT_ELAPSED_TIME);
       double factor = (cos(cur_time/10.0) + 1)/2.0;
       for (unsigned int k = 0; k < 3; k++) {
-        c_new[k] = factor * c_yellow[k] + (1-factor) * c[k]; 
+        c_new[k] = factor * c_yellow[k] + (1-factor) * c_purple[k]; 
       }
       c_new[3] = 1;
 	  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c_new);
