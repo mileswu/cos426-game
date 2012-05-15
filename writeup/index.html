@@ -196,7 +196,8 @@
         <li>With other spheres                      </li>
         Intersection between two spheres is fairly simple. In our case, when spheres hit each other, the bigger one begins to absorb the smaller one, so the check for a collision is just finding the distance between each pair of balls and seeing if this is less than the sum of the radii of the two balls.
 		<li>With powerups (bounding box, visible)   </li>
-		<li>Conservation of mass and momentum</li>
+        <li>Conservation of mass and momentum</li>
+        When something collides and a sphere is absorbed, we do a numerical bisection to solve the radii at which the two spheres are just touching, with mass flowing from one to the other while conserving mass. When we emit a sphere, we also make sure to conserve momentum.
 	</ul>
 </section>
 
@@ -344,7 +345,11 @@
 
 <section class="slide">
    <h2>Computer AI</h2>
-	<h3>Library</h3>
+   <h3>Evil Purple Sphere</h3>
+     <ul>
+       <li>An optional computer AI has two modes.</li>
+       <li>One is to seek the player bubble and try to absorb it.</li>
+       <li>When the player bubble is too far away, the computer AI just tries to absorb nearby small bubbles. </li></ul>
 </section>
 
 <section class="slide">
