@@ -64,6 +64,7 @@
 	<h2>Leon Ho</h2>
 	<h2>Peter Jin</h2>
 	<h2>Miles Wu</h2>
+	<p style="margin-top:30px">Use arrow keys to navigate presentation. Press 'm' to see all slides.</p>
 </section>
 
 <section class="slide">
@@ -273,13 +274,16 @@
 		<li>Each sphere has two cubemap textures and we linearly interpolate between them using GLSL shaders</li>
 		<li>Mixing value is time-dependent</li>
 		<li>Amount of bump mapping is also time-dependent to give complex lighting</li>
+		
 	</ul>
-	<!-- TODO VIDEO -->
-</section>
+	<video src="images/dynamic.webm" loop="loop" autoplay="autoplay">
+	        This is fallback content to display if the browser
+	        does not support the video element.
+	</video></section>
 
 <section class="slide">
    <h2>End-result</h2>
-	<!-- TODO -->
+	<video width=550 src="https://github.com/downloads/mileswu/cos426-game/cos426-game-gameplay.webm" controls />
 </section>
 
 <section class="slide">
@@ -304,15 +308,13 @@
       <li>Level of detail relative to distance  </li>
       Level of detail relative to distance renders the low quality meshes and spheres when they are far from the camera but high quality ones when the camera approaches. When the meshes and spheres are far away, the models are smaller on screen, so the loss of detail is not as noticeable.
 	</ul>
-    <h2>Low Quality</h2>
-    <img style="float: left" src="./images/lowdetail.png" />
-    <h2>High Quality</h2>
-    <img style="float: left" src="./images/highdetail.png" />
-
+    <img style="float: right" src="./images/lod.png" />
+	<p>Notice the green sphere at the bottom left is not very spherical as it is far away. Also the far-away octopus uses a simpler mesh than the close octopus (notice the legs are missing).
+		</p>
 </section>
 
 <section class="slide">
-   <h2>Compataiblity</h2>
+   <h2>Compatibility</h2>
 	<h3>Operating Systems</h3>
 	<ul>
       <li>Windows (cygwin/mingw)</li>
@@ -325,6 +327,14 @@
 	<ul>
 		<li>Some levels of detail are automatically determined if your computer does not support it. In particular, we checked to see if the computer has GLEW_ARB_framebuffer_object and GLEW_ARB_fragment_program before allowing the computer to have shaders and framebuffers.</li>
 	</ul>
+	<div style="float: left">
+    	<img width=250 src="./images/lowdetail.png" />
+		<p> Computer without shaders </p>
+	</div>
+	<div style="float: right">
+    	<img width=250 src="./images/lowdetail.png" />
+		<p> Computer with shaders </p>
+	</div>
 </section>
 
 <section class="slide">
@@ -353,6 +363,29 @@
 	<li>Move around in space                                             </li>
 	<li>Drop normal and AI bubbles of random sizes around in space       </li>
 	<li>Can play level immediately after                                 </li>
+</ul>
+</section>
+
+<section class="slide">
+   <h2>References</h2>
+<h3>Libraries</h3>
+<ul>
+	<li><a href="http://www.sfml-dev.org/">SFML</a>                                             </li>
+	<li><a href="http://glew.sourceforge.net/">GLEW</a>       </li>
+	<li><a href="http://imakewebthings.com/deck.js/">Writeup JS</a></li>
+</ul>
+<h3>Ideas and Tutorials</h3>
+<ul>
+	<li><a href="http://zach.in.tu-clausthal.de/teaching/cg_literatur/glsl_tutorial/">http://zach.in.tu-clausthal.de/teaching/cg_literatur/glsl_tutorial/</a>                               </li>
+	<li><a href="https://github.com/datenwolf/codesamples/blob/master/samples/OpenGL/minimalfbo/minimalfbo.c">hhttps://github.com/datenwolf/codesamples/blob/master/samples/OpenGL/minimalfbo/minimalfbo.c</a>                               </li>
+</ul>
+
+<h3>Art</h3>
+<ul>
+	<li><a href="http://iconbug.com/detail/icon/3297/enter-key/">Enter key</a>            </li>
+	<li>Meshes from COS426            </li>
+</ul>
+
 </section>
 
 <!-- Other extension HTML snippets go here, at the bottom of the deck container. -->
