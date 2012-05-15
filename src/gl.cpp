@@ -491,7 +491,7 @@ void RedrawWindow() {
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
   
-  glViewport(0, 0, 100, 100);
+  glViewport(0, 0, 170, 170);
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
@@ -502,7 +502,17 @@ void RedrawWindow() {
   
   glDisable(GL_DEPTH_TEST);
   
-  DrawFullscreenQuad();
+  glColor4f(0,0,0,0.7);  
+  glBegin(GL_QUADS);
+  glTexCoord2f (0.0, 0.0);
+  glVertex3f (-1.0, -1.0, 0.0);
+  glTexCoord2f (1.0, 0.0);
+  glVertex3f (1.0, -1.0, 0.0);
+  glTexCoord2f (1.0, 1.0);
+  glVertex3f (1.0, 1.0, 0.0);
+  glTexCoord2f (0.0, 1.0);
+  glVertex3f (-1.0, 1.0, 0.0);
+  glEnd();
   world->DrawMinimap();    
   
   glMatrixMode(GL_MODELVIEW);
