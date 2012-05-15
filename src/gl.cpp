@@ -25,7 +25,7 @@ static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_comp
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
-static GLuint world_texture, bubble_texture, particle_sprite, menu_texture, menu_on_texture, menu_off_texture, menu_ball_texture;
+static GLuint world_texture, bubble_texture, particle_sprite, menu_texture, menu_on_texture, menu_off_texture, menu_ball_texture, menu_low_texture, menu_high_texture;
 static int config[6] = {1, 0, 1, 1, 1, 1};
 static int config_pointer = 0;
 static int config_maxpointer = 5;
@@ -127,7 +127,10 @@ void RedrawMenu() {
     glPushMatrix();
     glTranslatef((705.0-512.0)/512.0, -(i-512.0)/512.0, 0.0);
 
-    glBindTexture(GL_TEXTURE_2D, menu_on_texture);
+    if(config_i == 0 || config_i == 4) 
+      glBindTexture(GL_TEXTURE_2D, menu_high_texture);
+    else
+      glBindTexture(GL_TEXTURE_2D, menu_on_texture);
     if(config[config_i] == 0)
       glColor3d(11.0/255.0,1.0,1.0);
     else
@@ -146,7 +149,10 @@ void RedrawMenu() {
     glBindTexture(GL_TEXTURE_2D, 0);
     
     glTranslatef(50.0/512.0, 0, 0.0);
-    glBindTexture(GL_TEXTURE_2D, menu_off_texture);
+    if(config_i == 0 || config_i == 4) 
+      glBindTexture(GL_TEXTURE_2D, menu_low_texture);
+    else
+      glBindTexture(GL_TEXTURE_2D, menu_off_texture);
     if(config[config_i] != 0)
       glColor3d(11.0/255.0,1.0,1.0);
     else
@@ -693,6 +699,8 @@ int CreateGameWindow(int argc, char **argv) {
   LoadTexture("./textures/menu_on.rgb", &menu_on_texture, 32, 32, GL_RGB);
   LoadTexture("./textures/menu_off.rgb", &menu_off_texture, 32, 32, GL_RGB);
   LoadTexture("./textures/menu_ball.rgb", &menu_ball_texture, 64, 64, GL_RGB);
+  LoadTexture("./textures/menu_low.rgb", &menu_low_texture, 32, 32, GL_RGB);
+  LoadTexture("./textures/menu_high.rgb", &menu_high_texture, 32, 32, GL_RGB);
   
   cout << glGetString(GL_VERSION) << endl;
   
@@ -710,6 +718,14 @@ void Reset() {
   view_camera.right = R3Vector(-1, 0, 0);
   view_camera.towards = R3Vector(0,0,1);
   back_camera = view_camera;
+  
+  hasgoodgpu = config[3];
+  world->level_of_detail = config[4];
+  world->trails_enabled = config[5];
+  world->powerups_enabled = config[2];
+  world->num_enemies = config[1];
+  world->num_bubbles = (config[0] == 1 ? 200: 50);
+  world->GenerateLevel();
   
   glutDisplayFunc(RedrawWindow);
   glutKeyboardFunc(KeyboardInput);

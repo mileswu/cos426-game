@@ -73,6 +73,12 @@ class World {
     static double emission_speed;
     static double emission_sizefactor;
     static const double world_size;
+    
+    int level_of_detail;
+    int trails_enabled;
+    int powerups_enabled;
+    int num_enemies;
+    int num_bubbles;
 };
 
 #endif

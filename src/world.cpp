@@ -19,12 +19,15 @@ double World::emission_sizefactor = 0.05;
 const double World::world_size = 50.0;
 
 World::World() {
-  GenerateLevel();
-
   // Initialize time.
   lasttime_updated.tv_sec = 0;
   lasttime_updated.tv_usec = 0;
   world_status = 0;
+  level_of_detail = 1;
+  trails_enabled = 1;
+  powerups_enabled = 1;
+  num_enemies = 0;
+  num_bubbles = 200;
 }
 
 static double rand(double max, int plusminus = 0, double min = 0) {
@@ -66,7 +69,6 @@ void World::GenerateLevel() {
   bubbles.push_back(player);
 
   // Generate dumb NPC bubbles.
-  int num_bubbles = 200;
   for (int i = 0; i < num_bubbles; i++) {
     Bubble *b = new Bubble();
     b->pos = randpoint(30);
@@ -78,7 +80,6 @@ void World::GenerateLevel() {
   }
 
   // TODO peter(5/14) generate enemy bubbles.
-  int num_enemies = 1;
   for (int i = 0; i < num_enemies; i++) {
     Bubble *enemy = new Bubble();
     enemy->pos = randpoint(30);
@@ -98,27 +99,29 @@ void World::GenerateLevel() {
   }
 
   // Generate random powerups.
-  for (unsigned int i = 0; i < bubbles.size() / 10; i++) {
-    int rand_num = floor(rand(5));
-    PowerUpType type;
-    switch (rand_num) {
-    case 0:
-      type = invincible_type;
-      break;
-    case 1:
-      type = small_sink_type;
-      break;
-    case 2:
-      type = sink_type;
-      break;
-    case 3:
-      type = speed_up_type;
-      break;
-    case 4:
-      type = slow_down_type;
-      break;
+  if(powerups_enabled == 1) {
+    for (unsigned int i = 0; i < bubbles.size() / 10; i++) {
+      int rand_num = floor(rand(5));
+      PowerUpType type;
+      switch (rand_num) {
+      case 0:
+        type = invincible_type;
+        break;
+      case 1:
+        type = small_sink_type;
+        break;
+      case 2:
+        type = sink_type;
+        break;
+      case 3:
+        type = speed_up_type;
+        break;
+      case 4:
+        type = slow_down_type;
+        break;
+      }
+      CreatePowerUp(type);
     }
-    CreatePowerUp(type);
   }
 
   // Check level of detail.
@@ -298,56 +301,58 @@ void World::Simulate() {
   lasttime_updated = curtime;
 
   // Based on bubble material, emit particle trail.
-  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
-       it != ie; ++it) {
-    if (!(*it)->material->emits_particles) {
-      continue;
-    }
-    if ((*it)->v.IsZero()) {
-      continue;
-    }
+  if(trails_enabled == 1) {
+    for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
+         it != ie; ++it) {
+      if (!(*it)->material->emits_particles) {
+        continue;
+      }
+      if ((*it)->v.IsZero()) {
+        continue;
+      }
 
-    double idealnumtogen = (*it)->material->particle_rate * timestep;
-    int numtogen = 0;
-    numtogen += idealnumtogen;
+      double idealnumtogen = (*it)->material->particle_rate * timestep;
+      int numtogen = 0;
+      numtogen += idealnumtogen;
 
-    if (rand(1.0) < idealnumtogen-numtogen) {
-      numtogen++;
-    }
+      if (rand(1.0) < idealnumtogen-numtogen) {
+        numtogen++;
+      }
 
-    for (int j = 0; j < numtogen; ++j) {
-      Particle *particle = new Particle();
-      particle->parent = *it;
+      for (int j = 0; j < numtogen; ++j) {
+        Particle *particle = new Particle();
+        particle->parent = *it;
 
-      R3Vector normal = -(*it)->v;
-      normal.Normalize();
-      R3Vector tangentplanevector = normal;
-      tangentplanevector[2] += 1;
-      tangentplanevector[0] += 1;
-      tangentplanevector[1] += 1;
-      tangentplanevector.Cross(normal);
-      tangentplanevector.Normalize();
-      double t1, t2;
-      t1 = rand(2.0*M_PI);
-      t2 = rand(1.0)*sin(M_PI/6.0);
-      R3Vector direction = tangentplanevector;
-      direction.Rotate(normal, t1);
-      R3Vector vcrossn = direction;
-      vcrossn.Cross(normal);
-      direction.Rotate(vcrossn, acos(t2));
-      direction.Normalize();
-      particle->velocity = 1.5*direction;
+        R3Vector normal = -(*it)->v;
+        normal.Normalize();
+        R3Vector tangentplanevector = normal;
+        tangentplanevector[2] += 1;
+        tangentplanevector[0] += 1;
+        tangentplanevector[1] += 1;
+        tangentplanevector.Cross(normal);
+        tangentplanevector.Normalize();
+        double t1, t2;
+        t1 = rand(2.0*M_PI);
+        t2 = rand(1.0)*sin(M_PI/6.0);
+        R3Vector direction = tangentplanevector;
+        direction.Rotate(normal, t1);
+        R3Vector vcrossn = direction;
+        vcrossn.Cross(normal);
+        direction.Rotate(vcrossn, acos(t2));
+        direction.Normalize();
+        particle->velocity = 1.5*direction;
 
-      //printf("emit particle\n");
-      particle->color[0] = (*it)->material->particle_color[0];
-      particle->color[1] = (*it)->material->particle_color[1];
-      particle->color[2] = (*it)->material->particle_color[2];
-      particle->color[3] = (*it)->material->particle_color[3];
-      particle->position = (*it)->pos;
-      particle->lifetime = 2000. + glutGet(GLUT_ELAPSED_TIME);
-      particle->is_point = true;
-      particle->point_size = (*it)->material->particle_size;
-      particles.push_back(particle);
+        //printf("emit particle\n");
+        particle->color[0] = (*it)->material->particle_color[0];
+        particle->color[1] = (*it)->material->particle_color[1];
+        particle->color[2] = (*it)->material->particle_color[2];
+        particle->color[3] = (*it)->material->particle_color[3];
+        particle->position = (*it)->pos;
+        particle->lifetime = 2000. + glutGet(GLUT_ELAPSED_TIME);
+        particle->is_point = true;
+        particle->point_size = (*it)->material->particle_size;
+        particles.push_back(particle);
+      }
     }
   }
 
@@ -731,6 +736,7 @@ public:
 };
 
 void World::DrawTrails(R3Camera camera) {
+  if(trails_enabled == 0) return;
   // Render particle trails. We want to disable lighting so that
   // the trail is always bright and lens-flare-ful.
   glDisable(GL_LIGHTING);
