@@ -14,7 +14,7 @@ using namespace std;
 
 double World::emission_speed = 5.0;
 double World::emission_sizefactor = 0.05;
-const double World::world_size = 50;
+const double World::world_size = 25;
 
 World::World() {
   GenerateLevel();
