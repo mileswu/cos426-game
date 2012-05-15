@@ -95,7 +95,7 @@ void EnemyAI::Idle() {
 
   // Go toward the bubble.
   R3Vector direction;
-  direction = target->pos /*+ 0.5 * target->size * target->v*/ - self->pos;
+  direction = target->pos /*+ 0.3 * target->size * target->v*/ - self->pos;
   direction.Normalize();
 
   // If we're nearly in the right direction, don't change course.
@@ -123,7 +123,7 @@ void EnemyAI::Aggress() {
   delay = 1.0;
 
   // Path toward the target and shoot stuff at it.
-  R3Vector direction = world->bubbles[0]->pos /*+ 0.5 * world->bubbles[0]->size * world->bubbles[0]->v*/ - self->pos;
+  R3Vector direction = world->bubbles[0]->pos /*+ 0.3 * world->bubbles[0]->size * world->bubbles[0]->v*/ - self->pos;
   direction.Normalize();
 
   // If we're nearly in the right direction, don't change course.
