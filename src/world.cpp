@@ -16,7 +16,7 @@ using namespace std;
 
 double World::emission_speed = 5.0;
 double World::emission_sizefactor = 0.05;
-const double World::world_size = 50.0;
+const double World::world_size = 25.0;
 
 World::World() {
   // Initialize time.
@@ -412,7 +412,7 @@ void World::SimulatePowerups() {
   // Random chance for power ups to spawn
   if(powerups_enabled == 1) {
     double random_chance = rand(100);
-    if (random_chance < 1) {
+    if (random_chance < 5) {
       int rand_num = floor(rand(5));
       PowerUpType type;
       switch (rand_num) {
