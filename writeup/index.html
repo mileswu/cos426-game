@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Deck Skeleton</title>
+	<title>3DsmOS</title>
 	<meta name="viewport" content="width=1024, user-scalable=no">
 	
 	<!-- Replace path with correct path to deck.core.css. -->
@@ -69,20 +69,32 @@
 <section class="slide">
    <h2>Inspiration</h2>
    <h3>Osmos</h3>
-	<img src="images/osmos1.jpeg" />
-	<img src="images/osmos2.jpeg" />
+<table>
+	<tr><td style="padding-right: 50px"><a href="http://www.hemispheregames.com/osmos/"><img style="display: inline" width="150px" src="images/osmos1.jpeg" /></a></td>
+	<td><iframe width="420" height="315" src="http://www.youtube.com/embed/pso6UBicLWU" frameborder="0" allowfullscreen></iframe></td></tr>
+</table>
+	<ul>
+		<li>Existing game on PC, iOS and Android</li>
+		<li>iPad game of the year (2010)</li>
+		<li>Recreate in 3D</li>
+	</ul>
 </section>
-
 
 <section class="slide">
    <h2>Gameplay</h2>
    <h3>How to play</h3>
 	<ul>
-	<li>	Sphere in space                          </li>
+	<li>	Player is a sphere in space                          </li>
 	<li>	Move by emitting parts of yourself       </li>
 	<li>	Absorb other spheres smaller than you    </li>
-	<li>	Avoid death by larger spheres            </li>
-	<li>	Hit powerups for interesting effects     </li>
+	<li>	Avoid death by larger spheres absorbing you          </li>
+	<li>	Hit power-ups for interesting effects     </li>
+</ul>
+<h3>Control</h3>
+	<ul>
+	<li>	Two control systems                         </li>
+	<li> Standard: third-person camera using mouse for rotation, always aiming straight ahead </li>
+	<li> Advanced: third-person camera using mouse for rotation, aim can be independently controlled using keyboard</li>
 </ul>
 </section>
 
@@ -94,41 +106,67 @@
 	<li>	On-screen control panel                                  </li>
 	<li>	Collision detection                                      </li>
 	<li>	View frustrum culling                                    </li>
-	<li>	Physics-based (conservation of momentum and mass)        </li>
+	<li>	Physics simulations (conservation of momentum and mass)        </li>
 	<li>	Vertex and fragment shaders                              </li>
 	<li>	Multipass rendering effects                              </li>
 	<li>	Advanced image techniques                                </li>
-	<li>	Level of detail control                                  </li>
-	<li>	Sound (SFML)                                             </li>
+	<li>	Dynamic level of detail control                                  </li>
+	<li>	Sound effects                                            </li>
 	<li>	Game level editor                                        </li>
 </ul>
 </section>
 
 <section class="slide">
    <h2>Texture Mapping</h2>
+	<img style="float: right" src="images/texture.png" />
+
 	<h3>Used where?</h3>
 	<ul>
 		<li>Menu screen</li>
 		<li>Spheres</li>
-		<li>World background</li>
+		<li>World background (the inside of a sphere)</li>
+	</ul>
+	<h3>Cube mapping</h3>
+	<ul>
+		<li>Used for both spheres and world background</li>
+		<li>Six textures corresponding to each face of a cube that is mapped onto the 3D sphere, using the normal vector on the sphere as the mapping</li>
+		<li>Uses GLSL fragment shader and GL_TEXTURE_CUBE_MAP</li>
 	</ul>
 	<h3>Standard OpenGL</h3>
-	<h3>Cube mapping</h3>
-</section>
-
-<section class="slide">
-   <h2>Minimap</h2>
 	<ul>
-		<li>2D view of the world around you, projecting everything onto Z plane</li>
-		<li>color indicates size</li>
-		<li>shape indicates direction on Z axis</li>
+		<li>Used for menu screen</li>
+		<li>Only used for spheres if cube mapping is unavailable (it requires fragment shaders)</li>
 	</ul>
 </section>
 
 <section class="slide">
-   <h2>HUD</h2>
+   <h2>Overlays</h2>
+	<h3>Minimap</h3>
+	<img style="float: right" src="images/minimap.png" />
+
 	<ul>
-		<li>TODO</li>
+		<li>2D view of the world around you, projecting everything onto Z plane</li>
+		<li>Centered on the player</li>
+		<li>Color indicates size of other bubbles relative to the player</li>
+		<li>Triangles indicates whether the bubble is above or below (in Z) relative to the player</li>
+		<li>Size is proportional to the distance to the bubble from the player</li>
+		<li>Very small bubbles and those very far away in Z distance are not shown to make the map clearer</li>
+		<li>Rendered like HUD</li>
+	</ul>
+
+   <h3>HUD</h3>
+	<img style="float: right" src="images/hud.png" />
+
+	<ul>
+		<li>Gives information to player and current game FPS</li>
+		<li>Uses glutBitmapCharacter() to draw characters</li>
+	</ul>
+	
+	<h3>Overlays</h3>
+	<ul>
+		<li>Overlays uses Orthographic Projection (gluOrtho2D)
+			<li>Depth buffer disabled</li>
+			<li>glViewport to restrict rendering region </li>
 	</ul>
 </section>
 
@@ -136,7 +174,9 @@
    <h2>Physics</h2>
 	<h3>Euler Integration</h3>
 	<ul>
-		<li>TODO</li>
+		<li>Used in both the Trail particle system and for the spheres</li>
+		<li>Timestep for integration tied to render framerate</li>
+		<li>Acceleration for powerups</li>
 	</ul>
 	<h3>Collisions</h3>
 	<ul>
