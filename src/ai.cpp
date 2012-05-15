@@ -68,7 +68,7 @@ void EnemyAI::Idle() {
   R3Vector direction;
   direction = closest_bubble->pos - self->pos;
   direction.Normalize();
-  world->EmitAtBubble(self, -direction);
+  world->EmitAtBubble(self, direction);
 }
 
 void EnemyAI::Aggress() {
@@ -88,12 +88,4 @@ void EnemyAI::Aggress() {
   R3Vector direction = target->pos - self->pos;
   direction.Normalize();
   world->EmitAtBubble(self, direction);
-}
-
-void SwarmAI::Idle() {
-  // Silence is golden.
-}
-
-void SwarmAI::Aggress() {
-  // Silence is golden.
 }

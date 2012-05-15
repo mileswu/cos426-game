@@ -293,13 +293,15 @@ void RedrawWindow() {
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   view_camera.CalcPlanes();
   world->Draw(view_camera, bump_shader);
-  
-  if(hasgoodgpu) {
+
+  // Render powerups.
+  if (hasgoodgpu) {
     glUseProgram(0);
     glBindTexture(GL_TEXTURE_2D, 0);
   }
   world->DrawPowerups(view_camera);
-  
+
+  // Render particle trails.
   glBindTexture(GL_TEXTURE_2D, particle_sprite);
   glColor4d(1,1,1,0.1);
   glEnable(GL_POINT_SPRITE);
@@ -311,35 +313,40 @@ void RedrawWindow() {
   glEnd();
   glDisable(GL_POINT_SPRITE);
   glBindTexture(GL_TEXTURE_2D, 0);
-    
-  if(hasgoodgpu) {
+  
+  // Render laser.
+  if (hasgoodgpu) {
     glUseProgram(laser_shader->program);
-  }  
+  }
   R3Point playerpos = world->PlayerPosition();
+  R3Vector playerdir = world->PlayerDirection();
   glLineWidth(3.0);
   glBegin(GL_LINE_STRIP);
   double length = world->PlayerSize() * 3.0;
-  for(double i=0; i<length; i += 0.01) {
+  for (double i=0; i<length; i += 0.01) {
     glColor4d(1,0.5,0.0,1.0 - i/length);
-    glVertex3f(playerpos[0] + back_camera.towards.X()*i, playerpos[1] + back_camera.towards.Y()*i, playerpos[2] + back_camera.towards.Z()*i);
+    //glVertex3f(playerpos[0] + back_camera.towards.X()*i, playerpos[1] + back_camera.towards.Y()*i, playerpos[2] + back_camera.towards.Z()*i);
+    glVertex3f(playerpos[0] + playerdir.X()*i,
+               playerpos[1] + playerdir.Y()*i,
+               playerpos[2] + playerdir.Z()*i);
   }
   glEnd();
   glColor4d(1,1,1,1);
   
-  
-  if(hasgoodgpu) {
+  // Render world sphere.
+  if (hasgoodgpu) {
     glUseProgram(0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, world_texture);
     glUseProgram(world_cubemap_shader->program);
     glUniform1i(glGetUniformLocation(blur_shader_x->program, "tex"), 0);
   }
-  world->DrawWorld();
-  if(hasgoodgpu) {
+  world->DrawWorld(view_camera);
+  if (hasgoodgpu) {
     glUseProgram(0);
     glBindTexture(GL_TEXTURE_2D, 0);
   }
 
-  if(hasgoodgpu) {
+  if (hasgoodgpu) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
     
@@ -526,8 +533,6 @@ void KeyboardInput(unsigned char key, int x, int y) {
   back_camera.towards.Normalize();
   back_camera.up.Normalize();
   back_camera.right.Normalize();
-
-
 }
 
 void KeyboardMenuInput(unsigned char key, int x, int y) {
@@ -568,8 +573,9 @@ void SpecialInput(int key, int x, int y) {
 }
 
 void MouseInput(int button, int state, int x, int y) {
-  if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-    world->Emit(back_camera.towards);
+  if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+    //world->Emit(back_camera.towards);
+    world->Emit(view_camera.towards);
   }
 }
 

@@ -261,6 +261,12 @@ R3Point World::PlayerPosition() {
   return bubbles[0]->pos;
 }
 
+R3Vector World::PlayerDirection() {
+  R3Vector direction = bubbles[0]->v;
+  direction.Normalize();
+  return direction;
+}
+
 double World::PlayerSize() {
   return bubbles[0]->size;
 }
@@ -791,11 +797,12 @@ void World::DrawPowerups(R3Camera camera) {
   glDisable(GL_LIGHTING);
 }
 
-void World::DrawWorld() {
-
+void World::DrawWorld(R3Camera camera) {
   glDisable(GL_LIGHTING);
+  glTranslated(bubbles[0]->pos[0], bubbles[0]->pos[1], bubbles[0]->pos[2]);
   glColor3d(0,0,0);
-  double size = world_size;
+  R3Vector dist = bubbles[0]->pos - camera.eye;
+  double size = world_size * dist.Length();;
   static GLUquadricObj *glu_sphere = gluNewQuadric();
   gluQuadricTexture(glu_sphere, GL_TRUE);
   gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);
