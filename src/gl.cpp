@@ -25,7 +25,7 @@ static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_comp
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
-static GLuint world_texture, bubble_texture, particle_sprite, menu_texture, menu_on_texture, menu_off_texture, menu_ball_texture, menu_low_texture, menu_high_texture;
+static GLuint world_texture, world_texture_2d, bubble_texture, particle_sprite, menu_texture, menu_on_texture, menu_off_texture, menu_ball_texture, menu_low_texture, menu_high_texture;
 static int config[6] = {1, 0, 1, 1, 1, 1};
 static int config_pointer = 0;
 static int config_maxpointer = 5;
@@ -345,13 +345,18 @@ void RedrawWindow() {
     glUseProgram(0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, world_texture);
     glUseProgram(world_cubemap_shader->program);
-    glUniform1i(glGetUniformLocation(blur_shader_x->program, "tex"), 0);
+    glUniform1i(glGetUniformLocation(world_cubemap_shader->program, "tex"), 0);
+  }
+  else {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, world_texture_2d);
   }
   world->DrawWorld(view_camera);
   if (hasgoodgpu) {
     glUseProgram(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
   }
+    glBindTexture(GL_TEXTURE_2D, 0);
+  
 
   if (hasgoodgpu) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -588,6 +593,11 @@ void SpecialMenuInput(int key, int x, int y) {
     if(config_pointer > config_maxpointer) { config_pointer = 0; }
   }
   else if(key == GLUT_KEY_RIGHT || key == GLUT_KEY_LEFT) {
+    if(config_pointer == 3) {
+      if(!GLEW_ARB_framebuffer_object || !GLEW_ARB_fragment_program) {
+        return;
+      }
+    }
     config[config_pointer] = (config[config_pointer]+1)%2;
   }
 }
@@ -730,7 +740,8 @@ int CreateGameWindow(int argc, char **argv) {
   world = NULL;
 
   if(GLEW_ARB_framebuffer_object && GLEW_ARB_fragment_program) { hasgoodgpu = 1;}
-  hasgoodgpu = 0;
+  config[3] = hasgoodgpu;
+  //hasgoodgpu = 0;
   if(hasgoodgpu) {
     direct_render_fbo = new Framebuffer(window_width, window_height);
     processing_fbo1 = new Framebuffer(window_width, window_height);
@@ -746,6 +757,7 @@ int CreateGameWindow(int argc, char **argv) {
     LoadCubemap("./textures/ball.rgb", &bubble_texture, 512, 512);
   }
   
+  LoadTexture("./textures/stars.rgb", &world_texture_2d, 1024, 1024, GL_RGB);
   LoadTexture("./textures/particle.rgba", &particle_sprite, 128, 128, GL_RGBA);
   LoadTexture("./textures/menu.rgb", &menu_texture, 1024, 1024, GL_RGB);
   LoadTexture("./textures/menu_on.rgb", &menu_on_texture, 32, 32, GL_RGB);
