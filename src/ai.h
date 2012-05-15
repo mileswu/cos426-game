@@ -14,14 +14,7 @@ public:
     kNumStates,
   };
 
-  AI()
-    : state(0),
-      delay(1.0),
-      last_action_time(0.0),
-      world(NULL),
-      self(NULL),
-      target(NULL) { }
-  ~AI() { }
+  AI() { state = 0; last_action_time = 0.0; }
 
   // Bubble does whatever bubble is told.
   void ActFromState();

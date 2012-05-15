@@ -28,7 +28,9 @@ void EnemyAI::Idle() {
     state = kAggress;
     return;
   }
+
   state = kIdle;
+  delay = 5.0;
 
   // Find the bubbles that are smaller than us and
   // larger than emitted bubble mass.
@@ -83,7 +85,9 @@ void EnemyAI::Aggress() {
     state = kIdle;
     return;
   }
+
   state = kAggress;
+  delay = 2.0;
 
   // Path toward the target and shoot stuff at it.
   R3Vector direction = target->pos - self->pos;

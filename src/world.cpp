@@ -86,9 +86,6 @@ void World::GenerateLevel() {
 
     // Initialize the AI to target teh player.
     EnemyAI *ai = new EnemyAI();
-    ai->state = 0;
-    ai->delay = 1.0;
-    ai->last_action_time = 0.0;
     ai->world = this;
     ai->self = enemy;
     ai->target = player;
