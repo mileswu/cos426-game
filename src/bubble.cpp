@@ -156,7 +156,16 @@ int Bubble::Collides(Bubble *otherbubble) {
   }
   
   bigger->v = (total_momentum - smaller->Mass() * smaller->v)/bigger->Mass();
-  
+
+  // If either bubble has an AI and one bubble is the other's target,
+  // we need it to change targets pronto.
+  if (ai != NULL && ai->target == otherbubble) {
+    ai->target = NULL;
+  }
+  if (otherbubble->ai != NULL && otherbubble->ai->target == this) {
+    otherbubble->ai->target = NULL;
+  }
+
   return 1;
 }
 
