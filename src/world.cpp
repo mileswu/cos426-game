@@ -610,7 +610,7 @@ void World::Draw(R3Camera camera) {
     // Prevent player occlusion by giving bubbles transparency.
     if ((*it)->player_id != 0) {
       double t = BubbleVectorIntersection(*it, &player_ray);
-      if (t > 0.0 && t < player_dist) {
+      if (t < player_dist) {
         //printf("is transparent\n");
         transparency = true;
         c[0] = c[1] = c[2] = 1.;
@@ -632,8 +632,8 @@ void World::Draw(R3Camera camera) {
 
     // Apply material.
     if (transparency) {
-      //glEnable(GL_BLEND);
-      //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
@@ -644,7 +644,7 @@ void World::Draw(R3Camera camera) {
       (*it)->Draw();
     }
     if (transparency) {
-      //glDisable(GL_BLEND);
+      glDisable(GL_BLEND);
     }
   }
 }
