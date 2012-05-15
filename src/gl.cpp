@@ -447,7 +447,7 @@ void RedrawWindow() {
   glColor3d(1,1,1);
   
 
-  double current_osd_height = window_height-25;
+  double current_osd_height = window_height-50;
   double line_size = 15;
   
   glRasterPos2i(20,current_osd_height);
