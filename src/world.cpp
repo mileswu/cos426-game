@@ -2,6 +2,7 @@
 #include "ai.h"
 #include "bubble.h"
 #include "gl.h"
+#include "shader.h"
 #include <iostream>
 #include <map>
 #include <string>
@@ -9,6 +10,7 @@
 #include <fstream>
 #include <algorithm>
 #include <SFML/Audio.hpp>
+#include <stdio.h>
 
 using namespace std;
 
@@ -140,7 +142,8 @@ static R3Mesh* CreateInvincible() {
 static R3Mesh* CreateSmallSink() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/pear.off");
-  m->Scale(0.01, 0.01, 0.01);
+  m->Scale(0.05, 0.05, 0.05);
+  //m->Translate(0,0,5);
   randTranslate(m);
   return m;
 }
@@ -157,8 +160,8 @@ static R3Mesh* CreateSink() {
 static R3Mesh* CreateSpeedUp() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/heart.off");
-  m->Scale(0.1, 0.1, 0.1);
-  //m->Translate(0,0,3);
+  m->Scale(0.25, 0.25, 0.25);
+  //m->Translate(0,0,10);
   randTranslate(m);
   return m;
 }
@@ -166,7 +169,8 @@ static R3Mesh* CreateSpeedUp() {
 static R3Mesh* CreateSlowDown() {
   R3Mesh* m = new R3Mesh();
   m->Read("./models/Sword01.off");
-  m->Scale(0.001, 0.001, 0.001);
+  m->Scale(0.001, 0.0001, 0.001);
+  //m->Translate(0,0,10);
   randTranslate(m);
   return m;
 }
@@ -179,26 +183,30 @@ void World::CreatePowerUp(PowerUpType type) {
   case invincible_type:
     m = CreateInvincible();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
     break;
   case small_sink_type:
     m = CreateSmallSink();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
     break;
   case sink_type:
     m = CreateSink();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
     break;
   case speed_up_type:
     m = CreateSpeedUp();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
     break;
   case slow_down_type:
     m = CreateSlowDown();
     p.mesh = m;
+	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
     break;
   }
-  p.die_time = glutGet(GLUT_ELAPSED_TIME) + 
-               glutGet(GLUT_ELAPSED_TIME) * rand(30);
+
   power_ups.push_back(p);
 }
 
@@ -309,6 +317,7 @@ void World::Simulate() {
 
     for (int j = 0; j < numtogen; ++j) {
       Particle *particle = new Particle();
+      particle->parent = *it;
 
       R3Vector normal = -(*it)->v;
       normal.Normalize();
@@ -442,12 +451,12 @@ void World::Simulate() {
        it < bubbles.end(); it++) {
     // Update bubble velocities.
     (*it)->v += (*it)->a*timestep;
-    if (player->state == speed_up_state && (*it) != player) {
-      (*it)->v += 100 * R3Vector(1,1,1);
+    if (player->state == speed_up_state && (*it) == player) {
+	  (*it)->v *= 10;
       player->state = reg_state;
       player->effect_end_time = -1;
-    } else if (player->state == slow_down_state && (*it) != player) {
-      (*it)->v -= 20 * R3Vector(1,1,1);
+    } else if (player->state == slow_down_state && (*it) == player) {
+      (*it)->v *= 1;
       player->state = reg_state;
       player->effect_end_time = -1;
     }
@@ -465,11 +474,11 @@ void World::Simulate() {
       break;
     case small_sink_type:
       player->state = small_sink_state;
-      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 2000;
       break;
     case sink_type:
       player->state = sink_state;
-      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 10000;
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
       break;
     case speed_up_type:
       player->state = speed_up_state;
@@ -529,21 +538,24 @@ void World::Simulate() {
       }
     }
   }
-  
+
+  // Check for collisions with the world
   R3Vector normal;
   for (vector<Bubble *>::iterator it = bubbles.begin();
        it < bubbles.end(); it++) {
-      
-      if ((*it)->pos.Vector().Length() > (world_size - (*it)->size)) {
-        normal = (*it)->pos.Vector();
-        normal.Normalize();
-        (*it)->pos = (normal * (world_size - (*it)->size - 0.1)).Point();
-        normal;
-        (*it)->v = 2.0 * ((*it)->v.Dot(normal)) * normal - (*it)->v;
-        (*it)->v.Flip();
-      }
+
+    // Check to see if this position is too close to the wall
+    // Note: world center is (0,0,0)
+    if ((*it)->pos.Vector().Length() > (world_size - (*it)->size)) {
+      normal = (*it)->pos.Vector();
+      normal.Normalize();
+      (*it)->pos = (normal * (world_size - (*it)->size-0.1)).Point();
+      (*it)->v = 2.0 * ((*it)->v.Dot(normal)) * normal - (*it)->v;
+      (*it)->v.Flip();
+
     }
-  
+  }
+
 }
 
 void World::DrawOverlay() {
@@ -571,15 +583,39 @@ void World::DrawOverlay() {
   }
 }
 
-void World::Draw(R3Camera camera) {  
+static double BubbleVectorIntersection(Bubble *b, R3Ray *ray) {
+  R3Point c = b->pos;
+  R3Vector l = c - ray->Start();
+  double tca = l.Dot(ray->Vector());
+  if (tca < 0.0) {
+    return INFINITY;
+  }
+  double r2 = b->size * b->size;
+  double d2 = l.Dot(l) - tca * tca;
+  if (d2 > r2) {
+    return INFINITY;
+  }
+  double thc = sqrt(r2 - d2);
+
+  // The ray parameter t is the 'proper time' with velocity normalized to 1.
+  double t = tca - thc;
+  return t;
+}
+
+void World::Draw(R3Camera camera, Shader *bump_shader) {  
   glEnable(GL_LIGHTING);
   //int light_index = GL_LIGHT0 + 10;
   
   GLfloat c[4];
   double player_size = bubbles[0]->size;
   
+  R3Ray player_ray(camera.eye, bubbles[0]->pos - camera.eye);
+  double player_dist = BubbleVectorIntersection(bubbles[0], &player_ray);
+
   for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
        it != ie; it++) {
+    bool transparency = false;
+
     if ((*it)->player_id == 0) {
       // The player is blue.
       c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
@@ -600,6 +636,17 @@ void World::Draw(R3Camera camera) {
       }
     }
 
+    // Prevent player occlusion by giving bubbles transparency.
+    if ((*it)->player_id != 0) {
+      double t = BubbleVectorIntersection(*it, &player_ray);
+      if (t < player_dist) {
+        //printf("is transparent\n");
+        transparency = true;
+        //c[0] = c[1] = c[2] = 1.;
+        c[3] = 0.4;
+      }
+    }
+
     /* Lighting idea
     if(0) {
     glDisable(light_index);
@@ -611,15 +658,38 @@ void World::Draw(R3Camera camera) {
     glEnable(light_index);
     light_index++;
     }*/
+	
+    GLfloat c_new[4];
+    GLfloat c_yellow[4] = {1, 1, 0, c[3]};
 
     // Apply material.
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+    if ((*it) -> state != reg_state && (*it) == bubbles[0]) {	
+      double cur_time = glutGet(GLUT_ELAPSED_TIME);
+      double factor = (cos(cur_time/10.0) + 1)/2.0;
+      for (unsigned int k = 0; k < 3; k++) {
+        c_new[k] = factor * c_yellow[k] + (1-factor) * c[k]; 
+      }
+      c_new[3] = 1;
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c_new);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c_new);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c_new);
+    } else {
+      glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+    }
     GLfloat shininess = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
+    if (transparency) {
+      glUseProgram(0);
+      glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+    }
     if (InView(camera, (*it)->pos, (*it)->size)) {
       (*it)->Draw();
+    }
+    if (transparency) {
+      glUseProgram(bump_shader->program);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
   }
 }
@@ -691,6 +761,7 @@ void World::DrawPowerups(R3Camera camera) {
 }
 
 void World::DrawWorld() {
+
   glDisable(GL_LIGHTING);
   glColor3d(0,0,0);
   double size = world_size;
@@ -715,10 +786,10 @@ void DrawCircle(double x0, double y0, double size) {
 }
 
 void DrawTriangle(double x0, double y0, double size, int orientation=0) {
-  int nsteps = 16;
+  //int nsteps = 16;
   glNormal3d(0, 0, -1);
   glBegin(GL_POLYGON);
-  if(orientation == 1) {
+  if (orientation == 1) {
     size *= -1;
   }
   glVertex3d(x0, y0+size, 0);
@@ -765,7 +836,7 @@ void World::DrawMinimap() {
     if ((*it)->player_id == 0 || size > 0.1) {
       size = 0.1;
     }
-    int orientation = 0;
+    //int orientation = 0;
     if (fabs(zdist) < 5) {
       DrawCircle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size);
     } else if (zdist < 0) {
