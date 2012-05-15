@@ -61,6 +61,7 @@ class World {
     void PlayMusic(SoundType type);
     
     R3Point PlayerPosition();
+    R3Vector PlayerDirection();
     double PlayerSize();
     std::string PlayerStatus();
     

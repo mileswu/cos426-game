@@ -258,6 +258,12 @@ R3Point World::PlayerPosition() {
   return bubbles[0]->pos;
 }
 
+R3Vector World::PlayerDirection() {
+  R3Vector direction = bubbles[0]->v;
+  direction.Normalize();
+  return direction;
+}
+
 double World::PlayerSize() {
   return bubbles[0]->size;
 }
