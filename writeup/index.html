@@ -140,6 +140,17 @@
 </section>
 
 <section class="slide">
+   <h2>Frustrum Culling</h2>
+   <h3>Used to limit the number of polygons drawn on screen</h3>
+   <h3>Basic Algorithm</h3>
+    <ul>
+      <li>Project planes along the four sides of the camera view</li>
+      <li>Check to see which side of each plane each object lies on</li>
+      <li>If the object is ever on the wrong side of a plane, do not draw it</li>
+	</ul>
+</section>
+
+<section class="slide">
    <h2>Overlays</h2>
 	<h3>Minimap</h3>
 	<img style="float: right" src="images/minimap.png" />
@@ -182,7 +193,9 @@
 	<ul>
 		<li>TODO</li>
 		<li>With the encompassing world sphere      </li>
-		<li>With other spheres                      </li>
+        If the position of a sphere is ever found to be farther from the center of the world than the radius of the world minus the sphere, the sphere collides with the world sphere. Reflections are made specularly, reversing the perpendicular component of the sphere's velocity with respect to the normal of the world sphere at this point. The normal is calculated by casting a vector from the point of the sphere to the center of the world. The positions are also immediately snapped to the inside of the sphere if the current position is found to be outside of the acceptable range.
+        <li>With other spheres                      </li>
+        Intersection between two spheres is fairly simple. In our case, when spheres hit each other, the bigger one begins to absorb the smaller one, so the check for a collision is just finding the distance between each pair of balls and seeing if this is less than the sum of the radii of the two balls.
 		<li>With powerups (bounding box, visible)   </li>
 		<li>Conservation of mass and momentum</li>
 	</ul>
@@ -192,11 +205,22 @@
    <h2>Powerups</h2>
 	<h3>Collisions</h3>
 	<ul>
-		<li>bbox TODO</li>
+		<li>Collisions with Powerups are determined by the collision with the bounding box of the mesh. </li>
+		<li>To calculate the collisons, we test collision of the spehre by creating an effective radius around the box</li>
+		<li>And then we use the calculated effective radius to gauge whether the distance between the center of the sphere 
+		    and the center of the mesh is less than or equal to the radius of the sphere along with the effective radius of the box.</li>
+			<li>If it is, then there is a collision. Else, there is no collision.</li>
 	</ul>
 	<h3>Types</h3>
 	<ul>
-		<li>TODO</li>
+		<li>There are 5 types of PowerUps total.</li>
+		<li>The invincible powerup, denoted by the mushroom, makes your bubble temporarily invincible (i.e. you can absorb bubbles larger than you). 
+		    To implement this I basically had a check in absorbtion code that overrides the player bubble being absorbed and instead the player absorbs the bigger bubble. When power up is active, color will flash between blue and yellow</li>
+		<li>The small sink powerup, denoted by the pear. This powerup attracts all particles around the player bubble that are smaller than it. 
+		    For this I basically change the player bubble to a sink that exerts attractive force on all particles smaller than it. When power up is active, color will flash between blue and lime green.</li>
+		<li>The sink powerup, denoted by the octopus. This power is similar to small sink, except all particles are attracted regardless of size. When power up is active, color will flash between blue and hot pink. </li>
+		<li>The speed up powerup, denoted by the heart. This powerup just make the player bubble go 10 times as fast.</li>
+		<li>The slow down powerup, denoted by the sword. This powerup makes the velocity of the player bubble 0 the moment the player hits it.</li>
 	</ul>
 </section>
 
@@ -264,15 +288,19 @@
 		<li>Ability to have AI or powerups        </li>
 		<li>Turn on or off particle trails        </li>
 	</ul>
+    <img style="float: right" src="./menu.png" />
 </section>
 
 <section class="slide">
    <h2>Level of Detail</h2>
 	<h3>Dynamic LoD</h3>
 	<ul>
-		<li>Level of detail relative to distance  </li>
-		<li>Multiple meshes </li>
-		<li>Sphere segments          </li>
+      <li>Multiple meshes </li>
+      We rendered multiple versions of each of the meshes with varying quality using collapse edges code from a2. Meshes are one of the more computationally consuming parts of the calculations, so having simpler versions of the meshes speeds things up at a cost of the objects looking a bit worse.
+      <li>Sphere segments          </li>
+      Spheres are rendered in OpenGL as polygons with a given number of vertices along the horizontal plane and a number along the vertical plane. By reducing the number of vertices for each sphere, the per-vertex calculations are done much faster.
+      <li>Level of detail relative to distance  </li>
+      Level of detail relative to distance renders the low quality meshes and spheres when they are far from the camera but high quality ones when the camera approaches. When the meshes and spheres are far away, the models are smaller on screen, so the loss of detail is not as noticeable.
 	</ul>
 
 </section>
@@ -295,12 +323,14 @@
    <h2>Sound</h2>
 	<h3>Library</h3>
 	<ul>
-		<li>SFML</li>
+		<li>SFML - Simple and Fast Music Library</li>
 	</ul>
 	<h3>When</h3>
 	<ul>
-		<li>Constant game music                                                       </li>
-		<li>Sound effects upon death and another bubble being completely absorbed     </li>
+      <li>Constant game music - Hello World (2006 Remix)
+      <ul>http://offog.org/music/songs.html</ul></li>
+      <li>Sound effects upon death and another bubble being completely absorbed
+      <ul>http://www.grsites.com/archive/sounds/</ul></li>
 	</ul>
 </section>
 
