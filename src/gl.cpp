@@ -176,7 +176,7 @@ void RedrawWindow() {
   glEnable(GL_MULTISAMPLE);
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   view_camera.CalcPlanes();
-  world->Draw(view_camera);
+  world->Draw(view_camera, bump_shader);
   
   if(hasgoodgpu) {
     glUseProgram(0);

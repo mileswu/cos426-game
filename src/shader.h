@@ -1,3 +1,6 @@
+#ifndef SHADER_H
+#define SHADER_H
+
 #include "gl.h"
 
 class Shader {
@@ -7,3 +10,5 @@ class Shader {
     GLuint vertex;
     GLuint program;
 };
+
+#endif

@@ -2,6 +2,7 @@
 #include "ai.h"
 #include "bubble.h"
 #include "gl.h"
+#include "shader.h"
 #include <iostream>
 #include <map>
 #include <string>
@@ -308,6 +309,7 @@ void World::Simulate() {
 
     for (int j = 0; j < numtogen; ++j) {
       Particle *particle = new Particle();
+      particle->parent = *it;
 
       R3Vector normal = -(*it)->v;
       normal.Normalize();
@@ -574,8 +576,7 @@ static double BubbleVectorIntersection(Bubble *b, R3Ray *ray) {
   return t;
 }
 
-void World::Draw(R3Camera camera) {  
-  bool transparency = false;
+void World::Draw(R3Camera camera, Shader *bump_shader) {  
   glEnable(GL_LIGHTING);
   //int light_index = GL_LIGHT0 + 10;
   
@@ -587,6 +588,8 @@ void World::Draw(R3Camera camera) {
 
   for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
        it != ie; it++) {
+    bool transparency = false;
+
     if ((*it)->player_id == 0) {
       // The player is blue.
       c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
@@ -613,8 +616,8 @@ void World::Draw(R3Camera camera) {
       if (t < player_dist) {
         //printf("is transparent\n");
         transparency = true;
-        c[0] = c[1] = c[2] = 1.;
-        c[3] = 0.25;
+        //c[0] = c[1] = c[2] = 1.;
+        c[3] = 0.4;
       }
     }
 
@@ -631,20 +634,21 @@ void World::Draw(R3Camera camera) {
     }*/
 
     // Apply material.
-    if (transparency) {
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
     GLfloat shininess = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
+    if (transparency) {
+      glUseProgram(0);
+      glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+    }
     if (InView(camera, (*it)->pos, (*it)->size)) {
       (*it)->Draw();
     }
     if (transparency) {
-      glDisable(GL_BLEND);
+      glUseProgram(bump_shader->program);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
   }
 }
