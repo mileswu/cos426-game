@@ -637,7 +637,7 @@ static double BubbleVectorIntersection(Bubble *b, R3Ray *ray) {
   return t;
 }
 
-void World::Draw(R3Camera camera, Shader *bump_shader) {  
+void World::Draw(R3Camera camera, Shader *bump_shader, int occlusion) {  
   glEnable(GL_LIGHTING);
   //int light_index = GL_LIGHT0 + 10;
   
@@ -672,7 +672,7 @@ void World::Draw(R3Camera camera, Shader *bump_shader) {
     }
 
     // Prevent player occlusion by giving bubbles transparency.
-    if ((*it)->player_id != 0) {
+    if (occlusion == 1 && (*it)->player_id != 0) {
       double t = BubbleVectorIntersection(*it, &player_ray);
       if (t < player_dist) {
         //printf("is transparent\n");

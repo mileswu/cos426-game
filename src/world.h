@@ -45,7 +45,7 @@ struct World {
   World();
 
   void DrawMinimap();
-  void Draw(R3Camera camera, Shader *bump_shader);
+  void Draw(R3Camera camera, Shader *bump_shader, int occlusion);
   void DrawTrails(R3Camera camera);
   void DrawWorld(R3Camera camera);
   void DrawOverlay();

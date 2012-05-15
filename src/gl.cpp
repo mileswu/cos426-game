@@ -26,9 +26,10 @@ static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
 static GLuint world_texture, world_texture_2d, bubble_texture, particle_sprite, menu_texture, menu_on_texture, menu_off_texture, menu_ball_texture, menu_low_texture, menu_high_texture;
-static int config[6] = {1, 0, 1, 1, 1, 1};
+static int config[7] = {1, 0, 1, 1, 1, 1, 0};
 static int config_pointer = 0;
-static int config_maxpointer = 5;
+static int config_maxpointer = 6;
+#define ADV_CONTROLS config[6]
 
 void Reset(int status);
 
@@ -122,7 +123,7 @@ void RedrawMenu() {
   glBindTexture(GL_TEXTURE_2D, 0);
   
   int config_i = 0;
-  for(double i=445.0; i<700; i+=44.0) {
+  for(double i=445.0; i<740; i+=44.0) {
     //if(i < 524) continue;
     glPushMatrix();
     glTranslatef((705.0-512.0)/512.0, -(i-512.0)/512.0, 0.0);
@@ -296,10 +297,11 @@ void RedrawWindow() {
   glEnable(GL_MULTISAMPLE);
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   view_camera.CalcPlanes();
+  int occlusion = (ADV_CONTROLS == 1) ? 0 : 1;
   if(hasgoodgpu) {
-    world->Draw(view_camera, bump_shader);
+    world->Draw(view_camera, bump_shader, occlusion);
   } else {
-    world->Draw(view_camera, NULL);
+    world->Draw(view_camera, NULL, occlusion);
   }
 
   // Render powerups.
@@ -333,9 +335,15 @@ void RedrawWindow() {
   for (double i=0; i<length; i += 0.01) {
     glColor4d(1,0.5,0.0,1.0 - i/length);
     //glVertex3f(playerpos[0] + back_camera.towards.X()*i, playerpos[1] + back_camera.towards.Y()*i, playerpos[2] + back_camera.towards.Z()*i);
+    if(ADV_CONTROLS == 1) {
+      glVertex3f(playerpos[0] + back_camera.towards.X()*i,
+                 playerpos[1] + back_camera.towards.Y()*i,
+                 playerpos[2] + back_camera.towards.Z()*i);
+    } else {
     glVertex3f(playerpos[0] + playerdir.X()*i,
                playerpos[1] + playerdir.Y()*i,
                playerpos[2] + playerdir.Z()*i);
+    }
   }
   glEnd();
   glColor4d(1,1,1,1);
@@ -618,8 +626,10 @@ void SpecialInput(int key, int x, int y) {
 
 void MouseInput(int button, int state, int x, int y) {
   if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-    //world->Emit(back_camera.towards);
-    world->Emit(view_camera.towards);
+    if(ADV_CONTROLS == 1)
+      world->Emit(back_camera.towards);
+    else
+      world->Emit(view_camera.towards);
   }
 }
 
