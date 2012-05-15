@@ -902,6 +902,9 @@ void World::DrawMinimap() {
   glDisable(GL_LIGHTING);  
   GLfloat c[4];
   double player_size = bubbles[0]->size;
+  double player_x = bubbles[0] -> pos[0];
+  double player_y = bubbles[0] -> pos[1];
+  
   
   for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
        it != ie; it++) {
@@ -927,8 +930,8 @@ void World::DrawMinimap() {
       }
     }
     c[0] = 0.5;
-    glColor3f(c[0], c[1], c[2]);
-
+	glColor3f(0, 0, 0);
+			
     double zdist = (*it)->pos[2] - bubbles[0]->pos[2];
     double absdist = ((*it)->pos - bubbles[0]->pos).Length();
     double size = 1.5/absdist;
@@ -937,12 +940,26 @@ void World::DrawMinimap() {
       size = 0.1;
     }
     //int orientation = 0;
-    if (fabs(zdist) < 5) {
-      DrawCircle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size);
+	double x_pos = (*it) -> pos[0]/world_size;
+	double x_diff = x_pos - player_x;
+	double y_pos = (*it) -> pos[1]/world_size; 
+	double y_diff = y_pos - player_y;
+	
+	if (fabs(zdist) < 5 && fabs(x_diff) < world_size/2 && fabs(y_diff) < world_size/2) {
+      DrawCircle(x_pos, y_pos, size);
     } else if (zdist < 0) {
-      DrawTriangle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size, 0);
+      DrawTriangle(x_pos, y_pos, size + 0.03, 0);
     } else {
-      DrawTriangle((*it)->pos[0]/50.0, (*it)->pos[1]/50.0, size, 1);
+      DrawTriangle(x_pos, y_pos, size + 0.03, 1);
+    }
+	
+	glColor3f(c[0], c[1], c[2]);
+    if (fabs(zdist) < 5 && fabs(x_diff) < world_size/2 && fabs(y_diff) < world_size/2) {
+      DrawCircle(x_pos, y_pos, size);
+    } else if (zdist < 0) {
+      DrawTriangle(x_pos, y_pos, size, 0);
+    } else {
+      DrawTriangle(x_pos, y_pos, size, 1);
     }
   }
 }
