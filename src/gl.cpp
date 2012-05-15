@@ -193,9 +193,9 @@ void RedrawWindow() {
   world->DrawTrails(view_camera);
   //glVertex3f(0,0,-2);
   glEnd();
+  glDisable(GL_POINT_SPRITE);
   glBindTexture(GL_TEXTURE_2D, 0);
     
-  glPushMatrix();
   if(hasgoodgpu) {
     glUseProgram(laser_shader->program);
   }  
@@ -207,7 +207,8 @@ void RedrawWindow() {
     glColor4d(1,0.5,0.0,1.0 - i/length);
     glVertex3f(playerpos[0] + back_camera.towards.X()*i, playerpos[1] + back_camera.towards.Y()*i, playerpos[2] + back_camera.towards.Z()*i);
   }
-  glEnd();  
+  glEnd();
+  glColor4d(1,1,1,1);
   
   
   if(hasgoodgpu) {
@@ -328,13 +329,10 @@ void RedrawWindow() {
   glPushMatrix();
   glLoadIdentity();
   
-  glPushMatrix();
   glDisable(GL_DEPTH_TEST);
   
   DrawFullscreenQuad();
-  world->DrawMinimap();
-    
-  glPopMatrix();
+  world->DrawMinimap();    
   
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
