@@ -192,13 +192,13 @@
 	</ul>
 	<h3>Collisions</h3>
 	<ul>
-		<li>TODO</li>
 		<li>With the encompassing world sphere      </li>
         If the position of a sphere is ever found to be farther from the center of the world than the radius of the world minus the sphere, the sphere collides with the world sphere. Reflections are made specularly, reversing the perpendicular component of the sphere's velocity with respect to the normal of the world sphere at this point. The normal is calculated by casting a vector from the point of the sphere to the center of the world. The positions are also immediately snapped to the inside of the sphere if the current position is found to be outside of the acceptable range.
         <li>With other spheres                      </li>
         Intersection between two spheres is fairly simple. In our case, when spheres hit each other, the bigger one begins to absorb the smaller one, so the check for a collision is just finding the distance between each pair of balls and seeing if this is less than the sum of the radii of the two balls.
 		<li>With powerups (bounding box, visible)   </li>
-		<li>Conservation of mass and momentum</li>
+        <li>Conservation of mass and momentum</li>
+        When something collides and a sphere is absorbed, we do a numerical bisection to solve the radii at which the two spheres are just touching, with mass flowing from one to the other while conserving mass. When we emit a sphere, we also make sure to conserve momentum.
 	</ul>
 </section>
 
@@ -288,13 +288,23 @@
 
 <section class="slide">
    <h2>Start Menu</h2>
+    <img width=550 style="float: right" src="./images/menu.png" />
 	<ul>
-		<li>Quality settings and effects          </li>
-		<li>High or low count of spheres          </li>
-		<li>Ability to have AI or powerups        </li>
-		<li>Turn on or off particle trails        </li>
+		<li>Quality settings and effects
+		    <ul>
+			   <li> Advanced Shaders: Turn the advance shaders off and use only the basic OpenGL graphics </li>
+			   <li> Particle Trails: Turn the emission of particles behind the player particle on/off.</li>
+			   <li> Dynamic Level of Detail: Toggle whether the objects further away from the player bubble would have fewer details.</li>
+			</ul> 		
+		</li>
+		<li>Bubble Density - Depending on user input, create either fewer number of bubbles or a high amount of bubbles</li>
+		<li>Ability to have AI or powerups      
+			<ul>
+				<li>AI: Include an "enemy bubble" that chases the player bubble inside the game.</li>
+                <li>Powerups: Turn the spawning of Powerups on or off</li>
+            </ul>				
+		</li>
 	</ul>
-    <img style="float: right" src="./images/menu.png" />
 </section>
 
 <section class="slide">
@@ -321,7 +331,8 @@
       Windows requires the algorithm library, and because of its lack of time library, we used glut's time library. We had to change SFML by including certain dlls from MinGW for it to work in cygwin. 
       <li>Mac OS X</li>
       Installing SFML for OS X is very simple using the release candidate installer. The Makefile is also slightly different as OS X 
-		<li>Linux</li>
+      <li>Linux</li>
+      Linux users need to install SFML RC 2.0 from the website. No other major compatibility issues seemed to arise.
 	</ul>
 	<h3>Hardware</h3>
 	<ul>
@@ -345,24 +356,27 @@
 	</ul>
 	<h3>When</h3>
 	<ul>
-      <li>Constant game music - Hello World (2006 Remix)
-      <ul>http://offog.org/music/songs.html</ul></li>
+      <li>Constant game music - Hello World (2006 Remix) </li>
+      <ul><li>http://offog.org/music/songs.html</li></ul>
       <li>Sound effects upon death and another bubble being completely absorbed
-      <ul>http://www.grsites.com/archive/sounds/</ul></li>
+      <ul><li>http://www.grsites.com/archive/sounds/</li></ul>
 	</ul>
 </section>
 
 <section class="slide">
    <h2>Computer AI</h2>
-	<h3>Library</h3>
-</section>
-
-<section class="slide">
+   <h3>Evil Purple Sphere</h3>
+     <ul>
+       <li>An optional computer AI has two modes.</li>
+       <li>One is to seek the player bubble and try to absorb it.</li>
+       <li>When the player bubble is too far away, the computer AI just tries to absorb nearby small bubbles. </li></ul>
+	   
    <h2>Level Editor</h2>
+   <h3>Play it your own way!</h3>
 <ul>
-	<li>Move around in space                                             </li>
-	<li>Drop normal and AI bubbles of random sizes around in space       </li>
-	<li>Can play level immediately after                                 </li>
+		<li>In the menu, pressing E will go into the level editor mode.</li>
+		<li>In this mode, you move forward by pressing the W key and back by pressing the S. Pressing E stops the set up bubble. Press Enter to play the level</li> 
+		<li>Left clicking in this mode creates an "enemy" bubble, and right clicking creates a regular bubble that is randomly sized at the position where the click was made.</li>
 </ul>
 </section>
 
@@ -385,6 +399,7 @@
 	<li><a href="http://iconbug.com/detail/icon/3297/enter-key/">Enter key</a>            </li>
 	<li>Meshes from COS426            </li>
 </ul>
+
 
 </section>
 
