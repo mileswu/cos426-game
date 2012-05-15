@@ -460,23 +460,23 @@ void World::Simulate() {
     switch (type) {
     case invincible_type:
       player->state = invincible_state;
-      player->effect_end_time = 1.5 * glutGet(GLUT_ELAPSED_TIME);
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
       break;
     case small_sink_type:
       player->state = small_sink_state;
-      player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
       break;
     case sink_type:
       player->state = sink_state;
-      player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 10000;
       break;
     case speed_up_type:
       player->state = speed_up_state;
-      player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 1000;
       break;
     case slow_down_type:
       player->state = slow_down_state;
-      player->effect_end_time = 2 * glutGet(GLUT_ELAPSED_TIME);
+      player->effect_end_time = glutGet(GLUT_ELAPSED_TIME) + 1000;
       break;
     }
     RemovePowerUp(j);
