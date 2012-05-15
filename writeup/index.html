@@ -285,10 +285,20 @@
 <section class="slide">
    <h2>Start Menu</h2>
 	<ul>
-		<li>Quality settings and effects          </li>
-		<li>High or low count of spheres          </li>
-		<li>Ability to have AI or powerups        </li>
-		<li>Turn on or off particle trails        </li>
+		<li>Quality settings and effects
+		    <ul>
+			   <li> Advanced Shaders: Turn the advance shaders off and use only the basic OpenGL graphics </li>
+			   <li> Particle Trails: Turn the emission of particles behind the player particle on/off.</li>
+			   <li> Dynamic Level of Detail: Toggle whether the objects further away from the player bubble would have fewer details.</li>
+			</ul> 		
+		</li>
+		<li>Bubble Density - Depending on user input, create either fewer number of bubbles or a high amount of bubbles</li>
+		<li>Ability to have AI or powerups      
+			<ul>
+				<li>AI: Include an "enemy bubble" that chases the player bubble inside the game.</li>
+                <li>Powerups: Turn the spawning of Powerups on or off</li>
+            </ul>				
+		</li>
 	</ul>
     <img style="float: right" src="./images/menu.png" />
 </section>
@@ -350,9 +360,9 @@
 <section class="slide">
    <h2>Level Editor</h2>
 <ul>
-	<li>Move around in space                                             </li>
-	<li>Drop normal and AI bubbles of random sizes around in space       </li>
-	<li>Can play level immediately after                                 </li>
+	<li>In the menu, pressing E will go into the level editor mode.</li>
+	<li>In this mode, you move forward by pressing the W key and back by pressing the S. Pressing E stops the set up bubble.</li> 
+	<li>Left clicking in this mode creates an "enemy" bubble, and right clicking creates a regular bubble that is randomly sized at the position where the click was made.</li>
 </section>
 
 <!-- Other extension HTML snippets go here, at the bottom of the deck container. -->
