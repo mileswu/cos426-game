@@ -739,7 +739,8 @@ void World::Draw(R3Camera camera, Shader *bump_shader) {
     GLfloat shininess = 75;
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
     if (transparency) {
-      glUseProgram(0);
+      if(bump_shader != NULL)
+        glUseProgram(0);
       glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
     }
     if (InView(camera, (*it)->pos, (*it)->size)) {
@@ -749,7 +750,8 @@ void World::Draw(R3Camera camera, Shader *bump_shader) {
         (*it)->Draw(1);
     }
     if (transparency) {
-      glUseProgram(bump_shader->program);
+      if(bump_shader != NULL)
+        glUseProgram(bump_shader->program);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
   }

@@ -296,7 +296,11 @@ void RedrawWindow() {
   glEnable(GL_MULTISAMPLE);
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   view_camera.CalcPlanes();
-  world->Draw(view_camera, bump_shader);
+  if(hasgoodgpu) {
+    world->Draw(view_camera, bump_shader);
+  } else {
+    world->Draw(view_camera, NULL);
+  }
 
   // Render powerups.
   if (hasgoodgpu) {
@@ -726,7 +730,7 @@ int CreateGameWindow(int argc, char **argv) {
   world = NULL;
 
   if(GLEW_ARB_framebuffer_object && GLEW_ARB_fragment_program) { hasgoodgpu = 1;}
-  //hasgoodgpu = 0;
+  hasgoodgpu = 0;
   if(hasgoodgpu) {
     direct_render_fbo = new Framebuffer(window_width, window_height);
     processing_fbo1 = new Framebuffer(window_width, window_height);
