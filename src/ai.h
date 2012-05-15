@@ -16,7 +16,8 @@ public:
 
   AI()
     : state(0),
-      rate(0.0),
+      delay(1.0),
+      last_action_time(0.0),
       world(NULL),
       self(NULL),
       target(NULL) { }
@@ -29,7 +30,8 @@ public:
   virtual void Aggress() = 0;
 
   int state;
-  double rate;
+  double delay;
+  double last_action_time;
   World *world;
   Bubble *self;
   Bubble *target;

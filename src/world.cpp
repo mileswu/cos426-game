@@ -86,7 +86,9 @@ void World::GenerateLevel() {
 
     // Initialize the AI to target teh player.
     EnemyAI *ai = new EnemyAI();
-    ai->rate = 25;
+    ai->state = 0;
+    ai->delay = 1.0;
+    ai->last_action_time = 0.0;
     ai->world = this;
     ai->self = enemy;
     ai->target = player;
@@ -347,14 +349,10 @@ void World::Simulate() {
       continue;
     }
 
-    // Calculate the action rate.
-    double ideal_ai_calcs = (*it)->ai->rate * timestep;
-    int ai_calcs = 0;
-    ai_calcs += ideal_ai_calcs;
-
-    // Shoot.
-    if (ai_calcs > 0) {
+    // Make an action after a set delay.
+    if (curr_time - (*it)->ai->last_action_time > (*it)->ai->delay) {
       (*it)->ai->ActFromState();
+      (*it)->ai->last_action_time = curr_time;
     }
   }
 

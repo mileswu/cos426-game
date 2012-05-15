@@ -9,9 +9,7 @@ void AI::ActFromState() {
   //printf("AI working\n");
   switch (state) {
   case kIdle:     Idle();     break;
-  //case kSeek:     Seek();     break;
   case kAggress:  Aggress();  break;
-  //case kAvoid:    Avoid();    break;
   default:                    return;
   }
 }
@@ -72,11 +70,11 @@ void EnemyAI::Idle() {
   //current_a.Normalize();
   //current_v = self->v;
   //current_v.Normalize();
-  direction = self->pos - closest_bubble->pos;
+  direction = closest_bubble->pos - self->pos;
   direction.Normalize();
   //a = d - a - v;
   //a.Normalize();
-  world->EmitAtBubble(self, direction);
+  world->EmitAtBubble(self, -direction);
 }
 
 void EnemyAI::Aggress() {
@@ -88,7 +86,7 @@ void EnemyAI::Aggress() {
   state = kAggress;
 
   // Path toward the target and shoot stuff at it.
-  R3Vector direction = self->pos - target->pos;
+  R3Vector direction = target->pos - self->pos;
   direction.Normalize();
   world->EmitAtBubble(self, direction);
 }
