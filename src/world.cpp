@@ -743,27 +743,51 @@ public:
 
 void World::DrawTrails(R3Camera camera) {
   if(trails_enabled == 0) return;
+  if(particles.size() == 0) return;
+  
   // Render particle trails. We want to disable lighting so that
   // the trail is always bright and lens-flare-ful.
   glDisable(GL_LIGHTING);
   sort(particles.begin(), particles.end(), Sorter(camera));
+  
+  GLfloat *colors = (GLfloat *)malloc(particles.size()*4*sizeof(float));
+  GLfloat *positions = (GLfloat *)malloc(particles.size()*3*sizeof(float));
+  
+  double size = particles[0]->point_size;
+  int count = 0;
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
       if (!InView(camera, (*it)->position, (*it)->point_size)) {
         continue;
       }
-      glPointSize((*it)->point_size);
-      glBegin(GL_POINTS);
-      GLfloat *c = (*it)->color;
+      
+      GLfloat *c = &(colors[count*4]);
+      c[0] = (*it)->color[0]; c[1] = (*it)->color[1]; c[2] = (*it)->color[2]; 
       c[3] = ((*it)->lifetime - glutGet(GLUT_ELAPSED_TIME))/2000.0;
-      glColor4d(c[0], c[1], c[2], c[3]);
-      glVertex3f((*it)->position[0], (*it)->position[1], (*it)->position[2]);
-      glEnd();
+      
+      GLfloat *p = &(positions[count*3]);
+      p[0] = (*it)->position[0]; p[1] = (*it)->position[1]; p[2] = (*it)->position[2];
+      
+      count++;
+      
     } else {
       // FIXME peter custom textured particles?
     }
   }
+  if(count != 0) {
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glPointSize(size);
+    glVertexPointer(3, GL_FLOAT, 3*sizeof(float), positions);
+    glColorPointer(4, GL_FLOAT, 4*sizeof(float), colors);
+    glDrawArrays(GL_POINTS, 0, count);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+  }
+  free(colors);
+  free(positions);
 }
 
 void World::DrawPowerups(R3Camera camera) {

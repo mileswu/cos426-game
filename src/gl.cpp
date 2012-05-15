@@ -310,7 +310,6 @@ void RedrawWindow() {
   //glBegin(GL_POINTS);
   world->DrawTrails(view_camera);
   //glVertex3f(0,0,-2);
-  glEnd();
   glDisable(GL_POINT_SPRITE);
   glBindTexture(GL_TEXTURE_2D, 0);
   
