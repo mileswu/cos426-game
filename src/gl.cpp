@@ -25,7 +25,7 @@ static Shader *blur_shader_x, *blur_shader_y, *bloom_preblur_shader, *bloom_comp
 static double frame_rendertimes[100];
 static int frame_rendertimes_i = 0;
 static int hasgoodgpu = 0;
-static GLuint world_texture, bubble_texture, particle_sprite;
+static GLuint world_texture, bubble_texture, particle_sprite, menu_texture, menu_on_texture, menu_off_texture;
 
 void DrawFullscreenQuad() {
   glDisable(GL_DEPTH_TEST);
