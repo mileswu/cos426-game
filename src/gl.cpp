@@ -807,7 +807,7 @@ void Reset(int status) {
   world->trails_enabled = config[5];
   world->powerups_enabled = config[2];
   world->num_enemies = config[1];
-  world->num_bubbles = (config[0] == 1 ? 200: 50);
+  world->num_bubbles = (config[0] == 1 ? 400: 100);
   world->world_status = status;
 
   if (status == -1) {
