@@ -495,13 +495,20 @@ void RedrawWindow() {
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
+
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  //DrawFullscreenQuad();
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
   
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
   
   glDisable(GL_DEPTH_TEST);
-  
   glColor4f(0,0,0,0.7);  
   glBegin(GL_QUADS);
   glTexCoord2f (0.0, 0.0);
@@ -513,6 +520,11 @@ void RedrawWindow() {
   glTexCoord2f (0.0, 1.0);
   glVertex3f (-1.0, 1.0, 0.0);
   glEnd();
+  
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
   world->DrawMinimap();    
   
   glMatrixMode(GL_MODELVIEW);
