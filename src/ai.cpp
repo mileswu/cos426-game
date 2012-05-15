@@ -23,9 +23,13 @@ void NullAI::Aggress() {
 }
 
 void EnemyAI::Idle() {
-  // If we're bigger than the player, enter attack mode.
-  if (self->Mass() > world->bubbles[0]->Mass()) {
+  // If we're bigger than the player, plus with the needed
+  // mass to get to the player, then enter attack mode.
+  double fuel = self->Mass() * World::emission_sizefactor
+                             / (1.0 - World::emission_sizefactor);
+  if (self->Mass() > world->bubbles[0]->Mass() + fuel) {
     state = kAggress;
+    delay = 1.0;
     return;
   }
 
@@ -81,8 +85,11 @@ void EnemyAI::Idle() {
 
 void EnemyAI::Aggress() {
   // If we're smaller than the player, enter idle mode.
-  if (self->Mass() < target->Mass()) {
+  double fuel = self->Mass() * World::emission_sizefactor
+                             / (1.0 - World::emission_sizefactor);
+  if (self->Mass() < target->Mass() + fuel) {
     state = kIdle;
+    delay = 1.0;
     return;
   }
 

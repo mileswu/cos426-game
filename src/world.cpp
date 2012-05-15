@@ -658,7 +658,7 @@ void World::Draw(R3Camera camera, Shader *bump_shader) {
     glEnable(light_index);
     light_index++;
     }*/
-	
+
     GLfloat c_new[4];
     GLfloat c_yellow[4] = {1, 1, 0, c[3]};
 
