@@ -244,6 +244,9 @@ void RedrawWindow() {
   R3Vector cameradisplacement_after = world->PlayerPosition() - view_camera.eye;
   R3Vector back_cameradisplacement_after = world->PlayerPosition() - back_camera.eye;
   view_camera.eye.Translate(cameradisplacement_after - cameradisplacement_before);
+  if((view_camera.eye - world->PlayerPosition()).Length() < (world->PlayerSize()*1.1)) {
+    view_camera.eye.Translate(view_camera.towards* ((view_camera.eye - world->PlayerPosition()).Length() - (world->PlayerSize()*1.1))    );
+  }
   back_camera.eye.Translate(back_cameradisplacement_after - back_cameradisplacement_before);
   view_camera.Load(window_width, window_height);
 
