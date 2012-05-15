@@ -49,13 +49,6 @@ static R3Vector randvector(double max, double min = 0) {
   }
 }
 
-static void randTranslate(R3Mesh* m) {
-  int rand_x = floor(rand(2));
-  int rand_y = floor(rand(2));
-  int rand_z = floor(rand(2));
-  m->Translate(rand(30, rand_x, 0), rand(30, rand_y, 0), rand(30, rand_z, 0));
-}
-
 static R3Point randpoint(double max, double min = 0) {
   return randvector(max, min).Point();
 }
@@ -124,92 +117,80 @@ void World::GenerateLevel() {
     }
   }
 
-  // Check level of detail.
-  //for (unsigned int i = 0; i < power_ups.size(); i++) {
-  //  power_ups[i].mesh -> CollapseShortEdges(0.4);
-  //  power_ups[i].mesh -> CollapseShortEdges(10000);
-  //  power_ups[i].mesh -> CollapseShortEdges(10000);
-  //  power_ups[i].mesh -> CollapseShortEdges(10000);
-  //}
 }
 
-static R3Mesh* CreateInvincible() {
-  R3Mesh* m = new R3Mesh();
-  m->Read("./models/mushroom.off");
-  m->Scale(1, 1, 1);
-  //m-> Translate(0,0,10);
-  randTranslate(m);
-  return m;
-}
-
-static R3Mesh* CreateSmallSink() {
-  R3Mesh* m = new R3Mesh();
-  m->Read("./models/pear.off");
-  m->Scale(0.05, 0.05, 0.05);
-  //m->Translate(0,0,3);
-  randTranslate(m);
-  return m;
-}
-
-static R3Mesh* CreateSink() {
-  R3Mesh* m = new R3Mesh();
-  m->Read("./models/octopus.off");
-  m->Scale(0.05, 0.05, 0.05);
-  //m->Translate(0,0,7);
-  randTranslate(m);
-  return m;
-}
-
-static R3Mesh* CreateSpeedUp() {
-  R3Mesh* m = new R3Mesh();
-  m->Read("./models/heart.off");
-  m->Scale(0.25, 0.25, 0.25);
-  //m->Translate(0,0,10);
-  randTranslate(m);
-  return m;
-}
-
-static R3Mesh* CreateSlowDown() {
-  R3Mesh* m = new R3Mesh();
-  m->Read("./models/Sword01.off");
-  m->Scale(0.001, 0.0001, 0.001);
-  //m->Translate(0,0,10);
-  randTranslate(m);
-  return m;
+void World::LoadMeshes() {
+  invincible_mesh[0] = new R3Mesh();
+  invincible_mesh[0]->Read("./models/mushroom.off");
+  invincible_mesh[0]->Scale(1, 1, 1);
+  invincible_mesh[1] = new R3Mesh();
+  invincible_mesh[1]->Read("./models/lowmushroom.off");
+  invincible_mesh[1]->Scale(1, 1, 1);
+  
+  smallsink_mesh[0] = new R3Mesh();
+  smallsink_mesh[0]->Read("./models/pear.off");
+  smallsink_mesh[0]->Scale(0.05, 0.05, 0.05);
+  smallsink_mesh[1] = new R3Mesh();
+  smallsink_mesh[1]->Read("./models/lowpear.off");
+  smallsink_mesh[1]->Scale(0.05, 0.05, 0.05);
+  
+  sink_mesh[0] = new R3Mesh();
+  sink_mesh[0]->Read("./models/octopus.off");
+  sink_mesh[0]->Scale(0.05, 0.05, 0.05);
+  sink_mesh[1] = new R3Mesh();
+  sink_mesh[1]->Read("./models/lowoctopus.off");
+  sink_mesh[1]->Scale(0.05, 0.05, 0.05);
+  
+  speedup_mesh[0] = new R3Mesh();
+  speedup_mesh[0]->Read("./models/heart.off");
+  speedup_mesh[0]->Scale(0.25, 0.25, 0.25);
+  speedup_mesh[1] = new R3Mesh();
+  speedup_mesh[1]->Read("./models/lowheart.off");
+  speedup_mesh[1]->Scale(0.25, 0.25, 0.25);
+  
+  slowdown_mesh[0] = new R3Mesh();
+  slowdown_mesh[0]->Read("./models/Sword01.off");
+  slowdown_mesh[0]->Scale(0.001, 0.001, 0.001);
+  slowdown_mesh[1] = new R3Mesh();
+  slowdown_mesh[1]->Read("./models/lowSword01.off");
+  slowdown_mesh[1]->Scale(0.001, 0.001, 0.001);
 }
 
 void World::CreatePowerUp(PowerUpType type) {
-  R3Mesh* m;
   PowerUpShape p;
   p.type = type;
   switch (type) {
   case invincible_type:
-    m = CreateInvincible();
-    p.mesh = m;
+    p.mesh[0] = invincible_mesh[0];
+    p.mesh[1] = invincible_mesh[0];
 	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
     break;
   case small_sink_type:
-    m = CreateSmallSink();
-    p.mesh = m;
+  p.mesh[0] = smallsink_mesh[0];
+  p.mesh[1] = smallsink_mesh[1];
 	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 5000;
     break;
   case sink_type:
-    m = CreateSink();
-    p.mesh = m;
+  p.mesh[0] = sink_mesh[0];
+  p.mesh[1] = sink_mesh[1];
 	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
     break;
   case speed_up_type:
-    m = CreateSpeedUp();
-    p.mesh = m;
-	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
+  p.mesh[0] = speedup_mesh[0];
+  p.mesh[1] = speedup_mesh[1];
+  p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
     break;
   case slow_down_type:
-    m = CreateSlowDown();
-    p.mesh = m;
-	p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
+  p.mesh[0] = slowdown_mesh[0];
+  p.mesh[1] = slowdown_mesh[1];
+  p.die_time = glutGet(GLUT_ELAPSED_TIME) + 15000;
     break;
   }
-
+  int rand_x = floor(rand(2));
+  int rand_y = floor(rand(2));
+  int rand_z = floor(rand(2));
+  p.Center = R3Point(rand(30, rand_x, 0), rand(30, rand_y, 0), rand(30, rand_z, 0));
+  
   power_ups.push_back(p);
 }
 
@@ -474,7 +455,7 @@ void World::Simulate() {
   }
 
   for (unsigned int j = 0; j < power_ups.size(); j++) {
-    if (!player->Collides(power_ups[j].mesh)) {
+    if (!player->Collides(power_ups[j].mesh[0], power_ups[j].Center.Vector())) {
       continue;
     }
     PowerUpType type = power_ups[j].type;
@@ -721,7 +702,10 @@ void World::Draw(R3Camera camera, Shader *bump_shader) {
       glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
     }
     if (InView(camera, (*it)->pos, (*it)->size)) {
-      (*it)->Draw();
+      if(  ((*it)->pos - camera.eye).Length() < 20  )
+        (*it)->Draw(0);
+      else
+        (*it)->Draw(1);
     }
     if (transparency) {
       glUseProgram(bump_shader->program);
@@ -798,8 +782,8 @@ void World::DrawPowerups(R3Camera camera) {
   GLfloat c_yellow[4] = {1, 1, 0, 1};
 
   for (unsigned int i = 0; i < power_ups.size(); i++){
-    R3Point center = power_ups[i].mesh->Center();
-    double radius = power_ups[i].mesh->Radius();
+    R3Point center = power_ups[i].Center;
+    double radius = power_ups[i].mesh[0]->Radius();
     if (InView(camera, center, radius)) {
       double cur_time = glutGet(GLUT_ELAPSED_TIME);
       double factor = (cos(cur_time/10.0) + 1)/2.0;
@@ -810,12 +794,20 @@ void World::DrawPowerups(R3Camera camera) {
       glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
       glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
-
-      power_ups[i].mesh->Draw();
+      
+      glPushMatrix();
+      glTranslated(power_ups[i].Center[0], power_ups[i].Center[1], power_ups[i].Center[2]);
+      
+      // Level of Detail
+      if((power_ups[i].Center - camera.eye).Length() < 30)
+        power_ups[i].mesh[0]->Draw();
+      else
+        power_ups[i].mesh[1]->Draw();
 
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      power_ups[i].mesh->bbox.Draw();
+      power_ups[i].mesh[0]->bbox.Draw();
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glPopMatrix();
     }
   }
   glDisable(GL_LIGHTING);

@@ -714,6 +714,8 @@ void Reset() {
   if(world != NULL)
     delete world;
   world = new World();
+  world->LoadMeshes();
+  
   view_camera.eye = R3Point(0,0,-4);
   view_camera.yfov = 0.8;
   view_camera.xfov = 0.8;

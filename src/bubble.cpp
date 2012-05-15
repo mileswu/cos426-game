@@ -74,10 +74,10 @@ void Bubble::SetSizeFromMass(double mass) {
   size = pow(3.0*mass/4.0/M_PI/density, 1.0/3.0);
 }
 
-int Bubble::Collides(R3Mesh* mesh) {
+int Bubble::Collides(R3Mesh* mesh, R3Vector offset) {
   R3Box box = mesh -> bbox;
 
-  R3Vector SepAxis = pos - box.Centroid();
+  R3Vector SepAxis = pos - (box.Centroid() + offset);
 
   double dist = SepAxis.Length();
   SepAxis.Normalize();
@@ -169,7 +169,7 @@ int Bubble::Collides(Bubble *otherbubble) {
   return 1;
 }
 
-void Bubble::Draw() {
+void Bubble::Draw(int lod = 0) {
   // Draw the bubble itself.
   glPushMatrix();
   glTranslated(pos[0], pos[1], pos[2]);
@@ -177,6 +177,9 @@ void Bubble::Draw() {
   gluQuadricTexture(glu_sphere, GL_TRUE);
   gluQuadricNormals(glu_sphere, (GLenum) GLU_SMOOTH);
   gluQuadricDrawStyle(glu_sphere, (GLenum) GLU_FILL);
-  gluSphere(glu_sphere, size, 32, 32);
+  if(lod == 0)
+    gluSphere(glu_sphere, size, 32, 32);
+  else
+    gluSphere(glu_sphere, size, 6, 6);
   glPopMatrix();
 }

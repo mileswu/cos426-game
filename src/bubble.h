@@ -29,12 +29,12 @@ class Bubble {
     Bubble();
     ~Bubble();
     
-    void Draw();
+    void Draw(int lod);
 
     double Mass();
     void SetSizeFromMass(double mass);
     int Collides(Bubble *otherbubble);
-		int Collides(R3Mesh* mesh);
+		int Collides(R3Mesh* mesh, R3Vector offset);
 
     R3Point pos;
     R3Vector v;

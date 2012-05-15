@@ -27,7 +27,8 @@ typedef enum {
 struct PowerUpShape {
   PowerUpType type;
   double die_time;
-  R3Mesh *mesh;
+  R3Mesh *mesh[2];
+  R3Point Center;
 };
 
 struct Particle {
@@ -53,6 +54,7 @@ class World {
     void CreatePowerUp(PowerUpType type);
     void RemovePowerUp(int index);
 
+    void LoadMeshes();
     void GenerateLevel();
     void Simulate();
     void EmitAtBubble(Bubble *b, R3Vector direction);
@@ -80,6 +82,13 @@ class World {
     int powerups_enabled;
     int num_enemies;
     int num_bubbles;
+    
+    R3Mesh *invincible_mesh[2];
+    R3Mesh *smallsink_mesh[2];
+    R3Mesh *sink_mesh[2];
+    R3Mesh *speedup_mesh[2];
+    R3Mesh *slowdown_mesh[2];
+    
 };
 
 #endif
