@@ -56,31 +56,45 @@ static R3Point randpoint(double max, double min = 0) {
 }
 
 void World::GenerateLevel() {
-  Bubble *b, *player;
-
   // Generate player bubble.
-  b = new Bubble();
-  b->player_id = 0;
-  b->material = &Bubble::player_material;
-  //b->ai = NULL;
-  bubbles.push_back(b);
-  player = b;
+  Bubble *player = new Bubble();
+  player->size = 1.3;
+  player->player_id = 0;
+  player->material = &Bubble::player_material;
+  bubbles.push_back(player);
 
   // Generate dumb NPC bubbles.
-  for (int i = 0; i < 200; i++) {
-    b = new Bubble();
+  int num_bubbles = 200;
+  for (int i = 0; i < num_bubbles; i++) {
+    Bubble *b = new Bubble();
     b->pos = randpoint(30);
     b->v = randvector(0.1);
     b->size = rand(1.2, 0.1);
     b->player_id = -1;
+    b->material = &Bubble::neutral_material;
     bubbles.push_back(b);
   }
 
   // TODO peter(5/14) generate enemy bubbles.
-  EnemyAI *enemy = new EnemyAI();
-  enemy->world = this;
-  enemy->self = NULL;
-  enemy->target = player;
+  int num_enemies = 1;
+  for (int i = 0; i < num_enemies; i++) {
+    Bubble *enemy = new Bubble();
+    enemy->pos = randpoint(30);
+    enemy->v = R3null_vector;
+    enemy->size = 1.5;
+    enemy->player_id = 1 + i;
+    enemy->material = &Bubble::enemy_material;
+
+    // Initialize the AI to target teh player.
+    EnemyAI *ai = new EnemyAI();
+    ai->rate = 0;
+    ai->world = this;
+    ai->self = enemy;
+    ai->target = player;
+    enemy->ai = ai;
+  
+    bubbles.push_back(enemy);
+  }
 
   // Generate random powerups.
   for (unsigned int i = 0; i < bubbles.size() / 10; i++) {
@@ -327,7 +341,25 @@ void World::Simulate() {
     }
   }
 
-  //check if powerups mesh die
+  // Perform AI action depending on the AI thinking rate.
+  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
+       it != ie; ++it) {
+    if (NULL == (*it)->ai) {
+      continue;
+    }
+
+    // Calculate the action rate.
+    double ideal_ai_calcs = (*it)->ai->rate * timestep;
+    int ai_calcs = 0;
+    ai_calcs += ideal_ai_calcs;
+
+    // Shoot.
+    if (0 < ai_calcs) {
+      (*it)->ai->ActFromState();
+    }
+  }
+
+  // Check if powerups mesh die
   for (unsigned int i = 0; i < power_ups.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
     if (cur_time > power_ups[i].die_time) {
@@ -336,7 +368,7 @@ void World::Simulate() {
     }
   }
 
-  //check if powerup effect time already expired
+  // Check if powerup effect time already expired
   for (unsigned int i = 0; i < bubbles.size(); i++) {
     double cur_time = glutGet(GLUT_ELAPSED_TIME);
     if (cur_time > bubbles[i]->effect_end_time &&
@@ -346,7 +378,7 @@ void World::Simulate() {
     }
   }
 
-  //random chance for power ups to spawn
+  // Random chance for power ups to spawn
   double random_chance = rand(100);
   if (random_chance < 1) {
     int rand_num = floor(rand(5));
@@ -534,21 +566,28 @@ void World::Draw(R3Camera camera) {
   GLfloat c[4];
   double player_size = bubbles[0]->size;
   
-  for (vector<Bubble *>::iterator it = bubbles.begin();
-       it < bubbles.end(); it++) {
+  for (vector<Bubble *>::iterator it = bubbles.begin(), ie = bubbles.end();
+       it != ie; it++) {
     if ((*it)->player_id == 0) {
+      // The player is blue.
       c[0] = 0; c[1] = 0; c[2] = 1; c[3] = 1;
+    } else if ((*it)->player_id == 1) {
+      // The enemy is a sickly magenta color.
+      c[0] = 1; c[1] = 0; c[2] = 1; c[3] = 1;
     } else {
+      // The neutrals range from green to red depending on their size
+      // relative to the player's.
       double s = (*it)->size;
-      if(s < 0.8*player_size) {
+      if (s < 0.8*player_size) {
         c[0] = 0; c[1] = 1; c[2] = 0; c[3] = 1;
-      } else if(s > 1.2*player_size) {
+      } else if (s > 1.2*player_size) {
         c[0] = 1; c[1] = 0; c[2] = 0; c[3] = 1;
       } else {
         double f = (s - 0.8*player_size)/(0.4*player_size);
         c[0] = f; c[1] = 1-f; c[2] = 0; c[3] = 1;
       }
     }
+
     /* Lighting idea
     if(0) {
     glDisable(light_index);
@@ -560,13 +599,14 @@ void World::Draw(R3Camera camera) {
     glEnable(light_index);
     light_index++;
     }*/
-    
+
+    // Apply material.
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
-    GLfloat shininess[1]; shininess[0] = 75;
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
-    if (inView(camera, (*it)->pos, (*it)->size)) {
+    GLfloat shininess = 75;
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shininess);
+    if (InView(camera, (*it)->pos, (*it)->size)) {
       (*it)->Draw();
     }
   }
@@ -584,7 +624,6 @@ public:
 };
 
 void World::DrawTrails(R3Camera camera) {
-
   // Render particle trails. We want to disable lighting so that
   // the trail is always bright and lens-flare-ful.
   glDisable(GL_LIGHTING);
@@ -592,19 +631,18 @@ void World::DrawTrails(R3Camera camera) {
   for (vector<Particle *>::iterator it = particles.begin(),
        ie = particles.end(); it != ie; ++it) {
     if ((*it)->is_point) {
-      if (!inView(camera, (*it)->position, (*it)->point_size)) {
+      if (!InView(camera, (*it)->position, (*it)->point_size)) {
         continue;
       }
       glPointSize((*it)->point_size);
       glBegin(GL_POINTS);
-      // FIXME peter fix the color
       GLfloat *c = (*it)->color;
       c[3] = ((*it)->lifetime - glutGet(GLUT_ELAPSED_TIME))/2000.0;
       glColor4d(c[0], c[1], c[2], c[3]);
       glVertex3f((*it)->position[0], (*it)->position[1], (*it)->position[2]);
       glEnd();
     } else {
-      // FIXME peter textured particles
+      // FIXME peter custom textured particles?
     }
   }
 }
@@ -619,7 +657,7 @@ void World::DrawPowerups(R3Camera camera) {
   for (unsigned int i = 0; i < power_ups.size(); i++){
     R3Point center = power_ups[i].mesh->Center();
     double radius = power_ups[i].mesh->Radius();
-    if (inView(camera, center, radius)) {
+    if (InView(camera, center, radius)) {
       double cur_time = glutGet(GLUT_ELAPSED_TIME);
       double factor = (cos(cur_time/10.0) + 1)/2.0;
       for (unsigned int k = 0; k < 3; k++) {
@@ -724,7 +762,7 @@ void World::DrawMinimap() {
   }
 }
 
-bool World::inView(R3Camera camera, R3Point pos, double radius) {
+bool World::InView(R3Camera camera, R3Point pos, double radius) {
   double dist;
   dist = R3SignedDistance(camera.right_plane, pos);
   if (dist > 0 && !(fabs(dist) < radius)) return false;

@@ -24,13 +24,13 @@ BubbleMaterial Bubble::player_material = {
 BubbleMaterial Bubble::neutral_material = {
   {0, 1, 0, 1},
   false,
-  3000,
-  5,
+  0,
+  0,
   {25.0/255.0, 220.0/255.0, 250.0/255.0, 1},
 };
 
 BubbleMaterial Bubble::enemy_material = {
-  {1, 0, 0, 1},
+  {1, 1, 0, 1},
   true,
   3000,
   5,
