@@ -70,6 +70,7 @@ class World {
 
     static double emission_speed;
     static double emission_sizefactor;
+    static const double world_size;
 };
 
 #endif
