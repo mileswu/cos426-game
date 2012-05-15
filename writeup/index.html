@@ -201,23 +201,54 @@
 </section>
 
 <section class="slide">
-   <h2>Lighting</h2>
+   <h2>Lighting Effects (shaders)</h2>
+	<img style="float: right" width="400px" src="images/bloom.png" />
+
+   <h3>Lighting</h3>
 	<ul>
-		<li>Vertex and fragment shaders      </li>
-		<li>Bump mapping                     </li>
-		<li>Multipass rendering, compositing </li>
-		<li>Bloom                            </li>
-		<!-- TODO -->
+		<li>Two directional lights</li>
+		<li>Per-pixel lighting in a GLSL shader
+		<ul>	
+			<li>Linear interpolation between vertices</li>
+			<li>Phong model</li>
+		</ul>
+		<li>Bump mapping in a GLSL shader</li>
+		<ul>
+			<li>Sinusodial bumps affect the normals at each pixel, providing 3D surface texture</li>
+		</ul>
+		
+	</ul>
+	<h3>Post-processing effects (multipass, compositing)</h3>
+	<ul>
+		<li>Bloom (bright colors bleeds out)                           </li>
+		<ul>
+			<li>Scene is rendered to a off-screen framebuffer (FBO)</li>
+			<li>FBO is filtered using a GLSL shader to only keep bright parts of the image (linear ramp)</li>
+			<li>FBO is then filtered using a GLSL shader to Gaussian blur in the x direction</li>
+			<li>FBO is then filtered using a GLSL shader to Gaussian blur in the y direction</li>
+			<li>FBO is then copied to display, and the scene rendered again on top of it</li>
+		</ul>
+		<li>Gaussian blur weights precomputed using ruby script (1dgaussian.rb) for speed with 40 samples in each direction</li>
 	</ul>
 </section>
 
 <section class="slide">
    <h2>Advanced Image Techniques</h2>
-	<ul><!-- TODO -->
-	
-		<li>Billboarded sprites in particle trails </li>
-		<li>Blending images for animated textures  </li>
+	<h3>Particle Trails</h3>
+	<img style="float: right" width="200px" src="images/trails.png" />
+	<ul>	
+		<li>Billboarded 2D-textured sprites for speed </li>
+		<li>Emits 3000 particles per second, each with a lifetime of two seconds</li>
+		<li>Alpha blending (value depends on amount of lifetime left)</li>
+		<li>Due to alpha, particles are sorted and drawn in reverse depth-order</li>
 	</ul>
+	<h3>Dynamic Textures (time-varying)</h3>
+	<ul>
+		<li>Each sphere has two cubemap textures and we linearly interpolate between them using GLSL shaders</li>
+		<li>Mixing value is time-dependent</li>
+		<li>Amount of bump mapping is also time-dependent to give complex lighting</li>
+	</ul>
+	<!-- TODO VIDEO -->
 </section>
 
 <section class="slide">
